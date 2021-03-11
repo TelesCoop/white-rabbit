@@ -4,4 +4,5 @@ django-debug-toolbar==3.2
 getconf==1.10.0
 icalendar==4.0.7
 ipython==7.21.0
+jours-feries-france==0.7.0
 rollbar==0.15.2

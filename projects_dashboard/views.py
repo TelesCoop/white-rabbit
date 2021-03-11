@@ -1,9 +1,10 @@
 from itertools import groupby
 from datetime import date, timedelta
+
 from django.shortcuts import render
 from django.views import View
-from .events import read_events
-import requests
+from .events import get_events_by_url
+from jours_feries_france import JoursFeries
 
 
 def state_of_days(events: list, start_date: date, end_date):
@@ -50,13 +51,29 @@ def time_per_project(events: list):
     return result
 
 
+def available_time_of_employee(employee, start_date: date, end_date: date):
+    events = get_events_by_url(employee.calendar_ical_url)
+    events_per_day = {k: list(g) for k, g in groupby(events, lambda x: x["day"])}
+    delta = end_date - start_date
+    availability_duration = 0
+
+    for i in range(delta.days + 1):
+        day = start_date + timedelta(days=i)
+        # for weekend and bank holiday
+        if day.weekday() >= 5 or JoursFeries.is_bank_holiday(day, zone="Métropole"):
+            continue
+
+        busy_duration = sum(event["duration"] for event in events_per_day.get(day, []))
+        availability_duration += max(employee.availability_per_day - busy_duration, 0)
+
+    return availability_duration
+
+
 class HomeView(View):
     def get(self, request):
         # <view logic>
         url = "https://calendar.google.com/calendar/ical/0rn9t0elkuafqm6401rossmd8g%40group.calendar.google.com/public/basic.ics"
-        r = requests.get(url)
-        data = r.content.decode()
-        events = read_events(data)
+        events = get_events_by_url(url)
         result = {
             "time_per_project": time_per_project(events),
             "state_of_days": state_of_days(

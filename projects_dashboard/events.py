@@ -1,4 +1,5 @@
 import datetime
+import requests
 
 from icalendar import Calendar
 
@@ -29,3 +30,9 @@ def read_events(calendar_data: str):
             start = start_of_day(start + datetime.timedelta(days=1))
 
     return events
+
+
+def get_events_by_url(url: str):
+    r = requests.get(url)
+    data = r.content.decode()
+    return read_events(data)

@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class TimeStampedModel(models.Model):
@@ -18,3 +19,6 @@ class TimeStampedModel(models.Model):
 class Employee(models.Model):
     name = models.CharField(max_length=20)
     calendar_ical_url = models.CharField(max_length=150)
+    availability_per_day = models.IntegerField(
+        default=8, validators=[MinValueValidator(0), MaxValueValidator(24)]
+    )
