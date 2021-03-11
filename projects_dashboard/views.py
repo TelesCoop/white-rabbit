@@ -18,10 +18,16 @@ EventsPerEmployee = Dict[Employee, List[Event]]
 
 
 def group_events_by_day(events: List[Event]) -> Dict[datetime.date, List[Event]]:
+    """Returns a dict day -> events for day."""
     return {k: list(g) for k, g in groupby(events, lambda x: x["day"])}
 
 
 def events_per_day(events: List[Event], start_date: date, end_date: date):
+    """
+    Returns a dict day -> events for day for each day from start date to end
+    date (included).
+    Days without events are included.
+    """
     delta = end_date - start_date
     events = [event for event in events if start_date <= event["day"] <= end_date]
     events_per_day = group_events_by_day(events)
@@ -35,6 +41,7 @@ def events_per_day(events: List[Event], start_date: date, end_date: date):
 
 
 def state_of_day(events: List[Event]) -> str:
+    """Returns the state of a day as a string."""
     if not events:
         return "empty"
     total_duration = sum(event["duration"] for event in events)
@@ -53,6 +60,10 @@ def state_of_days(events: List[Event], start_date: date, end_date: date):
 def state_of_days_per_employee(
     events_per_employee: EventsPerEmployee, start_date: date, end_date: date
 ) -> Dict[datetime.date, Dict[str, str]]:
+    """
+    Returns a dict date -> (employee -> state of day) for each
+    combination, including days without events.
+    """
     to_return: Dict[datetime.date, Dict[str, str]] = defaultdict(lambda: defaultdict())
     for employee, employee_events in events_per_employee.items():
         per_day_events = events_per_day(employee_events, start_date, end_date)
@@ -94,6 +105,7 @@ def time_per_project(events_per_employee: EventsPerEmployee):
 def available_time_of_employee(
     employee, events: List[Event], start_date: date, end_date: date
 ):
+    """Returns the number of working days that are available for an employee."""
     events_per_day = group_events_by_day(events)
     availability_duration = 0
 
