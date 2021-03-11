@@ -1,3 +1,74 @@
-{{events}}
-<br>
-{{result}}
+{% extends "base.html" %}
+
+{% block content %}
+    <h1 class="title is-1">Lapin Blanc</h1>
+
+    <h2 class="title is-2">Temps total par projet</h2>
+    <table class="table">
+        <tr>
+            <th>Projet</th>
+            <th>Jours-hommes</th>
+        </tr>
+        {% for project, time in time_per_project.items %}
+            <tr>
+                <td>{{ project }}</td>
+                <td>{{ time | floatformat }}</td>
+            </tr>
+        {% endfor %}
+
+    </table>
+
+    <h2 class="title is-2">Semaine en cours</h2>
+
+    <table class="table">
+        <tr>
+            <th>Jour</th>
+            <th>État</th>
+        </tr>
+        {% for day, day_data in curent_week_state.items %}
+            <tr>
+                <td>{{ day | date }}</td>
+                <td class="content">
+                    <ul>
+                        {% for employee, state in day_data.items %}
+                            <li>{{ employee }}: {{ state }}</li>
+                        {% endfor %}
+                    </ul>
+
+                </td>
+            </tr>
+        {% endfor %}
+
+    </table>
+
+    <h2 class="title is-2">Dispo prochaines</h2>
+    <h3 class="title is-3">Semaine prochaine</h3>
+    <table class="table">
+        <tr>
+            <th>nom</th>
+            <th>dispo</th>
+        </tr>
+
+        {% for employee, availability in next_week_availability.items %}
+            <tr>
+                <td>{{ employee }}</td>
+                <td>{{ availability | floatformat }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <h3 class="title is-3">Mois prochain</h3>
+    <table class="table">
+        <tr>
+            <th>nom</th>
+            <th>dispo</th>
+        </tr>
+
+        {% for employee, availability in next_month_availability.items %}
+            <tr>
+                <td>{{ employee }}</td>
+                <td>{{ availability | floatformat }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

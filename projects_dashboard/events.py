@@ -1,4 +1,6 @@
 import datetime
+from typing import List, TypedDict
+
 import requests
 
 from icalendar import Calendar
@@ -6,9 +8,15 @@ from icalendar import Calendar
 from projects_dashboard.utils import start_of_day
 
 
-def read_events(calendar_data: str):
+class Event(TypedDict):
+    name: str
+    duration: float
+    day: datetime.date
+
+
+def read_events(calendar_data: str) -> List[Event]:
     cal = Calendar().from_ical(calendar_data)
-    events = []
+    events: List[Event] = []
     for event in cal.walk():
         if event.name != "VEVENT":
             continue
@@ -29,10 +37,10 @@ def read_events(calendar_data: str):
             )
             start = start_of_day(start + datetime.timedelta(days=1))
 
-    return events
+    return sorted(events, key=lambda event: event["day"])
 
 
-def get_events_by_url(url: str):
+def get_events_by_url(url: str) -> List[Event]:
     r = requests.get(url)
     data = r.content.decode()
     return read_events(data)
