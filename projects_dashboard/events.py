@@ -15,6 +15,7 @@ class Event(TypedDict):
 
 
 def read_events(calendar_data: str) -> List[Event]:
+    """Read events from an ical calendar and returns them as a list."""
     cal = Calendar().from_ical(calendar_data)
     events: List[Event] = []
     for event in cal.walk():
@@ -41,6 +42,7 @@ def read_events(calendar_data: str) -> List[Event]:
 
 
 def get_events_by_url(url: str) -> List[Event]:
+    """Read events from an ical calendar available at given URL."""
     r = requests.get(url)
     data = r.content.decode()
     return read_events(data)
