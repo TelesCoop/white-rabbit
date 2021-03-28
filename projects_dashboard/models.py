@@ -25,6 +25,7 @@ class Employee(models.Model):
     availability_per_day = models.IntegerField(
         default=8, validators=[MinValueValidator(0), MaxValueValidator(24)]
     )
+    email = models.EmailField(null=True, blank=True)
 
     def __str__(self):
         return self.name

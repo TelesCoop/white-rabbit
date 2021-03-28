@@ -1,0 +1,19 @@
+<h1>Lapin Blanc</h1>
+<em>En retard, toujours en retard</em>
+
+<p>
+    Bonjour,
+</p>
+<p>
+    Ceci est un message automatique de Lapin Blanc pour te rappeler que tu n'as pas rempli certains jours cette semaine.
+    Voici les jours en question
+</p>
+<ul>
+    {% for day, state in days %}
+        <li>{{ day | date:'l j F' }}: {{ state }}</li>
+    {% endfor %}
+</ul>
+<p>
+    Bonne journée ! <br>
+    Lapin Blanc
+</p>

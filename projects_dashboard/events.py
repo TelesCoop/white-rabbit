@@ -1,10 +1,13 @@
 import datetime
-from typing import List, TypedDict
+from datetime import date, timedelta
+from itertools import groupby
+from typing import List, TypedDict, Dict, Iterable
 
 import requests
 
 from icalendar import Calendar
 
+from projects_dashboard.models import Employee
 from projects_dashboard.utils import start_of_day
 
 
@@ -12,6 +15,9 @@ class Event(TypedDict):
     name: str
     duration: float
     day: datetime.date
+
+
+EventsPerEmployee = Dict[Employee, List[Event]]
 
 
 def read_events(calendar_data: str) -> List[Event]:
@@ -46,3 +52,37 @@ def get_events_by_url(url: str) -> List[Event]:
     r = requests.get(url)
     data = r.content.decode()
     return read_events(data)
+
+
+def get_all_events_per_employee(
+    employees: Iterable[Employee] = None,
+) -> EventsPerEmployee:
+    if employees is None:
+        employees = Employee.objects.all()
+    return {
+        employee: get_events_by_url(employee.calendar_ical_url)
+        for employee in employees
+    }
+
+
+def events_per_day(events: List[Event], start_date: date, end_date: date):
+    """
+    Returns a dict day -> events for day for each day from start date to end
+    date (included).
+    Days without events are included.
+    """
+    delta = end_date - start_date
+    events = [event for event in events if start_date <= event["day"] <= end_date]
+    events_per_day = group_events_by_day(events)
+
+    for i in range(delta.days + 1):
+        day = start_date + timedelta(days=i)
+        if day not in events_per_day:
+            events_per_day[day] = []
+
+    return events_per_day
+
+
+def group_events_by_day(events: List[Event]) -> Dict[datetime.date, List[Event]]:
+    """Returns a dict day -> events for day."""
+    return {k: list(g) for k, g in groupby(events, lambda x: x["day"])}

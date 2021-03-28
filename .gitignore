@@ -5,3 +5,4 @@ __pycache__
 *.sqlite3-journal
 .DS_Store
 .ipynb_checkpoints
+html2text==2020.1.16
