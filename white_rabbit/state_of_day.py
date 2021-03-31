@@ -3,8 +3,8 @@ from collections import defaultdict
 from datetime import date
 from typing import Dict, List
 
-from projects_dashboard.constants import DayState, MIN_WORKING_HOURS_FOR_FULL_DAY
-from projects_dashboard.events import Event, EventsPerEmployee, events_per_day
+from white_rabbit.constants import DayState, MIN_WORKING_HOURS_FOR_FULL_DAY
+from white_rabbit.events import Event, EventsPerEmployee, events_per_day
 
 
 def state_of_days_per_employee(

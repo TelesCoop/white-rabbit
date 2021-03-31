@@ -1,5 +1,5 @@
 """
-WSGI config for projects_dashboard project.
+WSGI config for white_rabbit project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "projects_dashboard.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "white_rabbit.settings")
 
 application = get_wsgi_application()

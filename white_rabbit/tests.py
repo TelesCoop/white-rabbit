@@ -1,10 +1,10 @@
 from django.test import TestCase
 
-from projects_dashboard.constants import (
+from white_rabbit.constants import (
     MIN_WORKING_HOURS_FOR_FULL_DAY,
     DEFAULT_DAY_WORKING_HOURS,
 )
-from projects_dashboard.views import day_distribution
+from white_rabbit.views import day_distribution
 
 
 class DayDistributionTestCase(TestCase):

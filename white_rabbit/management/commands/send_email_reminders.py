@@ -6,10 +6,10 @@ from django.core.mail import send_mail
 from django.core.management import BaseCommand
 from django.template.loader import render_to_string
 
-from projects_dashboard.constants import DayState
-from projects_dashboard.events import get_all_events_per_employee
-from projects_dashboard.models import Employee
-from projects_dashboard.state_of_day import state_of_days_per_employee_for_week
+from white_rabbit.constants import DayState
+from white_rabbit.events import get_all_events_per_employee
+from white_rabbit.models import Employee
+from white_rabbit.state_of_day import state_of_days_per_employee_for_week
 
 
 class Command(BaseCommand):

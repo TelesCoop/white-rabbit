@@ -7,8 +7,8 @@ import requests
 
 from icalendar import Calendar
 
-from projects_dashboard.models import Employee
-from projects_dashboard.utils import start_of_day
+from white_rabbit.models import Employee
+from white_rabbit.utils import start_of_day
 
 
 class Event(TypedDict):

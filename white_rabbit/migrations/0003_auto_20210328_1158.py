@@ -12,12 +12,12 @@ EMPLOYEES = [
 
 
 def add_employees(apps, schema_editor):
-    Employee = apps.get_model("projects_dashboard", "Employee")
+    Employee = apps.get_model("white_rabbit", "Employee")
     for name, url in EMPLOYEES:
         Employee.objects.create(name=name, calendar_ical_url=url, email=f"{name.lower()}@telescoop.fr")
 
 def undo_add_employees(apps, schema_editor):
-    Employee = apps.get_model("projects_dashboard", "Employee")
+    Employee = apps.get_model("white_rabbit", "Employee")
     for name, _ in EMPLOYEES:
         Employee.objects.get(name=name).delete()
 
@@ -25,7 +25,7 @@ def undo_add_employees(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('projects_dashboard', '0002_auto_20210328_1157'),
+        ('white_rabbit', '0002_auto_20210328_1157'),
     ]
 
     operations = [
