@@ -1,3 +1,3 @@
 # Lapin Blanc
 
-documentation à venir
+documentation à venir !
