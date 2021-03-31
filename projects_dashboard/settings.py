@@ -57,6 +57,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
+    "rollbar.contrib.django.middleware.RollbarNotifierMiddleware",
 ]
 
 ROOT_URLCONF = "projects_dashboard.urls"
@@ -131,3 +132,13 @@ STATIC_URL = "/static/"
 
 # EMAIL
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+if not IS_LOCAL_DEV:
+    ROLLBAR = {
+        "access_token": "0009e4c34f6944dfb998246538f82830",
+        "environment": "development" if DEBUG else "production",
+        "root": BASE_DIR,
+    }
+    import rollbar
+
+    rollbar.init(**ROLLBAR)

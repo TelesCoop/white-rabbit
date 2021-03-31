@@ -6,3 +6,4 @@ icalendar==4.0.7
 ipython==7.21.0
 jours-feries-france==0.7.0
 rollbar==0.15.2
+rollbar==0.15.2
