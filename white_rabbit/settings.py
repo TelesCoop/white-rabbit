@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 config = getconf.ConfigGetter(
     "myproj",
-    ["local_settings.conf", "/etc/telescoop/white-rabbit/backend-settings.conf"],
+    ["local_settings.conf", "/etc/telescoop/white-rabbit/backend-settings.ini"],
 )
 
 IS_LOCAL_DEV = bool(os.environ.get("TELESCOOP_DEV"))
