@@ -31,8 +31,8 @@ if IS_LOCAL_DEV:
     SECRET_KEY = "9cang=0bgw9jfnroblq6rv%7kk$s-6*%^7t^(e08nrqj-dj@#6"
     ALLOWED_HOSTS = []
 else:
-    SECRET_KEY = config.getstr("secret_key")
-    ALLOWED_HOSTS = config.getlist("allowed_hosts")
+    SECRET_KEY = config.getstr("security.secret_key")
+    ALLOWED_HOSTS = config.getlist("security.allowed_hosts")
 
 
 # Application definition
