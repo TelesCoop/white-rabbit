@@ -144,3 +144,12 @@ if not IS_LOCAL_DEV:
     import rollbar
 
     rollbar.init(**ROLLBAR)
+
+    ANYMAIL = {
+        "MAILGUN_API_KEY": config.getstr("mail.api_key"),
+        "MAILGUN_SENDER_DOMAIN": "mail.telescoop.fr",
+        "MAILGUN_API_URL": "https://api.eu.mailgun.net/v3",
+    }
+    EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
+    DEFAULT_FROM_EMAIL = "no-reply@telescoop.fr"
+    SERVER_EMAIL = "no-reply@telescoop.fr"
