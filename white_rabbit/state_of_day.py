@@ -1,24 +1,27 @@
 import datetime
 from collections import defaultdict
 from datetime import date
-from typing import Dict, List
+from typing import Dict, List, Any
 
 from white_rabbit.constants import DayState, MIN_WORKING_HOURS_FOR_FULL_DAY
 from white_rabbit.events import Event, EventsPerEmployee, events_per_day
+from white_rabbit.models import Employee
 
 
 def state_of_days_per_employee(
     events_per_employee: EventsPerEmployee, start_date: date, end_date: date
-) -> Dict[datetime.date, Dict[str, str]]:
+) -> Dict[datetime.date, Dict[Employee, Dict[str, Any]]]:
     """
     Returns a dict date -> (employee -> state of day) for each
     combination, including days without events.
     """
-    to_return: Dict[datetime.date, Dict[str, str]] = defaultdict(lambda: defaultdict())
+    to_return: Dict[datetime.date, Dict[Employee, Dict[str, Any]]] = defaultdict(
+        lambda: defaultdict()
+    )
     for employee, employee_events in events_per_employee.items():
         per_day_events = events_per_day(employee_events, start_date, end_date)
         for day, events in per_day_events.items():
-            to_return[day][employee] = state_of_day(events)
+            to_return[day][employee] = {"state": state_of_day(events), "events": events}
 
     return dict(to_return)
 

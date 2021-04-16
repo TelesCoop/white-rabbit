@@ -30,8 +30,16 @@
                 <td>{{ day | date }}</td>
                 <td class="content">
                     <ul>
-                        {% for employee, state in day_data.items %}
-                            <li>{{ employee }}: {{ state }}</li>
+                        {% for employee, data in day_data.items %}
+                            <li>
+                                {% if data.state == 'complete' %}<span style="color: green">✔</span>{% endif %}
+                                {% if data.state == 'incomplete' %}<span style="color: orange">❌</span>{% endif %}
+                                {% if data.state == 'empty' %}<span style="color: red">❌</span>{% endif %}
+                                {{ employee }}:
+                                {% for event in data.events %}
+                                    {{ event.name }}{% if not forloop.last %},{% endif %}
+                                {% endfor %}
+                            </li>
                         {% endfor %}
                     </ul>
 

@@ -15,7 +15,6 @@ from .events import (
     group_events_by_day,
     get_all_events_per_employee,
 )
-from .models import Employee
 from .state_of_day import (
     state_of_days,
     state_of_days_per_employee_for_week,
@@ -85,11 +84,6 @@ def available_time_of_employee(
 
 class HomeView(View):
     def get(self, request):
-        employees = [
-            Employee.objects.get(name="Maxime"),
-            Employee.objects.get(name="Quentin"),
-            Employee.objects.get(name="Antoine"),
-        ]
         events_per_employee: EventsPerEmployee = get_all_events_per_employee()
 
         today = datetime.date.today()
@@ -102,7 +96,7 @@ class HomeView(View):
 
         context = {
             "events": events_per_employee,
-            "employees": employees,
+            "employees": list(events_per_employee),
             "time_per_project": time_per_project_per_employee(events_per_employee),
             "curent_week_state": state_of_days_per_employee_for_week(
                 events_per_employee, today
