@@ -15,6 +15,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from django.views.decorators.cache import cache_page
+
 from . import views
 
-urlpatterns = [path("admin/", admin.site.urls), path("", views.HomeView.as_view())]
+urlpatterns = [
+    path("admin/", admin.site.urls),
+    path("", cache_page(60)(views.HomeView.as_view())),
+]

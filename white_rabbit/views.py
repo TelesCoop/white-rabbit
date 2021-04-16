@@ -6,7 +6,6 @@ from typing import List, Dict, Counter as TypingCounter
 from dateutil.relativedelta import relativedelta
 from django.shortcuts import render
 from django.views import View
-from django.views.decorators.cache import cache_page
 from jours_feries_france import JoursFeries
 
 from .constants import MIN_WORKING_HOURS_FOR_FULL_DAY, DEFAULT_DAY_WORKING_HOURS
@@ -84,7 +83,6 @@ def available_time_of_employee(
 
 
 class HomeView(View):
-    @cache_page(60)
     def get(self, request):
         events_per_employee: EventsPerEmployee = get_all_events_per_employee()
 
