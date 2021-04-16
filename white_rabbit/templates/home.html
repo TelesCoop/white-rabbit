@@ -21,7 +21,7 @@
                                     {% if data.state == 'complete' %}<span style="color: green">✔</span>{% endif %}
                                     {% if data.state == 'incomplete' %}<span style="color: orange">❌</span>{% endif %}
                                     {% if data.state == 'empty' %}<span style="color: red">❌</span>{% endif %}
-                                    <span style="font-weight: bold">{{ employee }}:</span>
+                                    <span style="font-weight: bold">{{ employee }}</span>
                                     {% for event in data.events %}
                                         {{ event.name }}{% if not forloop.last %},{% endif %}
                                     {% endfor %}
