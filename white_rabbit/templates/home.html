@@ -1,82 +1,99 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1 class="title is-1">Lapin Blanc</h1>
+    <div class="container">
+        <h1 class="title is-1">Lapin Blanc</h1>
 
-    <h2 class="title is-2">Temps total par projet</h2>
-    <table class="table">
-        <tr>
-            <th>Projet</th>
-            <th>Jours-hommes</th>
-        </tr>
-        {% for project, time in time_per_project.items %}
+        <h2 class="title is-2">Semaine en cours</h2>
+
+        <table class="table">
             <tr>
-                <td>{{ project }}</td>
-                <td>{{ time | floatformat }}</td>
+                <th>Jour</th>
+                <th>État</th>
             </tr>
-        {% endfor %}
+            {% for day, day_data in curent_week_state.items %}
+                <tr>
+                    <td>{{ day | date }}</td>
+                    <td class="content">
+                        <ul>
+                            {% for employee, data in day_data.items %}
+                                <li>
+                                    {% if data.state == 'complete' %}<span style="color: green">✔</span>{% endif %}
+                                    {% if data.state == 'incomplete' %}<span style="color: orange">❌</span>{% endif %}
+                                    {% if data.state == 'empty' %}<span style="color: red">❌</span>{% endif %}
+                                    {{ employee }}:
+                                    {% for event in data.events %}
+                                        {{ event.name }}{% if not forloop.last %},{% endif %}
+                                    {% endfor %}
+                                </li>
+                            {% endfor %}
+                        </ul>
 
-    </table>
+                    </td>
+                </tr>
+            {% endfor %}
 
-    <h2 class="title is-2">Semaine en cours</h2>
+        </table>
 
-    <table class="table">
-        <tr>
-            <th>Jour</th>
-            <th>État</th>
-        </tr>
-        {% for day, day_data in curent_week_state.items %}
+        <h2 class="title is-2">Dispo prochaines</h2>
+        <h3 class="title is-3">Semaine prochaine</h3>
+        <table class="table">
             <tr>
-                <td>{{ day | date }}</td>
-                <td class="content">
-                    <ul>
-                        {% for employee, data in day_data.items %}
-                            <li>
-                                {% if data.state == 'complete' %}<span style="color: green">✔</span>{% endif %}
-                                {% if data.state == 'incomplete' %}<span style="color: orange">❌</span>{% endif %}
-                                {% if data.state == 'empty' %}<span style="color: red">❌</span>{% endif %}
-                                {{ employee }}:
-                                {% for event in data.events %}
-                                    {{ event.name }}{% if not forloop.last %},{% endif %}
-                                {% endfor %}
-                            </li>
-                        {% endfor %}
-                    </ul>
-
-                </td>
+                <th>nom</th>
+                <th>dispo</th>
             </tr>
-        {% endfor %}
 
-    </table>
+            {% for employee, availability in next_week_availability.items %}
+                <tr>
+                    <td>{{ employee }}</td>
+                    <td>{{ availability | floatformat }}</td>
+                </tr>
+            {% endfor %}
+        </table>
 
-    <h2 class="title is-2">Dispo prochaines</h2>
-    <h3 class="title is-3">Semaine prochaine</h3>
-    <table class="table">
-        <tr>
-            <th>nom</th>
-            <th>dispo</th>
-        </tr>
-
-        {% for employee, availability in next_week_availability.items %}
+        <h3 class="title is-3">Mois en cours</h3>
+        <table class="table">
             <tr>
-                <td>{{ employee }}</td>
-                <td>{{ availability | floatformat }}</td>
+                <th>nom</th>
+                <th>dispo</th>
             </tr>
-        {% endfor %}
-    </table>
 
-    <h3 class="title is-3">Mois prochain</h3>
-    <table class="table">
-        <tr>
-            <th>nom</th>
-            <th>dispo</th>
-        </tr>
+            {% for employee, availability in next_month_availability.items %}
+                <tr>
+                    <td>{{ employee }}</td>
+                    <td>{{ availability | floatformat }}</td>
+                </tr>
+            {% endfor %}
+        </table>
 
-        {% for employee, availability in next_month_availability.items %}
+        <h3 class="title is-3">Mois prochain</h3>
+        <table class="table">
             <tr>
-                <td>{{ employee }}</td>
-                <td>{{ availability | floatformat }}</td>
+                <th>nom</th>
+                <th>dispo</th>
             </tr>
-        {% endfor %}
-    </table>
+
+            {% for employee, availability in next_month_availability.items %}
+                <tr>
+                    <td>{{ employee }}</td>
+                    <td>{{ availability | floatformat }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+        <h2 class="title is-2">Temps total par projet</h2>
+        <table class="table">
+            <tr>
+                <th>Projet</th>
+                <th>Jours-hommes</th>
+            </tr>
+            {% for project, time in time_per_project.items %}
+                <tr>
+                    <td>{{ project }}</td>
+                    <td>{{ time | floatformat }}</td>
+                </tr>
+            {% endfor %}
+
+        </table>
+    </div>
 {% endblock %}

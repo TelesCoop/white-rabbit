@@ -6,6 +6,7 @@ from typing import List, Dict, Counter as TypingCounter
 from dateutil.relativedelta import relativedelta
 from django.shortcuts import render
 from django.views import View
+from django.views.decorators.cache import cache_page
 from jours_feries_france import JoursFeries
 
 from .constants import MIN_WORKING_HOURS_FOR_FULL_DAY, DEFAULT_DAY_WORKING_HOURS
@@ -44,7 +45,7 @@ def time_per_project_per_employee(events_per_employee: EventsPerEmployee) -> dic
     for _, employee_events in events_per_employee.items():
         to_return.update(time_per_project(employee_events))
 
-    return dict(to_return)
+    return dict(to_return.most_common(1000))
 
 
 def time_per_project(events: List[Event]) -> TypingCounter[str]:
@@ -83,14 +84,16 @@ def available_time_of_employee(
 
 
 class HomeView(View):
+    @cache_page(60)
     def get(self, request):
         events_per_employee: EventsPerEmployee = get_all_events_per_employee()
 
         today = datetime.date.today()
-        start_of_next_week = today - datetime.timedelta(days=today.weekday())
-        start_of_next_month = today.replace(day=1) + relativedelta(month=1)
+        start_of_next_week = today + datetime.timedelta(days=7 - today.weekday())
+        start_of_current_month = today.replace(day=1)
+        start_of_next_month = start_of_current_month + relativedelta(months=1)
         end_of_next_month = (
-            start_of_next_month + relativedelta(month=1) - relativedelta(days=1)
+            start_of_next_month + relativedelta(months=1) - relativedelta(days=1)
         )
         end_of_next_week = start_of_next_week + datetime.timedelta(days=4)
 
@@ -108,6 +111,15 @@ class HomeView(View):
             "next_week_availability": {
                 employee: available_time_of_employee(
                     employee, events, start_of_next_week, end_of_next_week
+                )
+                for employee, events in events_per_employee.items()
+            },
+            "current_month_availability": {
+                employee: available_time_of_employee(
+                    employee,
+                    events,
+                    start_of_current_month,
+                    start_of_next_month - relativedelta(days=1),
                 )
                 for employee, events in events_per_employee.items()
             },

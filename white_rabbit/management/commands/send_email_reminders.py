@@ -12,7 +12,7 @@ from white_rabbit.events import get_all_events_per_employee
 from white_rabbit.models import Employee
 from white_rabbit.state_of_day import state_of_days_per_employee_for_week
 
-FIRST_DAY = datetime.date(2021, 4, 4)
+FIRST_DAY = datetime.date(2021, 4, 5)
 
 
 class Command(BaseCommand):
