@@ -99,6 +99,9 @@ class HomeView(View):
             "events": events_per_employee,
             "employees": list(events_per_employee),
             "time_per_project": time_per_project_per_employee(events_per_employee),
+            "past_week_state": state_of_days_per_employee_for_week(
+                events_per_employee, today - datetime.timedelta(days=7)
+            ),
             "curent_week_state": state_of_days_per_employee_for_week(
                 events_per_employee, today
             ),

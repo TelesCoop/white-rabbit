@@ -4,6 +4,37 @@
     <div class="container">
         <h1 class="title is-1">Lapin Blanc</h1>
 
+        <h2 class="title is-2">Semaine précédente</h2>
+
+        <table class="table">
+            <tr>
+                <th>Jour</th>
+                <th>État</th>
+            </tr>
+            {% for day, day_data in past_week_state.items %}
+                <tr>
+                    <td>{{ day | date }}</td>
+                    <td>
+                        <ul>
+                            {% for employee, data in day_data.items %}
+                                <li>
+                                    {% if data.state == 'complete' %}<span style="color: green">✔</span>{% endif %}
+                                    {% if data.state == 'incomplete' %}<span style="color: orange">❌</span>{% endif %}
+                                    {% if data.state == 'empty' %}<span style="color: red">❌</span>{% endif %}
+                                    <span style="font-weight: bold">{{ employee }}</span>
+                                    {% for event in data.events %}
+                                        {{ event.name }}{% if not forloop.last %},{% endif %}
+                                    {% endfor %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+
+                    </td>
+                </tr>
+            {% endfor %}
+
+        </table>
+
         <h2 class="title is-2">Semaine en cours</h2>
 
         <table class="table">
