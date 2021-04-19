@@ -1,7 +1,7 @@
 import datetime
-from collections import Counter
+from collections import Counter, defaultdict
 from datetime import date
-from typing import List, Dict, Counter as TypingCounter
+from typing import List, Dict, Counter as TypingCounter, Any
 
 from dateutil.relativedelta import relativedelta
 from django.shortcuts import render
@@ -40,14 +40,31 @@ def day_distribution(events: List[Event]) -> Dict[str, float]:
 
 def time_per_project_per_employee(events_per_employee: EventsPerEmployee) -> dict:
     """Counts the number of days spent per project."""
-    to_return: TypingCounter[str] = Counter()
-    for _, employee_events in events_per_employee.items():
-        to_return.update(time_per_project(employee_events))
+    to_return: Dict[str, Dict[str, Any]] = defaultdict(
+        lambda: {"duration": 0, "events": []}
+    )
+    for employee, employee_events in events_per_employee.items():
 
-    return dict(to_return.most_common(1000))
+        for event_date, events_for_day in group_events_by_day(employee_events).items():
+            distribution = day_distribution(events_for_day)
+            for name, duration in distribution.items():
+                to_return[name]["duration"] += duration
+                to_return[name]["events"].append(
+                    f"{employee.name} @ {event_date.isoformat()}"
+                )
+
+    # sort by total duration
+    return dict(
+        sorted(
+            [(k, v) for k, v in to_return.items()],
+            key=lambda x: x[1]["duration"],
+            reverse=True,
+        )
+    )
 
 
 def time_per_project(events: List[Event]) -> TypingCounter[str]:
+    """Returns the amount of days worked on each project."""
     to_return: TypingCounter[str] = Counter()
     for _, events_for_day in group_events_by_day(events).items():
         distribution = day_distribution(events_for_day)

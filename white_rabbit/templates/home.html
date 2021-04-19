@@ -118,10 +118,10 @@
                 <th>Projet</th>
                 <th>Jours-hommes</th>
             </tr>
-            {% for project, time in time_per_project.items %}
+            {% for project, project_data in time_per_project.items %}
                 <tr>
                     <td>{{ project }}</td>
-                    <td>{{ time | floatformat }}</td>
+                    <td title="{% for event in project_data.events %}{{ event }}, {% endfor %}">{{ project_data.duration | floatformat }}</td>
                 </tr>
             {% endfor %}
 
