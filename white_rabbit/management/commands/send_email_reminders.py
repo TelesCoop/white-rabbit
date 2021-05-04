@@ -23,8 +23,8 @@ class Command(BaseCommand):
             lambda: []
         )
         day = FIRST_DAY
-        end_of_current_week = (
-            datetime.date.today() - datetime.timedelta(days=day.weekday()) + 6
+        end_of_current_week = datetime.date.today() - datetime.timedelta(
+            days=day.weekday() + 6
         )
         while day < end_of_current_week:
             for day, data in state_of_days_per_employee_for_week(
