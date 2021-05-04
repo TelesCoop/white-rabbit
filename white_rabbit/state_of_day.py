@@ -28,7 +28,7 @@ def state_of_days_per_employee(
 
 def state_of_days_per_employee_for_week(
     events_per_employee: EventsPerEmployee, day: datetime.date = None
-):
+) -> Dict[datetime.date, Dict[Employee, Dict[str, Any]]]:
     if day is None:
         day = datetime.date.today()
     start_of_week = day - datetime.timedelta(days=day.weekday())

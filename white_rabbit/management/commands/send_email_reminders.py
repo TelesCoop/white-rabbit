@@ -31,7 +31,7 @@ class Command(BaseCommand):
                 events_per_employee, day=day
             ).items():
                 for employee, state_of_day in data.items():
-                    if state_of_day != DayState.complete:
+                    if state_of_day["state"] != DayState.complete:
                         missing_days_per_employee[employee].append((day, state_of_day))
             day += datetime.timedelta(days=7)
 
