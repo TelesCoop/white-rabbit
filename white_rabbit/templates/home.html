@@ -89,7 +89,7 @@
                 <th>dispo</th>
             </tr>
 
-            {% for employee, availability in next_month_availability.items %}
+            {% for employee, availability in current_month_availability.items %}
                 <tr>
                     <td>{{ employee }}</td>
                     <td>{{ availability | floatformat }}</td>
