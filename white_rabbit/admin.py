@@ -29,6 +29,13 @@ class EmployeeInline(admin.StackedInline):
             kwargs["queryset"] = Company.objects.filter(admins=request.user)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
+    def get_formset(self, request, obj=None, **kwargs):
+        """Pre-fill company field."""
+        form = super().get_formset(request, obj, **kwargs)
+        if not request.user.is_superuser:
+            form.form.base_fields["company"].initial = request.user.companies.first().pk
+        return form
+
     def get_queryset(self, request):
         if request.user.is_superuser:
             return Employee.objects.all()
@@ -39,13 +46,6 @@ class EmployeeInline(admin.StackedInline):
 
     def has_add_permission(self, request, obj):
         return UserAdmin.has_permission(self, request)
-
-    def get_formset(self, request, obj=None, **kwargs):
-        """Pre-fill company field."""
-        form = super().get_formset(request, obj, **kwargs)
-        if not request.user.is_superuser:
-            form.form.base_fields["company"].initial = request.user.companies.first().pk
-        return form
 
 
 class UserAdmin(BaseUserAdmin):
@@ -84,6 +84,8 @@ class UserAdmin(BaseUserAdmin):
     def has_change_permission(self, request, obj: User = None):
         if obj is None:
             return self.has_permission(request)
+        if request.user.is_superuser:
+            return True
         return obj.employee.company.admins.filter(pk=request.user.pk).exists()
 
     def get_queryset(self, request):

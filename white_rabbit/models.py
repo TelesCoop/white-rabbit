@@ -34,7 +34,9 @@ class Employee(TimeStampedModel):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     calendar_ical_url = models.CharField(
-        verbose_name="URL calendrier Google", max_length=150
+        verbose_name="URL calendrier Google",
+        max_length=150,
+        help_text='appelée "URL publique de cet agenda"',
     )
     availability_per_day = models.IntegerField(
         verbose_name="heure travaillées par jour",

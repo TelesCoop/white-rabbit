@@ -156,3 +156,5 @@ if not IS_LOCAL_DEV:
     SERVER_EMAIL = "no-reply@telescoop.fr"
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+
+LOGIN_REDIRECT_URL = "/"
