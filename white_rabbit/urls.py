@@ -22,8 +22,14 @@ from .views import MyLoginView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path(
+        r"auth/login/",
+        MyLoginView.as_view(
+            extra_context={
+                "site_header": "Lapin Blanc",
+            }
+        ),
+    ),
     path("auth/", include("django.contrib.auth.urls")),
-    path(r"auth/login/", MyLoginView.as_view()),
-    # path(r'^auth/logout/$', logout),
     path("", cache_page(60)(views.HomeView.as_view())),
 ]

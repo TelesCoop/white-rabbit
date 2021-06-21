@@ -14,7 +14,8 @@ from .events import (
     Event,
     EventsPerEmployee,
     group_events_by_day,
-    get_all_events_per_employee,
+    get_events_for_employees,
+    employees_for_user,
 )
 from .state_of_day import (
     state_of_days,
@@ -106,7 +107,8 @@ def available_time_of_employee(
 
 class HomeView(View):
     def get(self, request):
-        events_per_employee: EventsPerEmployee = get_all_events_per_employee()
+        employees = employees_for_user(request.user)
+        events_per_employee: EventsPerEmployee = get_events_for_employees(employees)
 
         today = datetime.date.today()
         start_of_next_week = today + datetime.timedelta(days=7 - today.weekday())

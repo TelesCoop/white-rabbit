@@ -8,7 +8,7 @@ from django.core.management import BaseCommand
 from django.template.loader import render_to_string
 
 from white_rabbit.constants import DayState
-from white_rabbit.events import get_all_events_per_employee
+from white_rabbit.events import get_events_for_employees
 from white_rabbit.models import Employee
 from white_rabbit.state_of_day import state_of_days_per_employee_for_week
 
@@ -18,7 +18,7 @@ FIRST_DAY = datetime.date(2021, 4, 5)
 class Command(BaseCommand):
     def handle(self, *args, **options):
         # gather missing days since beginning of April 2021 per employee
-        events_per_employee = get_all_events_per_employee()
+        events_per_employee = get_events_for_employees()
         missing_days_per_employee: DefaultDict[Employee, List[Tuple]] = defaultdict(
             lambda: []
         )

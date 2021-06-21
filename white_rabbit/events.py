@@ -4,6 +4,7 @@ from itertools import groupby
 from typing import List, TypedDict, Dict, Iterable
 
 import requests
+from django.contrib.auth.models import User
 
 from icalendar import Calendar
 
@@ -18,6 +19,12 @@ class Event(TypedDict):
 
 
 EventsPerEmployee = Dict[Employee, List[Event]]
+
+
+def event_name_from_calendar_summary(event_summary):
+    name = event_summary.split("-")[0]
+    name = name.title()
+    return name
 
 
 def read_events(calendar_data: str) -> List[Event]:
@@ -37,7 +44,7 @@ def read_events(calendar_data: str) -> List[Event]:
                 start_day = start_day.date()
             events.append(
                 {
-                    "name": event["SUMMARY"].title(),
+                    "name": event_name_from_calendar_summary(event["SUMMARY"]),
                     "day": start_day,
                     "duration": min((end - start).total_seconds() / 3600, 24),
                 }
@@ -54,15 +61,25 @@ def get_events_by_url(url: str) -> List[Event]:
     return read_events(data)
 
 
-def get_all_events_per_employee(
-    employees: Iterable[Employee] = None,
-) -> EventsPerEmployee:
+def get_events_for_employee(employee: Employee):
+    return get_events_by_url(employee.calendar_ical_url)
+
+
+def get_events_for_employees(employees: Iterable[Employee]) -> EventsPerEmployee:
     if employees is None:
         employees = Employee.objects.all()
     return {
         employee: get_events_by_url(employee.calendar_ical_url)
         for employee in employees
     }
+
+
+def employees_for_user(user: User) -> Iterable[Employee]:
+    company = user.employee.company
+    if company.is_admin(user):
+        return company.employee_set.all()
+
+    return [user.employee]
 
 
 def events_per_day(events: List[Event], start_date: date, end_date: date):

@@ -27,6 +27,9 @@ class Company(TimeStampedModel):
     def __str__(self):
         return self.name
 
+    def is_admin(self, user: User):
+        return self.admins.filter(pk=user.pk).exists()
+
 
 class Employee(TimeStampedModel):
     class Meta:
@@ -36,7 +39,7 @@ class Employee(TimeStampedModel):
     calendar_ical_url = models.CharField(
         verbose_name="URL calendrier Google",
         max_length=150,
-        help_text='appelée "URL publique de cet agenda"',
+        help_text='appelée "Adresse publique au format iCal"',
     )
     availability_per_day = models.IntegerField(
         verbose_name="heure travaillées par jour",
@@ -48,4 +51,10 @@ class Employee(TimeStampedModel):
     )
 
     def __str__(self):
+        return self.name
+
+    @property
+    def name(self):
+        if self.user.first_name:
+            return f"{self.user.first_name} {self.user.last_name or ''}"
         return self.user.username
