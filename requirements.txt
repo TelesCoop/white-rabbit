@@ -7,5 +7,6 @@ html2text==2020.1.16
 icalendar==4.0.7
 ipython==7.21.0
 jours-feries-france==0.7.0
+python-dateutil==2.8.1
 rollbar==0.15.2
 rollbar==0.15.2

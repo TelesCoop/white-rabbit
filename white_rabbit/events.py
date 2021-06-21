@@ -18,7 +18,7 @@ class Event(TypedDict):
     day: datetime.date
 
 
-EventsPerEmployee = Dict[Employee, List[Event]]
+EventsPerEmployee = Dict[Employee, Iterable[Event]]
 
 
 def event_name_from_calendar_summary(event_summary):
@@ -27,7 +27,7 @@ def event_name_from_calendar_summary(event_summary):
     return name
 
 
-def read_events(calendar_data: str) -> List[Event]:
+def read_events(calendar_data: str) -> Iterable[Event]:
     """Read events from an ical calendar and returns them as a list."""
     cal = Calendar().from_ical(calendar_data)
     events: List[Event] = []
@@ -54,7 +54,7 @@ def read_events(calendar_data: str) -> List[Event]:
     return sorted(events, key=lambda event: event["day"])
 
 
-def get_events_by_url(url: str) -> List[Event]:
+def get_events_by_url(url: str) -> Iterable[Event]:
     """Read events from an ical calendar available at given URL."""
     r = requests.get(url)
     data = r.content.decode()
@@ -82,7 +82,9 @@ def employees_for_user(user: User) -> Iterable[Employee]:
     return [user.employee]
 
 
-def events_per_day(events: List[Event], start_date: date, end_date: date):
+def events_per_day(
+    events: Iterable[Event], start_date: date, end_date: date
+) -> Dict[datetime.date, Iterable[Event]]:
     """
     Returns a dict day -> events for day for each day from start date to end
     date (included).
@@ -90,16 +92,19 @@ def events_per_day(events: List[Event], start_date: date, end_date: date):
     """
     delta = end_date - start_date
     events = [event for event in events if start_date <= event["day"] <= end_date]
-    events_per_day = group_events_by_day(events)
+    to_return = group_events_by_day(events)
 
+    # also include days without events
     for i in range(delta.days + 1):
         day = start_date + timedelta(days=i)
-        if day not in events_per_day:
-            events_per_day[day] = []
+        if day not in to_return:
+            to_return[day] = []
 
-    return events_per_day
+    return to_return
 
 
-def group_events_by_day(events: List[Event]) -> Dict[datetime.date, List[Event]]:
+def group_events_by_day(
+    events: Iterable[Event],
+) -> Dict[datetime.date, Iterable[Event]]:
     """Returns a dict day -> events for day."""
     return {k: list(g) for k, g in groupby(events, lambda x: x["day"])}

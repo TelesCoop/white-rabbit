@@ -1,6 +1,5 @@
 import datetime
-from collections import defaultdict
-from typing import List, DefaultDict, Tuple
+from typing import List, Tuple
 
 import html2text
 from django.core.mail import send_mail
@@ -8,38 +7,42 @@ from django.core.management import BaseCommand
 from django.template.loader import render_to_string
 
 from white_rabbit.constants import DayState
-from white_rabbit.events import get_events_for_employees
+from white_rabbit.events import get_events_by_url
 from white_rabbit.models import Employee
-from white_rabbit.state_of_day import state_of_days_per_employee_for_week
+from white_rabbit.state_of_day import state_of_days_for_week
 
 FIRST_DAY = datetime.date(2021, 4, 5)
 
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        # gather missing days since beginning of April 2021 per employee
-        events_per_employee = get_events_for_employees()
-        missing_days_per_employee: DefaultDict[Employee, List[Tuple]] = defaultdict(
-            lambda: []
-        )
-        day = FIRST_DAY
-        end_of_current_week = datetime.date.today() - datetime.timedelta(
-            days=day.weekday() + 6
-        )
-        while day < end_of_current_week:
-            for day, data in state_of_days_per_employee_for_week(
-                events_per_employee, day=day
-            ).items():
-                for employee, state_of_day in data.items():
-                    if state_of_day["state"] != DayState.complete:
-                        missing_days_per_employee[employee].append((day, state_of_day))
-            day += datetime.timedelta(days=7)
+        for employee in Employee.objects.all():
+            if not employee.user.email:
+                continue
 
-        # send emails
-        for employee, missing_days in missing_days_per_employee.items():
+            events = get_events_by_url(employee.calendar_ical_url)
+
+            missing_days: List[Tuple] = []
+            day = employee.start_time_tracking_from
+            today = datetime.date.today()
+            end_of_last_week = (
+                today
+                + datetime.timedelta(days=6 - today.weekday())
+                - datetime.timedelta(days=7)
+            )
+            while day < end_of_last_week:
+                for day, state_of_day in state_of_days_for_week(
+                    events, employee, day=day
+                ).items():
+                    if state_of_day["state"] != DayState.complete:
+                        missing_days.append((day, state_of_day))
+                day += datetime.timedelta(days=7)
+
             if not missing_days:
                 # all days are complete
                 continue
+
+            # send emails
             html_message = render_to_string(
                 "email/missing_days_reminder.html", {"days": missing_days}
             )
@@ -48,6 +51,6 @@ class Command(BaseCommand):
                 "[Lapin Blanc]: Des jours manquants à remplir",
                 message,
                 "contact@telescoop.fr",
-                [employee.email],
+                [employee.user.email],
                 html_message=html_message,
             )
