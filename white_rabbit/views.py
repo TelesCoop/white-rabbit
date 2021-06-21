@@ -4,6 +4,7 @@ from datetime import date
 from typing import List, Dict, Counter as TypingCounter, Any
 
 from dateutil.relativedelta import relativedelta
+from django.contrib.auth.views import LoginView
 from django.shortcuts import render
 from django.views import View
 from jours_feries_france import JoursFeries
@@ -19,6 +20,10 @@ from .state_of_day import (
     state_of_days,
     state_of_days_per_employee_for_week,
 )
+
+
+class MyLoginView(LoginView):
+    template_name = "admin/login.html"
 
 
 def day_distribution(events: List[Event]) -> Dict[str, float]:

@@ -58,7 +58,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
     "rollbar.contrib.django.middleware.RollbarNotifierMiddleware",
-    "basicauth.middleware.BasicAuthMiddleware",
+    "white_rabbit.middleware.only_logged_in_users",
 ]
 
 ROOT_URLCONF = "white_rabbit.urls"
@@ -155,4 +155,4 @@ if not IS_LOCAL_DEV:
     DEFAULT_FROM_EMAIL = "no-reply@telescoop.fr"
     SERVER_EMAIL = "no-reply@telescoop.fr"
 
-BASICAUTH_USERS = {"telescoop": "toujoursenretard"}
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
