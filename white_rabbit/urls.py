@@ -21,7 +21,7 @@ from . import views
 from .views import MyLoginView
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    path("configuration/", admin.site.urls),
     path(
         r"auth/login/",
         MyLoginView.as_view(
