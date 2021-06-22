@@ -47,10 +47,10 @@ class EmployeeInline(admin.StackedInline):
     def has_add_permission(self, request, obj):
         return UserAdmin.has_permission(self, request)
 
-    def has_change_permission(self, request, obj: Employee = None):
+    def has_change_permission(self, request, obj: User = None):
         if obj is None:
             return True
-        return obj.company.admins.filter(pk=request.user.pk).exists()
+        return obj.employee.company.admins.filter(pk=request.user.pk).exists()
 
 
 class UserAdmin(BaseUserAdmin):
