@@ -5,8 +5,7 @@ from typing import Dict, Counter as TypingCounter, Any, Iterable
 
 from dateutil.relativedelta import relativedelta
 from django.contrib.auth.views import LoginView
-from django.shortcuts import render
-from django.views import View
+from django.views.generic import TemplateView
 from jours_feries_france import JoursFeries
 
 from .constants import MIN_WORKING_HOURS_FOR_FULL_DAY
@@ -34,7 +33,7 @@ def day_distribution(events: Iterable[Event], company: Company) -> Dict[str, flo
     if is_full_day:
         divider = total_time
     else:
-        divider = company.default_day_working_hours
+        divider = float(company.default_day_working_hours)
 
     distribution: TypingCounter[str] = Counter()
 
@@ -97,8 +96,11 @@ def available_time_of_employee(
     return availability_duration
 
 
-class HomeView(View):
-    def get(self, request):
+class HomeView(TemplateView):
+    template_name = "home.html"
+
+    def get_context_data(self, **kwargs):
+        request = self.request
         employees = employees_for_user(request.user)
         company = request.user.employee.company
         events_per_employee: EventsPerEmployee = get_events_for_employees(employees)
@@ -112,7 +114,7 @@ class HomeView(View):
         )
         end_of_next_week = start_of_next_week + datetime.timedelta(days=4)
 
-        context = {
+        return {
             "events": events_per_employee,
             "employees": list(events_per_employee),
             "time_per_project": time_per_project_per_employee(
@@ -146,5 +148,3 @@ class HomeView(View):
                 for employee, events in events_per_employee.items()
             },
         }
-
-        return render(request, "home.html", context)
