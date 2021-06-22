@@ -47,6 +47,11 @@ class EmployeeInline(admin.StackedInline):
     def has_add_permission(self, request, obj):
         return UserAdmin.has_permission(self, request)
 
+    def has_change_permission(self, request, obj: Employee = None):
+        if obj is None:
+            return True
+        return obj.company.admins.filter(pk=request.user.pk).exists()
+
 
 class UserAdmin(BaseUserAdmin):
     fieldsets = (
@@ -70,9 +75,8 @@ class UserAdmin(BaseUserAdmin):
 
         # if admin of at least one company
         if Company.objects.filter(admins=request.user).exists():
-            print("IS ADMIN")
             return True
-        print("### NOT ADMIN")
+
         return False
 
     def has_module_permission(self, request):
