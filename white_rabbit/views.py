@@ -16,7 +16,7 @@ from .events import (
     get_events_for_employees,
     employees_for_user,
 )
-from .models import Company
+from .models import Company, Employee
 from .state_of_day import (
     state_of_days_per_employee_for_week,
 )
@@ -26,14 +26,14 @@ class MyLoginView(LoginView):
     template_name = "admin/login.html"
 
 
-def day_distribution(events: Iterable[Event], company: Company) -> Dict[str, float]:
+def day_distribution(events: Iterable[Event], employee: Employee) -> Dict[str, float]:
     """Given all events for a day for an employee, count the number of days (<= 1) spent on each project."""
     total_time = sum(event["duration"] for event in events)
-    is_full_day = total_time >= company.min_working_hours_for_full_day
+    is_full_day = total_time >= employee.min_working_hours_for_full_day
     if is_full_day:
         divider = total_time
     else:
-        divider = float(company.default_day_working_hours)
+        divider = float(employee.default_day_working_hours)
 
     distribution: TypingCounter[str] = Counter()
 
@@ -53,7 +53,7 @@ def time_per_project_per_employee(
     for employee, employee_events in events_per_employee.items():
 
         for event_date, events_for_day in group_events_by_day(employee_events).items():
-            distribution = day_distribution(events_for_day, company=company)
+            distribution = day_distribution(events_for_day, employee=employee)
             for name, duration in distribution.items():
                 to_return[name]["duration"] += duration
                 to_return[name]["events"].append(
@@ -71,7 +71,7 @@ def time_per_project_per_employee(
 
 
 def available_time_of_employee(
-    employee, events: Iterable[Event], start_date: date, end_date: date
+    employee: Employee, events: Iterable[Event], start_date: date, end_date: date
 ):
     """Returns the number of working days that are available for an employee."""
     events_per_day = group_events_by_day(events)
@@ -89,8 +89,8 @@ def available_time_of_employee(
             continue
 
         availability_duration += (
-            max(employee.availability_per_day - busy_duration, 0)
-            / employee.availability_per_day
+            max(employee.default_day_working_hours - busy_duration, 0)
+            / employee.default_day_working_hours
         )
 
     return availability_duration
@@ -121,10 +121,10 @@ class HomeView(TemplateView):
                 events_per_employee, company
             ),
             "past_week_state": state_of_days_per_employee_for_week(
-                events_per_employee, company, today - datetime.timedelta(days=7)
+                events_per_employee, today - datetime.timedelta(days=7)
             ),
             "curent_week_state": state_of_days_per_employee_for_week(
-                events_per_employee, company, today
+                events_per_employee, today
             ),
             "next_week_availability": {
                 employee: available_time_of_employee(

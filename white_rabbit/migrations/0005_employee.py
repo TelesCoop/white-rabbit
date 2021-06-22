@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('modified', models.DateField(auto_now=True)),
                 ('calendar_ical_url', models.CharField(max_length=150, verbose_name='URL calendrier Google')),
-                ('availability_per_day', models.IntegerField(default=8, validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(24)], verbose_name='heure travaillées par jour')),
+                ('availability_per_day', models.IntegerField(default=8, validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(24)], verbose_name='heures travaillées par jour')),
                 ('company', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='white_rabbit.company')),
                 ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],

@@ -25,20 +25,6 @@ class Company(TimeStampedModel):
 
     name = models.CharField(max_length=20)
     admins = models.ManyToManyField(User, related_name="companies")
-    min_working_hours_for_full_day = models.DecimalField(
-        verbose_name="nb heures journée complète",
-        max_digits=3,
-        decimal_places=1,
-        default=6,
-        help_text="Nombre d'heures de travail à partir au-delà duquel on considère une journée complète",
-    )
-    default_day_working_hours = models.DecimalField(
-        "Nb heures de travail journée standard",
-        max_digits=3,
-        decimal_places=1,
-        default=8,
-        help_text="Pour une journée incomplète, ce total est utilisé pour calculer la proportion d'une journée passée sur un projet",
-    )
 
     def __str__(self):
         return self.name
@@ -55,12 +41,20 @@ class Employee(TimeStampedModel):
     calendar_ical_url = models.CharField(
         verbose_name="URL calendrier Google",
         max_length=150,
-        help_text='appelée "Adresse publique au format iCal"',
+        help_text='"Adresse publique au format iCal" si le calendrier est public, sinon "Adresse privée au format iCal"',
     )
-    availability_per_day = models.IntegerField(
-        verbose_name="heure travaillées par jour",
+    default_day_working_hours = models.IntegerField(
+        verbose_name="heures travaillées par jour",
         default=8,
         validators=[MinValueValidator(0), MaxValueValidator(24)],
+        help_text="Pour une journée incomplète, ce total est utilisé pour calculer la proportion d'une journée passée sur un projet",
+    )
+    min_working_hours_for_full_day = models.DecimalField(
+        verbose_name="nb heures journée complète",
+        max_digits=3,
+        decimal_places=1,
+        default=6,
+        help_text="Nombre d'heures de travail à partir au-delà duquel on considère une journée complète",
     )
     company = models.ForeignKey(
         Company, verbose_name="entreprise", on_delete=models.CASCADE, null=True
