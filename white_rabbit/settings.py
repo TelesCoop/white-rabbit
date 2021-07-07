@@ -130,7 +130,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = "/static/"
-if not IS_LOCAL_DEV:
+if IS_LOCAL_DEV:
+    STATIC_ROOT = os.path.join(BASE_DIR, "static")
+else:
     STATIC_ROOT = config.getstr("staticfiles.static_root")
 
 # EMAIL

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div class="container">
+    <div class="container" id="app">
         <h1 class="title is-1">Lapin Blanc</h1>
 
         <h2 class="title is-2">Semaine précédente</h2>
@@ -112,19 +112,76 @@
             {% endfor %}
         </table>
 
-        <h2 class="title is-2">Temps total par projet</h2>
-        <table class="table">
+        <h2 class="title is-2">
+            <template v-if="isShowProjectsTotal">
+                Temps total par projet
+            </template>
+            <template v-if="!isShowProjectsTotal">
+                Temps par projet pour le mois en cours
+            </template>
+        </h2>
+        <b-switch v-model="isShowProjectsTotal">Afficher le total</b-switch>
+        <b-table :data="isShowProjectsTotal ? time_per_project_total : time_per_project_current_month" detailed style="max-width: 400px">
+            <b-table-column label="Projet" v-slot="props">
+                [[ props.row[0] ]]
+            </b-table-column>
+            <b-table-column label="Jours-homme" v-slot="props">
+                [[ props.row[1].duration.toFixed(1) ]]
+            </b-table-column>
+
+            <template #detail="props">
+                <ul>
+                    <li v-for="(event, event_ix) in props.row[1].events" :key="event_ix">[[ event.employee ]] le [[ event.date ]]</li>
+                </ul>
+            </template>
+        </b-table>
+
+        <h2 class="title is-2">Semaines prochaines</h2>
+        <table class="table has-text-centered">
             <tr>
-                <th>Projet</th>
-                <th>Jours-hommes</th>
+                <th>Salarié</th>
+                <th>Missions</th>
+                <th v-for="week in upcoming_weeks.weeks" class="has-text-centered">
+                    <h4 class="subtitle is-4">[[ week.number ]]</h4>
+                    <p class="is-size-7">[[ week.start ]] - [[ week.end ]]</p>
+                </th>
             </tr>
-            {% for project, project_data in time_per_project.items %}
+            <template v-for="employee in upcoming_weeks.employees">
                 <tr>
-                    <td>{{ project }}</td>
-                    <td title="{% for event in project_data.events %}{{ event }}, {% endfor %}">{{ project_data.duration | floatformat }}</td>
+                    <th>[[ employee ]]</th>
+                    <th>dispos</th>
+                    <td v-for="week in upcoming_weeks.weeks">
+                        [[ upcoming_weeks[employee][week.number].availability ]]
+                    </td>
                 </tr>
-            {% endfor %}
+                <tr v-for="project in upcoming_weeks[employee].projects_total">
+                    <td></td>
+                    <td>
+                        [[ project ]]
+                    </td>
+                    <td v-for="week in upcoming_weeks.weeks">
+                        [[ (upcoming_weeks[employee][week.number].projects[project] || {}).duration ]]
+                    </td>
+                </tr>
+            </template>
 
         </table>
     </div>
+    <script src="/static/vue.js"></script>
+    <script src="/static/buefy.min.js"></script>
+    <script type="application/javascript">
+        new Vue({
+            el: "#app",
+            delimiters: ['[[', ']]'],
+            data: {
+                isShowProjectsTotal: true,
+                time_per_project_current_month: JSON.parse('{{ time_per_project_current_month_str | escapejs }}'),
+                time_per_project_total: JSON.parse('{{ time_per_project_total_str | escapejs }}'),
+                upcoming_weeks: JSON.parse('{{ upcoming_weeks_str | escapejs }}'),
+            },
+            mounted() {
+                console.log("### mounted", this.time_per_project_current_month, this.upcoming_weeks);
+            },
+        })
+    </script>
 {% endblock %}

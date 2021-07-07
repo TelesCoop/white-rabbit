@@ -22,7 +22,7 @@ EventsPerEmployee = Dict[Employee, Iterable[Event]]
 
 
 def event_name_from_calendar_summary(event_summary):
-    name = event_summary.split("-")[0]
+    name = event_summary.split(" - ")[0]
     name = name.title()
     return name
 
