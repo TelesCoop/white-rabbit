@@ -160,7 +160,7 @@
                         [[ project ]]
                     </td>
                     <td v-for="week in upcoming_weeks.weeks">
-                        [[ (upcoming_weeks[employee][week.number].projects[project] || {}).duration | round 1 ]]
+                        [[ (upcoming_weeks[employee][week.number].projects[project] || {}).duration | round ]]
                     </td>
                 </tr>
             </template>
@@ -170,26 +170,9 @@
     <script src="/static/vue.js"></script>
     <script src="/static/buefy.min.js"></script>
     <script type="application/javascript">
-        new Vue({
-            el: "#app",
-            delimiters: ['[[', ']]'],
-            data: {
-                isShowProjectsTotal: true,
-                time_per_project_current_month: JSON.parse('{{ time_per_project_current_month_str | escapejs }}'),
-                time_per_project_total: JSON.parse('{{ time_per_project_total_str | escapejs }}'),
-                upcoming_weeks: JSON.parse('{{ upcoming_weeks_str | escapejs }}'),
-            },
-            mounted() {
-                console.log("### mounted", this.time_per_project_current_month, this.upcoming_weeks);
-            },
-        });
-        /**
+         /**
          * Vue filter to round the decimal to the given place.
-         * http://jsfiddle.net/bryan_k/3ova17y9/
-         *
-         * @param {String} value    The value string.
-         * @param {Number} decimals The number of decimal places.
-         */
+         * http://jsfiddle.net/bryan_k/3ova17y9/*/
         Vue.filter('round', function(value, decimals) {
           if(!value) {
             value = 0;
@@ -202,6 +185,21 @@
           value = Math.round(value * Math.pow(10, decimals)) / Math.pow(10, decimals);
           return value;
         });
+
+        var app = new Vue({
+            el: "#app",
+            delimiters: ['[[', ']]'],
+            data: {
+                isShowProjectsTotal: true,
+                time_per_project_current_month: JSON.parse('{{ time_per_project_current_month_str | escapejs }}'),
+                time_per_project_total: JSON.parse('{{ time_per_project_total_str | escapejs }}'),
+                upcoming_weeks: JSON.parse('{{ upcoming_weeks_str | escapejs }}'),
+            },
+            mounted() {
+                console.log("### mounted", this.time_per_project_current_month, this.upcoming_weeks);
+            },
+        });
+
 
     </script>
 {% endblock %}
