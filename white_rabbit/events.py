@@ -77,9 +77,12 @@ def get_events_for_employees(employees: Iterable[Employee]) -> EventsPerEmployee
 def employees_for_user(user: User) -> Iterable[Employee]:
     company = user.employee.company
     if company.is_admin(user):
-        return company.employee_set.all()
+        return company.employee_set.filter(start_time_tracking_from__isnull=False)
 
-    return [user.employee]
+    if user.employee.start_time_tracking_from:
+        return [user.employee]
+
+    return []
 
 
 def events_per_day(

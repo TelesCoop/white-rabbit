@@ -60,7 +60,11 @@ class Employee(TimeStampedModel):
         Company, verbose_name="entreprise", on_delete=models.CASCADE, null=True
     )
     start_time_tracking_from = models.DateField(
-        verbose_name="Début du suivi de temps", default=datetime.now
+        verbose_name="Début du suivi de temps",
+        default=datetime.now,
+        null=True,
+        blank=True,
+        help_text="Pour désactiver le suivi du temps, laisser ce champ vide",
     )
 
     def __str__(self):
