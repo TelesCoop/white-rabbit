@@ -160,7 +160,7 @@
                         [[ project ]]
                     </td>
                     <td v-for="week in upcoming_weeks.weeks">
-                        [[ (upcoming_weeks[employee][week.number].projects[project] || {}).duration ]]
+                        [[ (upcoming_weeks[employee][week.number].projects[project] || {}).duration | round 1 ]]
                     </td>
                 </tr>
             </template>
@@ -182,6 +182,26 @@
             mounted() {
                 console.log("### mounted", this.time_per_project_current_month, this.upcoming_weeks);
             },
-        })
+        });
+        /**
+         * Vue filter to round the decimal to the given place.
+         * http://jsfiddle.net/bryan_k/3ova17y9/
+         *
+         * @param {String} value    The value string.
+         * @param {Number} decimals The number of decimal places.
+         */
+        Vue.filter('round', function(value, decimals) {
+          if(!value) {
+            value = 0;
+          }
+
+          if(!decimals) {
+            decimals = 0;
+          }
+
+          value = Math.round(value * Math.pow(10, decimals)) / Math.pow(10, decimals);
+          return value;
+        });
+
     </script>
 {% endblock %}
