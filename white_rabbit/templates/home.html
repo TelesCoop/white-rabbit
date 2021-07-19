@@ -160,7 +160,7 @@
                         [[ project ]]
                     </td>
                     <td v-for="week in upcoming_weeks.weeks">
-                        [[ (upcoming_weeks[employee][week.number].projects[project] || {}).duration | round 1 ]]
+                        [[ (upcoming_weeks[employee][week.number].projects[project] || {}).duration | round(1) ]]
                     </td>
                 </tr>
             </template>
