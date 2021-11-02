@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 
 from icalendar import Calendar
 
+from white_rabbit.constants import ALIASES
 from white_rabbit.models import Employee
 from white_rabbit.utils import start_of_day
 
@@ -24,6 +25,9 @@ EventsPerEmployee = Dict[Employee, Iterable[Event]]
 def event_name_from_calendar_summary(event_summary):
     name = event_summary.split(" - ")[0]
     name = name.title()
+    for alias in ALIASES:
+        if name.lower() in ALIASES[alias]:
+            return alias
     return name
 
 
