@@ -33,6 +33,28 @@ class Company(TimeStampedModel):
         return self.admins.filter(pk=user.pk).exists()
 
 
+class Project(models.Model):
+    class Meta:
+        verbose_name = "projet"
+
+    # company = models.ForeignKey(Company, verbose_name="entreprise", related_name="projects", on_delete=models.CASCADE)
+    name = models.CharField(max_length=32, verbose_name="nom")
+
+    def __str__(self):
+        return self.name
+
+
+class Alias(models.Model):
+    class Meta:
+        verbose_name = "alias"
+
+    project = models.ForeignKey(Project, verbose_name="projet", related_name="aliases", on_delete=models.CASCADE)
+    name = models.CharField(max_length=32, verbose_name="nom")
+
+    def __str__(self):
+        return self.name
+
+
 class Employee(TimeStampedModel):
     class Meta:
         verbose_name = "salarié"

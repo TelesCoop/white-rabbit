@@ -5,18 +5,6 @@ from django.utils.translation import gettext_lazy as _
 
 from white_rabbit.models import Employee, Company
 
-admin.site.site_header = "Administration de Lapin Blanc"
-admin.site.index_title = ""
-admin.site.site_title = "Lapin Blanc"
-
-
-@admin.register(Company)
-class CompanyAdmin(admin.ModelAdmin):
-    def get_queryset(self, request):
-        if request.user.is_superuser:
-            return Company.objects.all()
-        return Company.objects.filter(admins=request.user)
-
 
 class EmployeeInline(admin.StackedInline):
     model = Employee
@@ -96,8 +84,3 @@ class UserAdmin(BaseUserAdmin):
         if request.user.is_superuser:
             return User.objects.all()
         return User.objects.filter(employee__company__admins=request.user)
-
-
-admin.site.unregister(User)
-admin.site.unregister(Group)
-admin.site.register(User, UserAdmin)

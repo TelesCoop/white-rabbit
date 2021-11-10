@@ -5,11 +5,12 @@ from typing import List, TypedDict, Dict, Iterable
 
 import requests
 from django.contrib.auth.models import User
+from django.db.models import Q
 
 from icalendar import Calendar
 
 from white_rabbit.constants import ALIASES
-from white_rabbit.models import Employee
+from white_rabbit.models import Employee, Alias, Project
 from white_rabbit.utils import start_of_day
 
 
@@ -23,12 +24,22 @@ EventsPerEmployee = Dict[Employee, Iterable[Event]]
 
 
 def event_name_from_calendar_summary(event_summary):
+
+    # TODO: remplire les nom de projet ou d'Aliases : et mettre dans admin la possibiltié de les gérer : ici si pas Alias ou pas projet alors crée un nouveau projet
+
     name = event_summary.split(" - ")[0]
     name = name.title()
-    for alias in ALIASES:
-        if name.lower() in ALIASES[alias]:
-            return alias
-    return name
+    # for alias in ALIASES:
+    #     if name.lower() in ALIASES[alias]:
+    #         return alias
+    # Alias.objects.filter(Q(project__name=name.lower()) | Q(name))
+    project = Project.objects.filter(Q(name=name.lower()) | Q(aliases__name=name.lower()))
+    if project.exists():
+        project = project.get()
+    else:
+        project = Project(name=name.lower())
+        project.save()
+    return project.name.capitalize()
 
 
 def read_events(calendar_data: str) -> Iterable[Event]:
