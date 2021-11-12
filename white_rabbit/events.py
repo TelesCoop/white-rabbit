@@ -9,8 +9,7 @@ from django.db.models import Q
 
 from icalendar import Calendar
 
-from white_rabbit.constants import ALIASES
-from white_rabbit.models import Employee, Alias, Project
+from white_rabbit.models import Employee, Project
 from white_rabbit.utils import start_of_day
 
 
@@ -24,16 +23,11 @@ EventsPerEmployee = Dict[Employee, Iterable[Event]]
 
 
 def event_name_from_calendar_summary(event_summary):
-
-    # TODO: remplire les nom de projet ou d'Aliases : et mettre dans admin la possibiltié de les gérer : ici si pas Alias ou pas projet alors crée un nouveau projet
-
     name = event_summary.split(" - ")[0]
     name = name.title()
-    # for alias in ALIASES:
-    #     if name.lower() in ALIASES[alias]:
-    #         return alias
-    # Alias.objects.filter(Q(project__name=name.lower()) | Q(name))
-    project = Project.objects.filter(Q(name=name.lower()) | Q(aliases__name=name.lower()))
+    project = Project.objects.filter(
+        Q(name=name.lower()) | Q(aliases__name=name.lower())
+    ).distinct()
     if project.exists():
         project = project.get()
     else:

@@ -66,6 +66,7 @@ repos:
     rev: ''  # Use the sha / tag you want to point at
     hooks:
     -   id: mypy
+        args: [--no-strict-optional, --ignore-missing-imports]
 - hooks:
   - id: python-safety-dependencies-check
   repo: https://github.com/Lucas-C/pre-commit-hooks-safety
