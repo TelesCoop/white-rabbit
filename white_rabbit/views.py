@@ -162,8 +162,12 @@ class HomeView(TemplateView):
 
     def get_context_data(self, **kwargs):
         request = self.request
-        employees = employees_for_user(request.user)
-        events_per_employee: EventsPerEmployee = get_events_for_employees(employees)
+        user = request.user
+        company = request.user.employee.company
+        employees = employees_for_user(user)
+        events_per_employee: EventsPerEmployee = get_events_for_employees(
+            employees, company
+        )
 
         today = datetime.date.today()
         start_of_next_week = today + datetime.timedelta(days=7 - today.weekday())
@@ -177,8 +181,9 @@ class HomeView(TemplateView):
         print("upcoming", json.dumps(upcoming_weeks(events_per_employee), indent=2))
 
         return {
+            "today": datetime.date.today(),
             "events": events_per_employee,
-            "employees": list(events_per_employee),
+            "employees": employees,
             "time_per_project_total_str": json.dumps(
                 time_per_project(events_per_employee)
             ),

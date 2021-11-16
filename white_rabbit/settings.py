@@ -49,6 +49,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -56,7 +57,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "rollbar.contrib.django.middleware.RollbarNotifierMiddleware",
     "white_rabbit.middleware.only_logged_in_users",
 ]
@@ -160,3 +160,6 @@ if not IS_LOCAL_DEV:
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 LOGIN_REDIRECT_URL = "/"
+
+# for django debug toolbar
+INTERNAL_IPS = ["127.0.0.1"]

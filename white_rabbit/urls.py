@@ -1,3 +1,4 @@
+import debug_toolbar
 from django.contrib import admin
 from django.urls import path, include
 from django.views.decorators.cache import cache_page
@@ -19,4 +20,5 @@ urlpatterns = [
     path("auth/", include("django.contrib.auth.urls")),
     path("", cache_page(60)(vary_on_cookie(views.HomeView.as_view()))),
     path("", views.HomeView.as_view()),
+    path("__debug__/", include(debug_toolbar.urls)),
 ]

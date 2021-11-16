@@ -30,7 +30,11 @@ class Command(BaseCommand):
                 + datetime.timedelta(days=6 - today.weekday())
                 - datetime.timedelta(days=7)
             )
-            while day < end_of_last_week:
+            last_day = end_of_last_week
+            if employee.end_time_tracking_on:
+                last_day = min(end_of_last_week, employee.end_time_tracking_on)
+
+            while day < last_day:
                 for day, state_of_day in state_of_days_for_week(
                     events, employee, day=day
                 ).items():
