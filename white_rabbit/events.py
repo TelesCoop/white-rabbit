@@ -9,7 +9,7 @@ from django.db.models import Q
 
 from icalendar import Calendar
 
-from white_rabbit.models import Employee, Project
+from white_rabbit.models import Employee, Project, Company
 from white_rabbit.utils import start_of_day
 
 
@@ -22,21 +22,27 @@ class Event(TypedDict):
 EventsPerEmployee = Dict[Employee, Iterable[Event]]
 
 
-def event_name_from_calendar_summary(event_summary):
+def is_full_uppercase(name: str) -> bool:
+    return name == name.upper()
+
+
+def event_name_from_calendar_summary(event_summary, company: Company):
     name = event_summary.split(" - ")[0]
-    name = name.title()
+    if not is_full_uppercase(name):
+        name = name.title()
+
     project = Project.objects.filter(
-        Q(name=name.lower()) | Q(aliases__name=name.lower())
-    ).distinct()
-    if project.exists():
-        project = project.get()
-    else:
-        project = Project(name=name.lower())
-        project.save()
-    return project.name.capitalize()
+        Q(name__iexact=name, company=company)
+        | Q(aliases__name__iexact=name, company=company)
+    )
+
+    if not project.exists():
+        Project.objects.create(name=name, company=company)
+
+    return name
 
 
-def read_events(calendar_data: str) -> Iterable[Event]:
+def read_events(calendar_data: str, company: Company) -> Iterable[Event]:
     """Read events from an ical calendar and returns them as a list."""
     cal = Calendar().from_ical(calendar_data)
     events: List[Event] = []
@@ -53,7 +59,7 @@ def read_events(calendar_data: str) -> Iterable[Event]:
                 start_day = start_day.date()
             events.append(
                 {
-                    "name": event_name_from_calendar_summary(event["SUMMARY"]),
+                    "name": event_name_from_calendar_summary(event["SUMMARY"], company),
                     "day": start_day,
                     "duration": min((end - start).total_seconds() / 3600, 24),
                 }
@@ -63,30 +69,26 @@ def read_events(calendar_data: str) -> Iterable[Event]:
     return sorted(events, key=lambda event: event["day"])
 
 
-def get_events_by_url(url: str) -> Iterable[Event]:
+def get_events_by_url(url: str, company: Company) -> Iterable[Event]:
     """Read events from an ical calendar available at given URL."""
     r = requests.get(url)
     data = r.content.decode()
-    return read_events(data)
+    return read_events(data, company)
 
 
-def get_events_for_employee(employee: Employee):
-    return get_events_by_url(employee.calendar_ical_url)
-
-
-def get_events_for_employees(employees: Iterable[Employee]) -> EventsPerEmployee:
-    if employees is None:
-        employees = Employee.objects.all()
+def get_events_for_employees(
+    employees: List[Employee], company: Company
+) -> EventsPerEmployee:
     return {
-        employee: get_events_by_url(employee.calendar_ical_url)
+        employee: get_events_by_url(employee.calendar_ical_url, company)
         for employee in employees
     }
 
 
-def employees_for_user(user: User) -> Iterable[Employee]:
+def employees_for_user(user: User) -> List[Employee]:
     company = user.employee.company
     if company.is_admin(user):
-        return company.employee_set.filter(start_time_tracking_from__isnull=False)
+        return list(company.employee_set.filter(start_time_tracking_from__isnull=False))
 
     if user.employee.start_time_tracking_from:
         return [user.employee]

@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
-from white_rabbit.models import Project, Alias
+from white_rabbit.models import Project, Alias, Company
 
 
 class AliasInline(admin.StackedInline):
@@ -18,8 +18,7 @@ class AliasInline(admin.StackedInline):
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
-    fields = ("name",)
-    list_display = ("name",)
+    list_display = ("name", "company")
     inlines = (AliasInline,)
     search_fields = ["aliases__name", "name"]
     actions = ["transform_project_to_alias"]
@@ -53,6 +52,32 @@ class ProjectAdmin(admin.ModelAdmin):
             context={"new_aliases": queryset, "projects": projects, "action": True},
         )
 
-    transform_project_to_alias.short_description = (
+    transform_project_to_alias.short_description = (  # type: ignore
         "Transformer en alias d'un autre projet"
     )
+
+    def has_permission(self, request):
+        if request.user.is_anonymous:
+            return False
+
+        if request.user.is_superuser:
+            return True
+
+        # if admin of at least one company
+        if Company.objects.filter(admins=request.user).exists():
+            return True
+
+        return False
+
+    def has_module_permission(self, request):
+        return self.has_permission(request)
+
+    def has_add_permission(self, request):
+        return self.has_permission(request)
+
+    def has_change_permission(self, request, obj: Project = None):
+        if obj is None:
+            return self.has_permission(request)
+        if request.user.is_superuser:
+            return True
+        return obj.company.admins.filter(pk=request.user.pk).exists()

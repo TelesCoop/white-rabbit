@@ -37,7 +37,12 @@ class Project(models.Model):
     class Meta:
         verbose_name = "projet"
 
-    # company = models.ForeignKey(Company, verbose_name="entreprise", related_name="projects", on_delete=models.CASCADE)
+    company = models.ForeignKey(
+        Company,
+        verbose_name="entreprise",
+        related_name="projects",
+        on_delete=models.CASCADE,
+    )
     name = models.CharField(max_length=32, verbose_name="nom")
 
     def __str__(self):
@@ -48,7 +53,9 @@ class Alias(models.Model):
     class Meta:
         verbose_name = "alias"
 
-    project = models.ForeignKey(Project, verbose_name="projet", related_name="aliases", on_delete=models.CASCADE)
+    project = models.ForeignKey(
+        Project, verbose_name="projet", related_name="aliases", on_delete=models.CASCADE
+    )
     name = models.CharField(max_length=32, verbose_name="nom")
 
     def __str__(self):
@@ -63,7 +70,7 @@ class Employee(TimeStampedModel):
     calendar_ical_url = models.CharField(
         verbose_name="URL calendrier Google",
         max_length=150,
-        help_text='"Adresse publique au format iCal" si le calendrier est public, sinon "Adresse privée au format iCal"',
+        help_text='"Adresse publique au format iCal" si le calendrier est public, sinon "Adresse secrète au format iCal"',
     )
     default_day_working_hours = models.IntegerField(
         verbose_name="heures travaillées par jour",
@@ -87,6 +94,12 @@ class Employee(TimeStampedModel):
         null=True,
         blank=True,
         help_text="Pour désactiver le suivi du temps, laisser ce champ vide",
+    )
+    end_time_tracking_on = models.DateField(
+        verbose_name="Fin du suivi de temps",
+        null=True,
+        blank=True,
+        help_text="Date de fin de contrat d'un salarié, le cas échéant",
     )
 
     def __str__(self):
