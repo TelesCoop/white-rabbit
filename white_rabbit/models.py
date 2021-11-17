@@ -36,6 +36,7 @@ class Company(TimeStampedModel):
 class Project(models.Model):
     class Meta:
         verbose_name = "projet"
+        indexes = (models.Index(fields=["lowercase_name"]),)
 
     company = models.ForeignKey(
         Company,
@@ -44,6 +45,13 @@ class Project(models.Model):
         on_delete=models.CASCADE,
     )
     name = models.CharField(max_length=32, verbose_name="nom")
+    lowercase_name = models.CharField(
+        max_length=32, verbose_name="nom en minuscule", null=False, unique=True
+    )
+
+    def save(self, *args, **kwargs):
+        self.lowercase_name = self.name.lower()
+        super().save(self, *args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -52,11 +60,19 @@ class Project(models.Model):
 class Alias(models.Model):
     class Meta:
         verbose_name = "alias"
+        indexes = (models.Index(fields=["lowercase_name"]),)
 
     project = models.ForeignKey(
         Project, verbose_name="projet", related_name="aliases", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=32, verbose_name="nom")
+    lowercase_name = models.CharField(
+        max_length=32, verbose_name="nom en minuscule", null=False, unique=True
+    )
+
+    def save(self, *args, **kwargs):
+        self.lowercase_name = self.name.lower()
+        super().save(self, *args, **kwargs)
 
     def __str__(self):
         return self.name

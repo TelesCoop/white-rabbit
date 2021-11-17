@@ -9,6 +9,7 @@ from django.template.loader import render_to_string
 from white_rabbit.constants import DayState
 from white_rabbit.events import get_events_by_url
 from white_rabbit.models import Employee
+from white_rabbit.project_name_finder import ProjectNameFinder
 from white_rabbit.state_of_day import state_of_days_for_week
 
 FIRST_DAY = datetime.date(2021, 4, 5)
@@ -16,11 +17,14 @@ FIRST_DAY = datetime.date(2021, 4, 5)
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
+        project_name_finder = ProjectNameFinder()
         for employee in Employee.objects.all():
             if not employee.user.email:
                 continue
 
-            events = get_events_by_url(employee.calendar_ical_url)
+            events = get_events_by_url(
+                employee.calendar_ical_url, employee.company, project_name_finder
+            )
 
             missing_days: List[Tuple] = []
             day = employee.start_time_tracking_from

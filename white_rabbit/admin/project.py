@@ -9,6 +9,7 @@ class AliasInline(admin.StackedInline):
     model = Alias
     can_delete = True
     verbose_name_plural = "Aliases"
+    exclude = ("lowercase_name",)
 
     def get_queryset(self, request):
         if request.user.is_superuser:
@@ -19,6 +20,7 @@ class AliasInline(admin.StackedInline):
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
     list_display = ("name", "company")
+    exclude = ("lowercase_name",)
     inlines = (AliasInline,)
     search_fields = ["aliases__name", "name"]
     actions = ["transform_project_to_alias"]

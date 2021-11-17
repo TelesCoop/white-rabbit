@@ -12,15 +12,22 @@ def state_of_days_per_employee(
     events_per_employee: EventsPerEmployee,
     start_date: date,
     end_date: date,
+    employees: Iterable[Employee] = None,
 ) -> Dict[datetime.date, Dict[Employee, Dict[str, Any]]]:
     """
     Returns a dict date -> (employee -> state of day) for each
     combination, including days without events.
     """
+    if employees is None:
+        # by default, we take all employees for which we have data,
+        # but we might want to restrict to only some employees
+        employees = list(events_per_employee)
+
     to_return: Dict[datetime.date, Dict[Employee, Dict[str, Any]]] = defaultdict(
         lambda: defaultdict()
     )
-    for employee, employee_events in events_per_employee.items():
+    for employee in employees:
+        employee_events = events_per_employee[employee]
         per_day_events = events_per_day(employee_events, start_date, end_date)
         for day, events in per_day_events.items():
             to_return[day][employee] = {
@@ -50,13 +57,17 @@ def state_of_days(
 
 
 def state_of_days_per_employee_for_week(
-    events_per_employee: EventsPerEmployee, day: datetime.date = None
+    events_per_employee: EventsPerEmployee,
+    day: datetime.date = None,
+    employees: Iterable[Employee] = None,
 ) -> Dict[datetime.date, Dict[Employee, Dict[str, Any]]]:
     if day is None:
         day = datetime.date.today()
     start_of_week = day - datetime.timedelta(days=day.weekday())
     end_of_week = start_of_week + datetime.timedelta(days=4)
-    return state_of_days_per_employee(events_per_employee, start_of_week, end_of_week)
+    return state_of_days_per_employee(
+        events_per_employee, start_of_week, end_of_week, employees
+    )
 
 
 def state_of_days_for_week(

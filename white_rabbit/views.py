@@ -18,6 +18,7 @@ from .events import (
     employees_for_user,
 )
 from .models import Employee
+from .project_name_finder import ProjectNameFinder
 from .state_of_day import (
     state_of_days_per_employee_for_week,
 )
@@ -165,9 +166,11 @@ class HomeView(TemplateView):
         user = request.user
         company = request.user.employee.company
         employees = employees_for_user(user)
+        project_name_finder = ProjectNameFinder()
         events_per_employee: EventsPerEmployee = get_events_for_employees(
-            employees, company
+            employees, company, project_name_finder
         )
+        print("### after events per employees")
 
         today = datetime.date.today()
         start_of_next_week = today + datetime.timedelta(days=7 - today.weekday())
@@ -177,8 +180,6 @@ class HomeView(TemplateView):
             start_of_next_month + relativedelta(months=1) - relativedelta(days=1)
         )
         end_of_next_week = start_of_next_week + datetime.timedelta(days=4)
-
-        print("upcoming", json.dumps(upcoming_weeks(events_per_employee), indent=2))
 
         return {
             "today": datetime.date.today(),
@@ -194,7 +195,7 @@ class HomeView(TemplateView):
                 events_per_employee, today - datetime.timedelta(days=7)
             ),
             "curent_week_state": state_of_days_per_employee_for_week(
-                events_per_employee, today
+                events_per_employee, today, employees
             ),
             "next_week_availability": {
                 employee: available_time_of_employee(
