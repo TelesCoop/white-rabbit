@@ -45,14 +45,17 @@ def day_distribution(events: Iterable[Event], employee: Employee) -> Dict[str, f
     return dict(distribution)
 
 
-def upcoming_weeks(events_per_employee: EventsPerEmployee):
+def upcoming_weeks(events_per_employee: EventsPerEmployee, employees=List[Employee]):
     n_upcoming_weeks = 12
     today = datetime.date.today()
     start_of_current_week = today - datetime.timedelta(days=today.weekday())
 
+    if employees is None:
+        employees = list(events_per_employee)
+
     to_return: Any = {
         "weeks": [],
-        "employees": list(employee.name for employee in events_per_employee.keys()),
+        "employees": list(employee.name for employee in employees),
     }
     for week_index in range(n_upcoming_weeks):
         week = start_of_current_week + datetime.timedelta(days=7 * week_index)
@@ -166,6 +169,13 @@ class HomeView(TemplateView):
         user = request.user
         company = request.user.employee.company
         employees = employees_for_user(user)
+        today = datetime.date.today()
+        display_employees = {
+            employee
+            for employee in employees
+            if not employee.end_time_tracking_on
+            or employee.end_time_tracking_on > today
+        }
         project_name_finder = ProjectNameFinder()
         events_per_employee: EventsPerEmployee = get_events_for_employees(
             employees, company, project_name_finder
@@ -184,6 +194,7 @@ class HomeView(TemplateView):
             "today": datetime.date.today(),
             "events": events_per_employee,
             "employees": employees,
+            "display_employees": display_employees,
             "time_per_project_total_str": json.dumps(
                 time_per_project(events_per_employee)
             ),
@@ -217,5 +228,7 @@ class HomeView(TemplateView):
                 )
                 for employee, events in events_per_employee.items()
             },
-            "upcoming_weeks_str": json.dumps(upcoming_weeks(events_per_employee)),
+            "upcoming_weeks_str": json.dumps(
+                upcoming_weeks(events_per_employee, display_employees)
+            ),
         }

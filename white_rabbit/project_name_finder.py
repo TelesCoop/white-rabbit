@@ -1,8 +1,8 @@
 from white_rabbit.models import Project, Alias
 
 
-def get_key(project_name: str, company_name: str):
-    return f"{project_name.lower()}__{company_name}"
+def get_key(name: str, company_name: str):
+    return f"{name.lower()}__{company_name}"
 
 
 class ProjectNameFinder:
