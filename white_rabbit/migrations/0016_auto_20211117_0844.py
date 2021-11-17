@@ -15,8 +15,4 @@ class Migration(migrations.Migration):
             name='calendar_ical_url',
             field=models.CharField(help_text='"Adresse publique au format iCal" si le calendrier est public, sinon "Adresse secrète au format iCal"', max_length=150, verbose_name='URL calendrier Google'),
         ),
-        migrations.AddIndex(
-            model_name='alias',
-            index=models.Index(fields=['name'], name='white_rabbi_name_ee8f1f_idx'),
-        ),
     ]

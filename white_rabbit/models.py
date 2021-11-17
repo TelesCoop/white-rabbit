@@ -36,7 +36,6 @@ class Company(TimeStampedModel):
 class Project(models.Model):
     class Meta:
         verbose_name = "projet"
-        indexes = (models.Index(fields=["lowercase_name"]),)
 
     company = models.ForeignKey(
         Company,
@@ -60,7 +59,6 @@ class Project(models.Model):
 class Alias(models.Model):
     class Meta:
         verbose_name = "alias"
-        indexes = (models.Index(fields=["lowercase_name"]),)
 
     project = models.ForeignKey(
         Project, verbose_name="projet", related_name="aliases", on_delete=models.CASCADE

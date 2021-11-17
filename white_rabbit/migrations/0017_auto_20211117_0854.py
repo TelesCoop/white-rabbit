@@ -21,10 +21,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveIndex(
-            model_name='alias',
-            name='white_rabbi_name_ee8f1f_idx',
-        ),
         migrations.AddField(
             model_name='alias',
             name='lowercase_name',
@@ -34,14 +30,6 @@ class Migration(migrations.Migration):
             model_name='project',
             name='lowercase_name',
             field=models.CharField(max_length=32, null=True, verbose_name='nom en minuscule'),
-        ),
-        migrations.AddIndex(
-            model_name='alias',
-            index=models.Index(fields=['lowercase_name'], name='white_rabbi_lowerca_c45c3e_idx'),
-        ),
-        migrations.AddIndex(
-            model_name='project',
-            index=models.Index(fields=['lowercase_name'], name='white_rabbi_lowerca_f5cb65_idx'),
         ),
         migrations.RunPython(set_lowercase_name, lambda _, _2: None)
     ]
