@@ -170,7 +170,6 @@ class HomeView(TemplateView):
         events_per_employee: EventsPerEmployee = get_events_for_employees(
             employees, company, project_name_finder
         )
-        print("### after events per employees")
 
         today = datetime.date.today()
         start_of_next_week = today + datetime.timedelta(days=7 - today.weekday())
