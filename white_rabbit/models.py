@@ -36,6 +36,7 @@ class Company(TimeStampedModel):
 class Project(models.Model):
     class Meta:
         verbose_name = "projet"
+        unique_together = ("lowercase_name", "company")
 
     company = models.ForeignKey(
         Company,
@@ -45,7 +46,7 @@ class Project(models.Model):
     )
     name = models.CharField(max_length=32, verbose_name="nom")
     lowercase_name = models.CharField(
-        max_length=32, verbose_name="nom en minuscule", null=False, unique=True
+        max_length=32, verbose_name="nom en minuscule", null=False
     )
 
     def save(self, *args, **kwargs):
@@ -65,7 +66,7 @@ class Alias(models.Model):
     )
     name = models.CharField(max_length=32, verbose_name="nom")
     lowercase_name = models.CharField(
-        max_length=32, verbose_name="nom en minuscule", null=False, unique=True
+        max_length=32, verbose_name="nom en minuscule", null=False
     )
 
     def save(self, *args, **kwargs):

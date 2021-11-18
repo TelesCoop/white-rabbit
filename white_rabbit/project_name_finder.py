@@ -23,7 +23,7 @@ class ProjectNameFinder:
         key = get_key(name, company.name)
         if key not in self.cache:
             Project.objects.create(name=name, company=company)
-            self.cache[name.lower()] = name
+            self.cache[key] = name
             return name
 
         return self.cache[key]
