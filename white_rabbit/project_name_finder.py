@@ -1,4 +1,4 @@
-from white_rabbit.models import Project, Alias
+from white_rabbit.models import Project, Alias, Company
 
 
 def get_key(name: str, company_name: str):
@@ -19,7 +19,8 @@ class ProjectNameFinder:
             key = get_key(lowercase_name, company_name)
             self.cache[key] = name
 
-    def get_project_name(self, name, company):
+    def get_project_name(self, name: str, company: Company):
+        name = name.strip()
         key = get_key(name, company.name)
         if key not in self.cache:
             Project.objects.create(name=name, company=company)
