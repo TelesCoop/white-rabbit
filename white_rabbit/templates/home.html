@@ -1,215 +1,288 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div class="container" id="app">
-        <h1 class="title is-1">Lapin Blanc</h1>
+<div class="container" id="app">
+    <h1 class="title is-1">Lapin Blanc</h1>
 
-        <h2 class="title is-2">Semaine précédente</h2>
-
-        <table class="table">
-            <tr>
-                <th>Jour</th>
-                <th>État</th>
-            </tr>
-            {% for day, day_data in past_week_state.items %}
+    <b-tabs v-model="activeTab" :expanded="true">
+        <b-tab-item label="Semaine précédente">
+            <table class="table">
                 <tr>
-                    <td>{{ day | date }}</td>
-                    <td>
-                        <ul>
-                            {% for employee, data in day_data.items %}
-                                {% if employee in display_employees %}
-                                    <li>
-                                        {% if data.state == 'complete' %}<span style="color: green">✔</span>{% endif %}
-                                        {% if data.state == 'incomplete' %}<span style="color: orange">❌</span>{% endif %}
-                                        {% if data.state == 'empty' %}<span style="color: red">❌</span>{% endif %}
-                                        <span style="font-weight: bold">{{ employee.name }}</span>
-                                        {% for event in data.events %}
-                                            {{ event.name }}{% if not forloop.last %},{% endif %}
-                                        {% endfor %}
-                                    </li>
-                                {% endif %}
-                            {% endfor %}
-                        </ul>
-
-                    </td>
+                    <th>Jour</th>
+                    <th>État</th>
                 </tr>
-            {% endfor %}
+                {% for day, day_data in past_week_state.items %}
+                    <tr>
+                        <td>{{ day | date }}</td>
+                        <td>
+                            <ul>
+                                {% for employee, data in day_data.items %}
+                                    {% if employee in display_employees %}
+                                        <li>
+                                            {% if data.state == 'complete' %}<span style="color: green">✔</span>{% endif %}
+                                            {% if data.state == 'incomplete' %}<span style="color: orange">❌</span>{% endif %}
+                                            {% if data.state == 'empty' %}<span style="color: red">❌</span>{% endif %}
+                                            <span style="font-weight: bold">{{ employee.name }}</span>
+                                            {% for event in data.events %}
+                                                {{ event.name }}{% if not forloop.last %},{% endif %}
+                                            {% endfor %}
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
 
-        </table>
+                        </td>
+                    </tr>
+                {% endfor %}
 
-        <h2 class="title is-2">Semaine en cours</h2>
+            </table>
+        </b-tab-item>
 
-        <table class="table">
-            <tr>
-                <th>Jour</th>
-                <th>État</th>
-            </tr>
-            {% for day, day_data in curent_week_state.items %}
+        <b-tab-item label="Cette semaine">
+            <table class="table">
                 <tr>
-                    <td>{{ day | date }}</td>
-                    <td>
-                        <ul>
-                            {% for employee, data in day_data.items %}
-                                {% if employee in display_employees %}
-                                    <li>
-                                        {% if data.state == 'complete' %}<span style="color: green">✔</span>{% endif %}
-                                        {% if data.state == 'incomplete' %}<span style="color: orange">❌</span>{% endif %}
-                                        {% if data.state == 'empty' %}<span style="color: red">❌</span>{% endif %}
-                                        <span style="font-weight: bold">{{ employee.name }}</span>
-                                        {% for event in data.events %}
-                                            {{ event.name }}{% if not forloop.last %},{% endif %}
-                                        {% endfor %}
-                                    </li>
-                                {% endif %}
-                            {% endfor %}
-                        </ul>
-
-                    </td>
+                    <th>Jour</th>
+                    <th>État</th>
                 </tr>
-            {% endfor %}
-
-        </table>
-
-        <h2 class="title is-2">Dispo prochaines</h2>
-        <h3 class="title is-3">Semaine prochaine</h3>
-        <table class="table">
-            <tr>
-                <th>nom</th>
-                <th>dispo</th>
-            </tr>
-
-            {% for employee, availability in next_week_availability.items %}
-                {% if employee in display_employees %}
+                {% for day, day_data in curent_week_state.items %}
                     <tr>
-                        <td>{{ employee.name }}</td>
-                        <td>{{ availability | floatformat }}</td>
+                        <td>{{ day | date }}</td>
+                        <td>
+                            <ul>
+                                {% for employee, data in day_data.items %}
+                                    {% if employee in display_employees %}
+                                        <li>
+                                            {% if data.state == 'complete' %}<span style="color: green">✔</span>{% endif %}
+                                            {% if data.state == 'incomplete' %}<span style="color: orange">❌</span>{% endif %}
+                                            {% if data.state == 'empty' %}<span style="color: red">❌</span>{% endif %}
+                                            <span style="font-weight: bold">{{ employee.name }}</span>
+                                            {% for event in data.events %}
+                                                {{ event.name }}{% if not forloop.last %},{% endif %}
+                                            {% endfor %}
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+
+                        </td>
                     </tr>
-                {% endif %}
-            {% endfor %}
-        </table>
+                {% endfor %}
 
-        <h3 class="title is-3">Mois en cours</h3>
-        <table class="table">
-            <tr>
-                <th>nom</th>
-                <th>dispo</th>
-            </tr>
+            </table>
+        </b-tab-item>
 
-            {% for employee, availability in current_month_availability.items %}
-                {% if employee in display_employees %}
-                    <tr>
-                        <td>{{ employee.name }}</td>
-                        <td>{{ availability | floatformat }}</td>
-                    </tr>
-                {% endif %}
-            {% endfor %}
-        </table>
-
-        <h3 class="title is-3">Mois prochain</h3>
-        <table class="table">
-            <tr>
-                <th>nom</th>
-                <th>dispo</th>
-            </tr>
-
-            {% for employee, availability in next_month_availability.items %}
-                {% if employee in display_employees %}
-                    <tr>
-                        <td>{{ employee.name }}</td>
-                        <td>{{ availability | floatformat }}</td>
-                    </tr>
-                {% endif %}
-            {% endfor %}
-        </table>
-
-        <h2 class="title is-2">
-            <template v-if="isShowProjectsTotal">
-                Temps total par projet
-            </template>
-            <template v-if="!isShowProjectsTotal">
-                Temps par projet pour le mois en cours
-            </template>
-        </h2>
-        <b-switch v-model="isShowProjectsTotal">Afficher le total</b-switch>
-        <b-table :data="isShowProjectsTotal ? time_per_project_total : time_per_project_current_month" detailed style="max-width: 400px">
-            <b-table-column label="Projet" v-slot="props">
-                [[ props.row[0] ]]
-            </b-table-column>
-            <b-table-column label="Jours-homme" v-slot="props">
-                [[ props.row[1].duration.toFixed(1) ]]
-            </b-table-column>
-
-            <template #detail="props">
-                <ul>
-                    <li v-for="(event, event_ix) in props.row[1].events" :key="event_ix">[[ event.employee ]] le [[ event.date ]]</li>
-                </ul>
-            </template>
-        </b-table>
-
-        <h2 class="title is-2">Semaines prochaines</h2>
-        <table class="table has-text-centered">
-            <tr>
-                <th>Salarié</th>
-                <th>Missions</th>
-                <th v-for="week in upcoming_weeks.weeks" class="has-text-centered">
-                    <h4 class="subtitle is-4">[[ week.number ]]</h4>
-                    <p class="is-size-7">[[ week.start ]] - [[ week.end ]]</p>
-                </th>
-            </tr>
-            <template v-for="employee in upcoming_weeks.employees">
+        <b-tab-item label="Semaines prochaines">
+            <table class="table has-text-centered">
                 <tr>
-                    <th>[[ employee ]]</th>
-                    <th>dispos</th>
-                    <td v-for="week in upcoming_weeks.weeks">
-                        [[ upcoming_weeks[employee][week.number].availability ]]
-                    </td>
+                    <th>Salarié</th>
+                    <th>Missions</th>
+                    <th v-for="week in upcomingWeeks.weeks" class="has-text-centered">
+                        <h4 class="subtitle is-4">[[ week.number ]]</h4>
+                        <p class="is-size-7">[[ week.start ]] - [[ week.end ]]</p>
+                    </th>
                 </tr>
-                <tr v-for="project in upcoming_weeks[employee].projects_total">
-                    <td></td>
-                    <td>
-                        [[ project ]]
-                    </td>
-                    <td v-for="week in upcoming_weeks.weeks">
-                        [[ (upcoming_weeks[employee][week.number].projects[project] || {}).duration | round(1) ]]
-                    </td>
+                <template v-for="employee in upcomingWeeks.employees">
+                    <tr>
+                        <th>[[ employee ]]</th>
+                        <th>dispos</th>
+                        <template></template>
+                        <td v-for="week in upcomingWeeks.weeks"
+                            :style="{background: weekColor(upcomingWeeks[employee][week.number].availability)}">
+                            [[ upcomingWeeks[employee][week.number].availability | round(1) ]]
+                        </td>
+                    </tr>
+                    <tr v-for="project in upcomingWeeks[employee].projects_total">
+                        <td></td>
+                        <td>
+                            [[ project ]]
+                        </td>
+                        <td v-for="week in upcomingWeeks.weeks"
+                            :set="duration = (upcomingWeeks[employee][week.number].projects[project] || {}).duration"
+                        >
+                            <template v-if="duration">
+                                [[ duration | round(1) ]]
+                            </template>
+                        </td>
+                    </tr>
+                </template>
+            </table>
+        </b-tab-item>
+
+        <b-tab-item label="Mois prochains">
+            <table class="table has-text-centered">
+                <tr>
+                    <th>Salarié</th>
+                    <th>Missions</th>
+                    <th v-for="month_name in upcomingMonths.month_names" class="has-text-centered">
+                        <h4 class="subtitle is-4">[[ month_name ]]</h4>
+                    </th>
                 </tr>
-            </template>
+                <template v-for="employee in upcomingMonths.employees">
+                    <tr>
+                        <th>[[ employee ]]</th>
+                        <th>dispos</th>
+                        <td v-for="month_name in upcomingMonths.month_names"
+                            :style="{background: monthColor(upcomingMonths[employee][month_name].availability)}">
+                            [[ upcomingMonths[employee][month_name].availability | round(1) ]]
+                        </td>
+                    </tr>
+                    <tr v-for="project in upcomingMonths[employee].projects_total">
+                        <td></td>
+                        <td>
+                            [[ project ]]
+                        </td>
+                        <td v-for="month_name in upcomingMonths.month_names"
+                            :set="duration = (upcomingMonths[employee][month_name].projects[project] || {}).duration">
+                            <template v-if="duration">
+                                [[ duration | round(1) ]]
+                            </template>
+                        </td>
+                    </tr>
+                </template>
 
-        </table>
-    </div>
-    <script src="/static/vue.js"></script>
-    <script src="/static/buefy.min.js"></script>
-    <script type="application/javascript">
-         /**
-         * Vue filter to round the decimal to the given place.
-         * http://jsfiddle.net/bryan_k/3ova17y9/*/
-        Vue.filter('round', function(value, decimals) {
-          if(!value) {
-            value = 0;
-          }
+            </table>
+        </b-tab-item>
+        <b-tab-item label="Total par projet">
+            <h2 class="title is-2">Temps total par projet</h2>
 
-          if(!decimals) {
-            decimals = 0;
-          }
+            <b-tabs v-model="activeMonth" :expanded="true" :multiline="true">
+                <b-tab-item v-for="month in Object.keys(timePerProject)" :label="month">
+                    <b-table :data="timePerProject[month]" detailed style="max-width: 400px;">
+                        <b-table-column label="Projet" v-slot="props">
+                            [[ props.row[0] ]]
+                        </b-table-column>
+                        <b-table-column label="Jours-homme" v-slot="props">
+                            [[ props.row[1].duration.toFixed(1) ]]
+                        </b-table-column>
 
-          value = Math.round(value * Math.pow(10, decimals)) / Math.pow(10, decimals);
-          return value;
-        });
+                        {# days where there has been work on that project#}
+                        <template #detail="props">
+                            <ul>
+                                <li v-for="(event, event_ix) in props.row[1].events" :key="event_ix">[[ event.employee ]] le [[ event.date ]]</li>
+                            </ul>
+                        </template>
 
-        var app = new Vue({
-            el: "#app",
-            delimiters: ['[[', ']]'],
-            data: {
-                isShowProjectsTotal: true,
-                time_per_project_current_month: JSON.parse('{{ time_per_project_current_month_str | escapejs }}'),
-                time_per_project_total: JSON.parse('{{ time_per_project_total_str | escapejs }}'),
-                upcoming_weeks: JSON.parse('{{ upcoming_weeks_str | escapejs }}'),
+                    </b-table>
+                </b-tab-item>
+            </b-tabs>
+        </b-tab-item>
+
+        <b-tab-item label="Obsolète ?">
+            <h3 class="title is-3">Semaine prochaine</h3>
+            <table class="table">
+                <tr>
+                    <th>nom</th>
+                    <th>dispo</th>
+                </tr>
+
+                {% for employee, availability in next_week_availability.items %}
+                    {% if employee in display_employees %}
+                        <tr>
+                            <td>{{ employee.name }}</td>
+                            <td>{{ availability | floatformat }}</td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+            </table>
+
+            <h3 class="title is-3">Mois en cours</h3>
+            <table class="table">
+                <tr>
+                    <th>nom</th>
+                    <th>dispo</th>
+                </tr>
+
+                {% for employee, availability in current_month_availability.items %}
+                    {% if employee in display_employees %}
+                        <tr>
+                            <td>{{ employee.name }}</td>
+                            <td>{{ availability | floatformat }}</td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+            </table>
+
+            <h3 class="title is-3">Mois prochain</h3>
+            <table class="table">
+                <tr>
+                    <th>nom</th>
+                    <th>dispo</th>
+                </tr>
+
+                {% for employee, availability in next_month_availability.items %}
+                    {% if employee in display_employees %}
+                        <tr>
+                            <td>{{ employee.name }}</td>
+                            <td>{{ availability | floatformat }}</td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+            </table>
+        </b-tab-item>
+    </b-tabs>
+</div>
+
+<script src="/static/vue.js"></script>
+<script src="/static/buefy.min.js"></script>
+<script type="application/javascript">
+     /**
+     * Vue filter to round the decimal to the given place.
+     * http://jsfiddle.net/bryan_k/3ova17y9/*/
+    Vue.filter('round', function(value, decimals) {
+      if(!value) {
+        value = 0;
+      }
+
+      if(!decimals) {
+        decimals = 0;
+      }
+
+      value = Math.round(value * Math.pow(10, decimals)) / Math.pow(10, decimals);
+      return value;
+    });
+    const COLORS = ["#EEA6A6", "#eec3a6", "#eedaa6", "#eceea6", "#c2eea6"];
+    const SUCCESS_COLOR = COLORS[COLORS.length - 1];
+    const WEEK_THRESHOLDS = [1, 2, 3, 4, 5];
+    const MONTH_THRESHOLDS = [3, 6, 9, 12, 15];
+    var app = new Vue({
+        el: "#app",
+        delimiters: ['[[', ']]'],
+        data: {
+            activeTab: 1,
+            activeMonth: {{ active_month }},
+            timePerProject: JSON.parse('{{ time_per_project_str | escapejs }}'),
+            upcomingWeeks: JSON.parse('{{ upcoming_weeks_str | escapejs }}'),
+            upcomingMonths: JSON.parse('{{ upcoming_months_str | escapejs }}'),
+        },
+        methods: {
+            weekColor(value) {
+                if (value == null) {
+                    return "";
+                }
+                for (const [index, color] of COLORS.entries()) {
+                    if (value < WEEK_THRESHOLDS[index]) {
+                        return color;
+                    }
+                }
+                return SUCCESS_COLOR;
             },
-            mounted() {
-                console.log("### mounted", this.time_per_project_current_month, this.upcoming_weeks);
+            monthColor(value) {
+                if (value == null) {
+                    return "";
+                }
+                for (const [index, color] of COLORS.entries()) {
+                    if (value < MONTH_THRESHOLDS[index]) {
+                        return color;
+                    }
+                }
+                return SUCCESS_COLOR;
             },
-        });
+        },
+        mounted() {
+            console.log("### mounted", this.timePerProject, this.upcomingWeeks);
+        },
+    });
 
 
-    </script>
+</script>
 {% endblock %}

@@ -2,7 +2,15 @@ import datetime
 import json
 from collections import Counter, defaultdict
 from datetime import date
-from typing import Dict, Counter as TypingCounter, Any, Iterable, List, DefaultDict
+from typing import (
+    Dict,
+    Counter as TypingCounter,
+    Any,
+    Iterable,
+    List,
+    DefaultDict,
+    Tuple,
+)
 
 from dateutil.relativedelta import relativedelta
 from django.contrib.auth.views import LoginView
@@ -78,7 +86,7 @@ def upcoming_weeks(events_per_employee: EventsPerEmployee, employees=List[Employ
             week = start_of_current_week + datetime.timedelta(days=7 * week_index)
             end_of_week = week + datetime.timedelta(days=6)
             week_number = week.isocalendar()[1]
-            projects = time_per_project({employee: employee_events}, week=week)
+            projects = time_per_project({employee: employee_events}, week=week)["Total"]
             for project, project_data in projects:
                 projects_total[employee][project] += project_data["duration"]
             to_return[employee.name][week_number] = {
@@ -94,19 +102,68 @@ def upcoming_weeks(events_per_employee: EventsPerEmployee, employees=List[Employ
     return to_return
 
 
+def upcoming_months(events_per_employee: EventsPerEmployee, employees=List[Employee]):
+    n_upcoming_months = 12
+    today = datetime.date.today()
+    start_of_current_month = today - datetime.timedelta(days=today.day - 1)
+
+    if employees is None:
+        employees = list(events_per_employee)
+
+    to_return: Any = {
+        "month_names": [],
+        "employees": list(employee.name for employee in employees),
+    }
+    for month_index in range(n_upcoming_months):
+        month = start_of_current_month + relativedelta(months=month_index)
+        to_return["month_names"].append(month.strftime("%b"))
+
+    # total for each project for each employee
+    projects_total: DefaultDict = defaultdict(Counter)
+
+    for employee, employee_events in events_per_employee.items():
+        to_return[employee.name] = {}
+        for month_index in range(n_upcoming_months):
+            month = start_of_current_month + relativedelta(months=month_index)
+            end_of_month = month + relativedelta(months=1) - relativedelta(days=1)
+            month_name = month.strftime("%b")
+
+            projects = time_per_project({employee: employee_events}, month=month)[
+                "Total"
+            ]
+            for project, project_data in projects:
+                projects_total[employee][project] += project_data["duration"]
+            to_return[employee.name][month_name] = {
+                "availability": available_time_of_employee(
+                    employee, employee_events, month, end_of_month
+                ),
+                "projects": {project[0]: project[1] for project in projects},
+            }
+        to_return[employee.name]["projects_total"] = [
+            proj[0] for proj in projects_total[employee].most_common()
+        ]
+
+    return to_return
+
+
 def time_per_project(
     events_per_employee: EventsPerEmployee,
     month: datetime.date = None,
     week: datetime.date = None,
-) -> List:
+) -> Dict[str, List[Tuple[str, Dict]]]:
     """
     Counts the number of days spent per project for selected month or week.
 
     If week and month are None, counts the historical total.
     """
-    to_return: Dict[str, Dict[str, Any]] = defaultdict(
-        lambda: {"duration": 0, "events": []}
+    to_return: Dict[str, Dict[str, Dict[str, Any]]] = defaultdict(
+        lambda: defaultdict(lambda: {"duration": 0, "events": []})
     )
+    # make sure specific keys exist and are at the start
+    to_return["Total"]  # noqa
+    to_return["Total effectué"]  # noqa
+    to_return["Total à venir"]  # noqa
+
     for employee, employee_events in events_per_employee.items():
         for event_date, events_for_day in group_events_by_day(employee_events).items():
             if month and (event_date.month, event_date.year) != (
@@ -117,34 +174,59 @@ def time_per_project(
             if week and (event_date.isocalendar()[:2] != week.isocalendar()[:2]):
                 continue
 
-            distribution = day_distribution(events_for_day, employee=employee)
-            for name, duration in distribution.items():
-                to_return[name]["duration"] += duration
-                to_return[name]["events"].append(
-                    {
-                        "employee": employee.name,
-                        "date": event_date.isoformat(),
-                    }
-                )
+            # format : YY-MM
+            month_label = f"{event_date.strftime('%b %y')}"
 
-    # sort by total duration
-    return sorted(
-        [(k, v) for k, v in to_return.items()],
-        key=lambda x: x[1]["duration"],
-        reverse=True,
-    )
+            distribution = day_distribution(events_for_day, employee=employee)
+
+            keys_to_update = ["Total", month_label]
+            if event_date <= datetime.date.today():
+                keys_to_update.append("Total effectué")
+            else:
+                keys_to_update.append("Total à venir")
+
+            for name, duration in distribution.items():
+                # add values both to total and relevant month
+                for key in keys_to_update:
+                    to_return[key][name]["duration"] += duration
+                    to_return[key][name]["events"].append(
+                        {
+                            "employee": employee.name,
+                            "date": event_date.isoformat(),
+                        }
+                    )
+
+    # sort by total duration for each month and total
+    sorted_return = {}
+    for key, values in to_return.items():
+        sorted_return[key] = sorted(
+            [(k, v) for k, v in values.items()],
+            key=lambda x: x[1]["duration"],
+            reverse=True,
+        )
+
+    return sorted_return
 
 
 def available_time_of_employee(
     employee: Employee, events: Iterable[Event], start_date: date, end_date: date
 ):
-    """Returns the number of working days that are available for an employee."""
+    """
+    Returns the number of working days that are available for an employee.
+
+    Note: days in the past cannot be available.
+    """
     events_per_day = group_events_by_day(events)
     availability_duration = 0
+    today = datetime.date.today()
 
     day = start_date - datetime.timedelta(days=1)
     while day < end_date:
         day += datetime.timedelta(days=1)
+
+        if day < today:
+            continue
+
         # for weekend and bank holiday
         if day.weekday() >= 5 or JoursFeries.is_bank_holiday(day, zone="Métropole"):
             continue
@@ -190,17 +272,17 @@ class HomeView(TemplateView):
         )
         end_of_next_week = start_of_next_week + datetime.timedelta(days=4)
 
+        computed_time_per_project = time_per_project(events_per_employee)
+
         return {
+            "active_month": list(computed_time_per_project.keys()).index(
+                today.strftime("%b %y")
+            ),
             "today": datetime.date.today(),
             "events": events_per_employee,
             "employees": employees,
             "display_employees": display_employees,
-            "time_per_project_total_str": json.dumps(
-                time_per_project(events_per_employee)
-            ),
-            "time_per_project_current_month_str": json.dumps(
-                time_per_project(events_per_employee, month=datetime.date.today())
-            ),
+            "time_per_project_str": json.dumps(computed_time_per_project),
             "past_week_state": state_of_days_per_employee_for_week(
                 events_per_employee, today - datetime.timedelta(days=7)
             ),
@@ -230,5 +312,8 @@ class HomeView(TemplateView):
             },
             "upcoming_weeks_str": json.dumps(
                 upcoming_weeks(events_per_employee, display_employees)
+            ),
+            "upcoming_months_str": json.dumps(
+                upcoming_months(events_per_employee, display_employees)
             ),
         }
