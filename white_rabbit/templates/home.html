@@ -146,23 +146,41 @@
             <h2 class="title is-2">Temps total par projet</h2>
 
             <b-tabs v-model="activeMonth" :expanded="true" :multiline="true">
-                <b-tab-item v-for="month in Object.keys(timePerProject)" :label="month">
-                    <b-table :data="timePerProject[month]" detailed style="max-width: 400px;">
-                        <b-table-column label="Projet" v-slot="props">
-                            [[ props.row[0] ]]
-                        </b-table-column>
-                        <b-table-column label="Jours-homme" v-slot="props">
-                            [[ props.row[1].duration.toFixed(1) ]]
-                        </b-table-column>
+                <b-tab-item v-for="month in Object.keys(timePerEmployeePerMonthPerProject.Total)" :label="month">
+                    <table class="table">
+                        <tr>
+                            <th>Project</th>
+                            <th v-for="employeeKey in Object.keys(timePerEmployeePerMonthPerProject)">
+                                [[ employeeKey ]]
+                            </th>
+                        </tr>
+                        <tr v-for="projectName in Object.keys(timePerEmployeePerMonthPerProject.Total[month])">
+                            <td>[[ projectName ]]</td>
+                            <td v-for="employeeKey in Object.keys(timePerEmployeePerMonthPerProject)">
+                                 <b-collapse
+                                         v-if="displayDuration(employeeKey, month, projectName)"
+                                         :animation="''"
+                                         :open="false"
+                                         :aria-id="employeeKey + month + projectName"
+                                         style="display: block">
+                                    <template #trigger>
+                                        <span :aria-controls="employeeKey + month + projectName">
+                                            [[ displayDuration(employeeKey, month, projectName) ]]
+                                        </span>
+                                    </template>
+                                    <div class="notification">
+                                        <ul>
+                                            <li v-for="(event, event_ix) in getEvents(employeeKey, month, projectName)"
+                                                :key="event_ix">
+                                                [[ event.employee ]] le [[ event.date ]]
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </b-collapse>
 
-                        {# days where there has been work on that project#}
-                        <template #detail="props">
-                            <ul>
-                                <li v-for="(event, event_ix) in props.row[1].events" :key="event_ix">[[ event.employee ]] le [[ event.date ]]</li>
-                            </ul>
-                        </template>
-
-                    </b-table>
+                            </td>
+                        </tr>
+                    </table>
                 </b-tab-item>
             </b-tabs>
         </b-tab-item>
@@ -250,21 +268,32 @@
         data: {
             activeTab: 1,
             activeMonth: {{ active_month }},
-            timePerProject: JSON.parse('{{ time_per_project_str | escapejs }}'),
+            timePerEmployeePerMonthPerProject: JSON.parse('{{ time_per_employee_per_month_per_project_str | escapejs }}'),
             upcomingWeeks: JSON.parse('{{ upcoming_weeks_str | escapejs }}'),
             upcomingMonths: JSON.parse('{{ upcoming_months_str | escapejs }}'),
         },
         methods: {
-            weekColor(value) {
-                if (value == null) {
+            displayDuration(employee, month, project) {
+                const data = (this.timePerEmployeePerMonthPerProject[employee][month] || {})[project] || {};
+                if (!data) {
                     return "";
                 }
-                for (const [index, color] of COLORS.entries()) {
-                    if (value < WEEK_THRESHOLDS[index]) {
-                        return color;
-                    }
+                const duration = data.duration;
+                if (!duration) {
+                    return "";
                 }
-                return SUCCESS_COLOR;
+                return duration.toFixed(1);
+            },
+            getEvents(employee, month, project) {
+                const data = (this.timePerEmployeePerMonthPerProject[employee][month] || {})[project] || {};
+                if (!data) {
+                    return [];
+                }
+                const events = data.events;
+                if (events == null) {
+                    return [];
+                }
+                return events;
             },
             monthColor(value) {
                 if (value == null) {
@@ -277,9 +306,20 @@
                 }
                 return SUCCESS_COLOR;
             },
+            weekColor(value) {
+                if (value == null) {
+                    return "";
+                }
+                for (const [index, color] of COLORS.entries()) {
+                    if (value < WEEK_THRESHOLDS[index]) {
+                        return color;
+                    }
+                }
+                return SUCCESS_COLOR;
+            },
         },
         mounted() {
-            console.log("### mounted", this.timePerProject, this.upcomingWeeks);
+            console.log("### mounted", this.timePerEmployeePerMonthPerProject, this.upcomingWeeks);
         },
     });
 

@@ -9,7 +9,7 @@ from typing import (
     Iterable,
     List,
     DefaultDict,
-    Tuple,
+    TypedDict,
 )
 
 from dateutil.relativedelta import relativedelta
@@ -86,9 +86,13 @@ def upcoming_weeks(events_per_employee: EventsPerEmployee, employees=List[Employ
             week = start_of_current_week + datetime.timedelta(days=7 * week_index)
             end_of_week = week + datetime.timedelta(days=6)
             week_number = week.isocalendar()[1]
-            projects = time_per_project({employee: employee_events}, week=week)["Total"]
-            for project, project_data in projects:
+            projects = time_per_employee_per_month_per_project(
+                {employee: employee_events}, week=week
+            )["Total"]["Total"]
+
+            for project, project_data in projects.items():
                 projects_total[employee][project] += project_data["duration"]
+
             to_return[employee.name][week_number] = {
                 "availability": available_time_of_employee(
                     employee, employee_events, week, end_of_week
@@ -128,10 +132,10 @@ def upcoming_months(events_per_employee: EventsPerEmployee, employees=List[Emplo
             end_of_month = month + relativedelta(months=1) - relativedelta(days=1)
             month_name = month.strftime("%b")
 
-            projects = time_per_project({employee: employee_events}, month=month)[
-                "Total"
-            ]
-            for project, project_data in projects:
+            projects = time_per_employee_per_month_per_project(
+                {employee: employee_events}, month=month
+            )["Total"]["Total"]
+            for project, project_data in projects.items():
                 projects_total[employee][project] += project_data["duration"]
             to_return[employee.name][month_name] = {
                 "availability": available_time_of_employee(
@@ -146,23 +150,36 @@ def upcoming_months(events_per_employee: EventsPerEmployee, employees=List[Emplo
     return to_return
 
 
-def time_per_project(
+class ProjectDetail(TypedDict):
+    employee: str
+    date: datetime.date
+
+
+class ProjectTime(TypedDict):
+    duration: float
+    events: List[ProjectDetail]
+
+
+TimePerEmployeePerMonthPerProject = Dict[str, Dict[str, Dict[str, ProjectTime]]]
+
+
+def time_per_employee_per_month_per_project(
     events_per_employee: EventsPerEmployee,
     month: datetime.date = None,
     week: datetime.date = None,
-) -> Dict[str, List[Tuple[str, Dict]]]:
+) -> TimePerEmployeePerMonthPerProject:
     """
     Counts the number of days spent per project for selected month or week.
 
     If week and month are None, counts the historical total.
     """
-    to_return: Dict[str, Dict[str, Dict[str, Any]]] = defaultdict(
-        lambda: defaultdict(lambda: {"duration": 0, "events": []})
+    to_return: TimePerEmployeePerMonthPerProject = defaultdict(
+        lambda: defaultdict(
+            lambda: defaultdict(lambda: {"duration": 0.0, "events": []})
+        )
     )
     # make sure specific keys exist and are at the start
-    to_return["Total"]  # noqa
-    to_return["Total effectué"]  # noqa
-    to_return["Total à venir"]  # noqa
+    to_return["Total"]["Total"]  # noqa
 
     for employee, employee_events in events_per_employee.items():
         for event_date, events_for_day in group_events_by_day(employee_events).items():
@@ -179,33 +196,39 @@ def time_per_project(
 
             distribution = day_distribution(events_for_day, employee=employee)
 
-            keys_to_update = ["Total", month_label]
+            date_keys_to_update = ["Total", month_label]
             if event_date <= datetime.date.today():
-                keys_to_update.append("Total effectué")
+                date_keys_to_update.append("Total effectué")
             else:
-                keys_to_update.append("Total à venir")
+                date_keys_to_update.append("Total à venir")
 
             for name, duration in distribution.items():
-                # add values both to total and relevant month
-                for key in keys_to_update:
-                    to_return[key][name]["duration"] += duration
-                    to_return[key][name]["events"].append(
-                        {
-                            "employee": employee.name,
-                            "date": event_date.isoformat(),
-                        }
-                    )
+                # add both to total and relevant employee
+                for employee_key in ["Total", employee.name]:
+                    # add values both to total and relevant month
+                    for date_key in date_keys_to_update:
+                        to_return[employee_key][date_key][name]["duration"] += duration
+                        to_return[employee_key][date_key][name]["events"].append(
+                            {
+                                "employee": employee.name,
+                                "date": event_date,
+                            }
+                        )
 
     # sort by total duration for each month and total
-    sorted_return = {}
-    for key, values in to_return.items():
-        sorted_return[key] = sorted(
-            [(k, v) for k, v in values.items()],
-            key=lambda x: x[1]["duration"],
-            reverse=True,
-        )
+    for employee_key, employee_values in to_return.items():
+        for display_month, time_per_project in employee_values.items():
+            project_names_ordered = sorted(
+                time_per_project.keys(),
+                key=lambda project: time_per_project[project]["duration"],
+                reverse=True,
+            )
+            to_return[employee_key][display_month] = {
+                project: to_return[employee_key][display_month][project]
+                for project in project_names_ordered
+            }
 
-    return sorted_return
+    return to_return
 
 
 def available_time_of_employee(
@@ -272,17 +295,27 @@ class HomeView(TemplateView):
         )
         end_of_next_week = start_of_next_week + datetime.timedelta(days=4)
 
-        computed_time_per_project = time_per_project(events_per_employee)
+        computed_time_per_employee_per_month_per_project = (
+            time_per_employee_per_month_per_project(events_per_employee)
+        )
+        display_employee_names = {employee.name for employee in employees}
+        computed_time_per_employee_per_month_per_project = {
+            employee: employee_data
+            for employee, employee_data in computed_time_per_employee_per_month_per_project.items()
+            if employee == "Total" or employee in display_employee_names
+        }
 
         return {
-            "active_month": list(computed_time_per_project.keys()).index(
-                today.strftime("%b %y")
-            ),
+            "active_month": list(
+                computed_time_per_employee_per_month_per_project["Total"].keys()
+            ).index(today.strftime("%b %y")),
             "today": datetime.date.today(),
             "events": events_per_employee,
             "employees": employees,
             "display_employees": display_employees,
-            "time_per_project_str": json.dumps(computed_time_per_project),
+            "time_per_employee_per_month_per_project_str": json.dumps(
+                computed_time_per_employee_per_month_per_project
+            ),
             "past_week_state": state_of_days_per_employee_for_week(
                 events_per_employee, today - datetime.timedelta(days=7)
             ),
