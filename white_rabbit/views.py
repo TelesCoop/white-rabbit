@@ -163,7 +163,7 @@ class ProjectTime(TypedDict):
 TimePerEmployeePerMonthPerProject = Dict[str, Dict[str, Dict[str, ProjectTime]]]
 
 
-def time_per_employee_per_month_per_project(
+def time_per_employee_per_month_per_project(  # noqa: C901
     events_per_employee: EventsPerEmployee,
     month: datetime.date = None,
     week: datetime.date = None,
@@ -180,6 +180,8 @@ def time_per_employee_per_month_per_project(
     )
     # make sure specific keys exist and are at the start
     to_return["Total"]["Total"]  # noqa
+    to_return["Total"]["Total effectué"]  # noqa
+    to_return["Total"]["Total à venir"]  # noqa
 
     for employee, employee_events in events_per_employee.items():
         for event_date, events_for_day in group_events_by_day(employee_events).items():
@@ -314,7 +316,8 @@ class HomeView(TemplateView):
             "employees": employees,
             "display_employees": display_employees,
             "time_per_employee_per_month_per_project_str": json.dumps(
-                computed_time_per_employee_per_month_per_project
+                computed_time_per_employee_per_month_per_project,
+                default=str,
             ),
             "past_week_state": state_of_days_per_employee_for_week(
                 events_per_employee, today - datetime.timedelta(days=7)
