@@ -53,95 +53,79 @@ def day_distribution(events: Iterable[Event], employee: Employee) -> Dict[str, f
     return dict(distribution)
 
 
-def upcoming_weeks(events_per_employee: EventsPerEmployee, employees=List[Employee]):
-    n_upcoming_weeks = 12
+def upcoming_time(
+    events_per_employee: EventsPerEmployee, employees: List[Employee], time_period: str
+):
+    if time_period not in ["week", "month"]:
+        raise NotImplementedError("time_period must be one of week, month")
+
+    is_month_period = time_period == "month"
+
+    n_upcoming_periods = 12
     today = datetime.date.today()
-    start_of_current_week = today - datetime.timedelta(days=today.weekday())
+    if is_month_period:
+        days_delta = today.day - 1
+        return_key = "month_names"
+
+    else:
+        days_delta = today.weekday()
+        return_key = "weeks"
+    start_of_current_period = today - datetime.timedelta(days=days_delta)
 
     if employees is None:
         employees = list(events_per_employee)
 
     to_return: Any = {
-        "weeks": [],
+        return_key: [],
         "employees": list(employee.name for employee in employees),
     }
-    for week_index in range(n_upcoming_weeks):
-        week = start_of_current_week + datetime.timedelta(days=7 * week_index)
-        end_of_week = week + datetime.timedelta(days=6)
-        week_number = week.isocalendar()[1]
-        to_return["weeks"].append(
-            {
-                "number": week_number,
-                "start": f"{week.day}/{week.month}",
-                "end": f"{end_of_week.day}/{end_of_week.month}",
-            }
+    for period_index in range(n_upcoming_periods):
+        period_start = start_of_current_period + relativedelta(
+            **{f"{time_period}s": period_index}
         )
+        if is_month_period:
+            to_return[return_key].append(period_start.strftime("%b"))
+        else:
+            end_of_period = period_start + datetime.timedelta(days=6)
+            period_start_number = period_start.isocalendar()[1]
+            to_return[return_key].append(
+                {
+                    "number": period_start_number,
+                    "start": f"{period_start.day}/{period_start.month}",
+                    "end": f"{end_of_period.day}/{end_of_period.month}",
+                }
+            )
 
     # total for each project for each employee
     projects_total: DefaultDict = defaultdict(Counter)
 
     for employee, employee_events in events_per_employee.items():
         to_return[employee.name] = {}
-        for week_index in range(n_upcoming_weeks):
-            week = start_of_current_week + datetime.timedelta(days=7 * week_index)
-            end_of_week = week + datetime.timedelta(days=6)
-            week_number = week.isocalendar()[1]
-            projects = time_per_employee_per_month_per_project(
-                {employee: employee_events}, week=week
-            )["Total"]["Total"]
-
-            for project, project_data in projects.items():
-                projects_total[employee][project] += project_data["duration"]
-
-            to_return[employee.name][week_number] = {
-                "availability": available_time_of_employee(
-                    employee, employee_events, week, end_of_week
-                ),
-                "projects": {project[0]: project[1] for project in projects},
-            }
-        to_return[employee.name]["projects_total"] = [
-            proj[0] for proj in projects_total[employee].most_common()
-        ]
-
-    return to_return
-
-
-def upcoming_months(events_per_employee: EventsPerEmployee, employees=List[Employee]):
-    n_upcoming_months = 12
-    today = datetime.date.today()
-    start_of_current_month = today - datetime.timedelta(days=today.day - 1)
-
-    if employees is None:
-        employees = list(events_per_employee)
-
-    to_return: Any = {
-        "month_names": [],
-        "employees": list(employee.name for employee in employees),
-    }
-    for month_index in range(n_upcoming_months):
-        month = start_of_current_month + relativedelta(months=month_index)
-        to_return["month_names"].append(month.strftime("%b"))
-
-    # total for each project for each employee
-    projects_total: DefaultDict = defaultdict(Counter)
-
-    for employee, employee_events in events_per_employee.items():
-        to_return[employee.name] = {}
-        for month_index in range(n_upcoming_months):
-            month = start_of_current_month + relativedelta(months=month_index)
-            end_of_month = month + relativedelta(months=1) - relativedelta(days=1)
-            month_name = month.strftime("%b")
+        for period_index in range(n_upcoming_periods):
+            period_start = start_of_current_period + relativedelta(
+                **{f"{time_period}s": period_index}
+            )
+            period_end = (
+                period_start
+                + relativedelta(**{f"{time_period}s": 1})
+                - relativedelta(days=1)
+            )
+            if is_month_period:
+                period_key = period_start.strftime("%b")
+            else:
+                period_key = period_start.isocalendar()[1]
 
             projects = time_per_employee_per_month_per_project(
-                {employee: employee_events}, month=month
+                {employee: employee_events}, **{time_period: period_start}
             )["Total"]["Total"]
             for project, project_data in projects.items():
                 projects_total[employee][project] += project_data["duration"]
-            to_return[employee.name][month_name] = {
+
+            to_return[employee.name][period_key] = {
                 "availability": available_time_of_employee(
-                    employee, employee_events, month, end_of_month
+                    employee, employee_events, period_start, period_end
                 ),
-                "projects": {project[0]: project[1] for project in projects},
+                "projects": projects,
             }
         to_return[employee.name]["projects_total"] = [
             proj[0] for proj in projects_total[employee].most_common()
@@ -277,25 +261,18 @@ class HomeView(TemplateView):
         company = request.user.employee.company
         employees = employees_for_user(user)
         today = datetime.date.today()
-        display_employees = {
+        display_employees = [
             employee
             for employee in employees
             if not employee.end_time_tracking_on
             or employee.end_time_tracking_on > today
-        }
+        ]
         project_name_finder = ProjectNameFinder()
         events_per_employee: EventsPerEmployee = get_events_for_employees(
             employees, company, project_name_finder
         )
 
         today = datetime.date.today()
-        start_of_next_week = today + datetime.timedelta(days=7 - today.weekday())
-        start_of_current_month = today.replace(day=1)
-        start_of_next_month = start_of_current_month + relativedelta(months=1)
-        end_of_next_month = (
-            start_of_next_month + relativedelta(months=1) - relativedelta(days=1)
-        )
-        end_of_next_week = start_of_next_week + datetime.timedelta(days=4)
 
         computed_time_per_employee_per_month_per_project = (
             time_per_employee_per_month_per_project(events_per_employee)
@@ -325,31 +302,12 @@ class HomeView(TemplateView):
             "curent_week_state": state_of_days_per_employee_for_week(
                 events_per_employee, today, employees
             ),
-            "next_week_availability": {
-                employee: available_time_of_employee(
-                    employee, events, start_of_next_week, end_of_next_week
-                )
-                for employee, events in events_per_employee.items()
-            },
-            "current_month_availability": {
-                employee: available_time_of_employee(
-                    employee,
-                    events,
-                    start_of_current_month,
-                    start_of_next_month - relativedelta(days=1),
-                )
-                for employee, events in events_per_employee.items()
-            },
-            "next_month_availability": {
-                employee: available_time_of_employee(
-                    employee, events, start_of_next_month, end_of_next_month
-                )
-                for employee, events in events_per_employee.items()
-            },
             "upcoming_weeks_str": json.dumps(
-                upcoming_weeks(events_per_employee, display_employees)
+                upcoming_time(events_per_employee, display_employees, "week"),
+                default=str,
             ),
             "upcoming_months_str": json.dumps(
-                upcoming_months(events_per_employee, display_employees)
+                upcoming_time(events_per_employee, display_employees, "month"),
+                default=str,
             ),
         }

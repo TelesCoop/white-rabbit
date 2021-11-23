@@ -145,7 +145,7 @@
         <b-tab-item label="Total par projet">
             <h2 class="title is-2">Temps total par projet</h2>
 
-            <b-tabs v-model="activeMonth" :expanded="true" :multiline="true">
+            <b-tabs v-model="activeMonth" :expanded="true" :multiline="true" animation="none">
                 <b-tab-item v-for="month in Object.keys(timePerEmployeePerMonthPerProject.Total)" :label="month">
                     <table class="table">
                         <tr>
