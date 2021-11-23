@@ -184,59 +184,6 @@
                 </b-tab-item>
             </b-tabs>
         </b-tab-item>
-
-        <b-tab-item label="Obsolète ?">
-            <h3 class="title is-3">Semaine prochaine</h3>
-            <table class="table">
-                <tr>
-                    <th>nom</th>
-                    <th>dispo</th>
-                </tr>
-
-                {% for employee, availability in next_week_availability.items %}
-                    {% if employee in display_employees %}
-                        <tr>
-                            <td>{{ employee.name }}</td>
-                            <td>{{ availability | floatformat }}</td>
-                        </tr>
-                    {% endif %}
-                {% endfor %}
-            </table>
-
-            <h3 class="title is-3">Mois en cours</h3>
-            <table class="table">
-                <tr>
-                    <th>nom</th>
-                    <th>dispo</th>
-                </tr>
-
-                {% for employee, availability in current_month_availability.items %}
-                    {% if employee in display_employees %}
-                        <tr>
-                            <td>{{ employee.name }}</td>
-                            <td>{{ availability | floatformat }}</td>
-                        </tr>
-                    {% endif %}
-                {% endfor %}
-            </table>
-
-            <h3 class="title is-3">Mois prochain</h3>
-            <table class="table">
-                <tr>
-                    <th>nom</th>
-                    <th>dispo</th>
-                </tr>
-
-                {% for employee, availability in next_month_availability.items %}
-                    {% if employee in display_employees %}
-                        <tr>
-                            <td>{{ employee.name }}</td>
-                            <td>{{ availability | floatformat }}</td>
-                        </tr>
-                    {% endif %}
-                {% endfor %}
-            </table>
-        </b-tab-item>
     </b-tabs>
 </div>
 
