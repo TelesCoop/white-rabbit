@@ -1,4 +1,4 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
@@ -45,7 +45,15 @@ class ProjectAdmin(admin.ModelAdmin):
             )
             return HttpResponseRedirect(request.get_full_path())
 
-        projects = Project.objects.exclude(
+        company = queryset.first().company
+        if queryset.exclude(company=company).exists():
+            messages.error(
+                request,
+                "Tous les projets selectionnés doivent appartenir à la même entreprise",
+            )
+            return
+
+        projects = Project.objects.filter(company=company).exclude(
             name__in=queryset.values_list("name", flat=True)
         )
         return render(
