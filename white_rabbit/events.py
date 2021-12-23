@@ -38,7 +38,7 @@ def read_events(
         end = event["DTEND"].dt
 
         # ignore events before start time tracking
-        if start < employee.start_time_tracking_from:
+        if start.date() < employee.start_time_tracking_from:
             continue
 
         # events can be on multiple days
