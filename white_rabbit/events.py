@@ -46,7 +46,7 @@ def read_events(
             continue
 
         # ignore events whose title starts with !
-        if event.name.startswith("!"):
+        if event["SUMMARY"].startswith("!"):
             continue
 
         # events can be on multiple days
