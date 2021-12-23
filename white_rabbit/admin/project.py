@@ -91,3 +91,6 @@ class ProjectAdmin(admin.ModelAdmin):
         if request.user.is_superuser:
             return True
         return obj.company.admins.filter(pk=request.user.pk).exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return self.has_change_permission(request, obj)
