@@ -21,6 +21,8 @@ class ProjectNameFinder:
 
     def get_project_name(self, name: str, company: Company):
         name = name.strip()
+        if not is_full_uppercase(name):
+            name = name.title()
         key = get_key(name, company.name)
         if key not in self.cache:
             Project.objects.create(name=name, company=company)
