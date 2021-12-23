@@ -5,10 +5,9 @@ from typing import List, TypedDict, Dict, Iterable
 
 import requests
 from django.contrib.auth.models import User
-
 from icalendar import Calendar
 
-from white_rabbit.models import Employee, Company
+from white_rabbit.models import Employee
 from white_rabbit.project_name_finder import ProjectNameFinder
 from white_rabbit.utils import start_of_day
 
@@ -23,7 +22,7 @@ EventsPerEmployee = Dict[Employee, Iterable[Event]]
 
 
 def read_events(
-    calendar_data: str, company: Company, project_name_finder=None
+    calendar_data: str, employee: Employee, project_name_finder=None
 ) -> Iterable[Event]:
     """Read events from an ical calendar and returns them as a list."""
     cal = Calendar().from_ical(calendar_data)
@@ -38,6 +37,10 @@ def read_events(
         start = event["DTSTART"].dt
         end = event["DTEND"].dt
 
+        # ignore events before start time tracking
+        if start < employee.start_time_tracking_from:
+            continue
+
         # events can be on multiple days
         while start < end:
             start_day = start
@@ -47,7 +50,7 @@ def read_events(
             events.append(
                 {
                     "name": project_name_finder.get_project_name(
-                        calendar_name, company
+                        calendar_name, employee.company
                     ),
                     "day": start_day,
                     "duration": min((end - start).total_seconds() / 3600, 24),
@@ -59,20 +62,20 @@ def read_events(
 
 
 def get_events_by_url(
-    url: str, company: Company, project_name_finder=None
+    url: str, employee: Employee, project_name_finder=None
 ) -> Iterable[Event]:
     """Read events from an ical calendar available at given URL."""
     r = requests.get(url)
     data = r.content.decode()
-    return read_events(data, company, project_name_finder=project_name_finder)
+    return read_events(data, employee, project_name_finder=project_name_finder)
 
 
 def get_events_for_employees(
-    employees: List[Employee], company: Company, project_name_finder=None
+    employees: List[Employee], project_name_finder=None
 ) -> EventsPerEmployee:
     return {
         employee: get_events_by_url(
-            employee.calendar_ical_url, company, project_name_finder
+            employee.calendar_ical_url, employee, project_name_finder
         )
         for employee in employees
     }

@@ -23,7 +23,7 @@ class Command(BaseCommand):
                 continue
 
             events = get_events_by_url(
-                employee.calendar_ical_url, employee.company, project_name_finder
+                employee.calendar_ical_url, employee, project_name_finder
             )
 
             missing_days: List[Tuple] = []
