@@ -38,7 +38,7 @@ def read_events(
         end = event["DTEND"].dt
 
         # ignore events before start time tracking
-        if isinstance(start.date, datetime.datetime):
+        if isinstance(start, datetime.datetime):
             start_day = start.date()
         else:
             start_day = start
