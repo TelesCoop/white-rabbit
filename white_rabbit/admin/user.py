@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
 
 from white_rabbit.models import Employee, Company
@@ -79,6 +79,9 @@ class UserAdmin(BaseUserAdmin):
         if request.user.is_superuser:
             return True
         return obj.employee.company.admins.filter(pk=request.user.pk).exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return self.has_change_permission(request, obj)
 
     def get_queryset(self, request):
         if request.user.is_superuser:
