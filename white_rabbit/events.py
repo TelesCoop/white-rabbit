@@ -45,6 +45,10 @@ def read_events(
         if start_day < employee.start_time_tracking_from:
             continue
 
+        # ignore events whose title starts with !
+        if event.name.startswith("!"):
+            continue
+
         # events can be on multiple days
         while start < end:
             start_day = start
