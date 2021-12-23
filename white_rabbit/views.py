@@ -258,7 +258,6 @@ class HomeView(TemplateView):
     def get_context_data(self, **kwargs):
         request = self.request
         user = request.user
-        company = request.user.employee.company
         employees = employees_for_user(user)
         today = datetime.date.today()
         display_employees = [
@@ -269,7 +268,7 @@ class HomeView(TemplateView):
         ]
         project_name_finder = ProjectNameFinder()
         events_per_employee: EventsPerEmployee = get_events_for_employees(
-            employees, company, project_name_finder
+            employees, project_name_finder
         )
 
         today = datetime.date.today()
