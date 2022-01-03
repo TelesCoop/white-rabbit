@@ -49,6 +49,9 @@ class ProjectAdmin(admin.ModelAdmin):
         if "apply" in request.POST:
             selected_project_id = int(request.POST.get("selected_project"))
             for project_to_transform in queryset:
+                project_to_transform.aliases.all().update(
+                    project_id=selected_project_id
+                )
                 Alias(
                     name=project_to_transform.name, project_id=selected_project_id
                 ).save()
