@@ -81,12 +81,16 @@ def get_events_by_url(
 def get_events_for_employees(
     employees: List[Employee], project_name_finder=None
 ) -> EventsPerEmployee:
-    return {
-        employee: get_events_by_url(
+    to_return: EventsPerEmployee = {}
+    for employee in employees:
+        if employee.start_time_tracking_from > datetime.date.today():
+            to_return[employee] = []
+            continue
+        to_return[employee] = get_events_by_url(
             employee.calendar_ical_url, employee, project_name_finder
         )
-        for employee in employees
-    }
+
+    return to_return
 
 
 def employees_for_user(user: User) -> List[Employee]:

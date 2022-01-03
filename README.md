@@ -8,6 +8,7 @@ documentation à venir !
 - ignore après le tiret, ex `nom du projet - détails`
 - casse : passe en title case, sauf ce qui est tout en majuscules
 - ne prend pas en compte les événements récurrents
+- il faut ajouter à la main les jours fériés
 
 ### à venir
 - ignorer les événements avec invitation initiées par qqn d'autre
