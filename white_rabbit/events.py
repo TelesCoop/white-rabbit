@@ -101,7 +101,7 @@ def employees_for_user(user: User) -> List[Employee]:
     if company.is_admin(user):
         return list(
             company.employee_set.filter(start_time_tracking_from__isnull=False).filter(
-                start_time_tracking_from__gte=datetime.date.today
+                start_time_tracking_from__gte=datetime.date.today()
             )
         )
 
