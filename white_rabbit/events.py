@@ -35,7 +35,10 @@ def read_events(
         if event.name != "VEVENT":
             continue
         start = event["DTSTART"].dt
-        end = event["DTEND"].dt
+        try:
+            end = event["DTEND"].dt
+        except KeyError:
+            end = start + datetime.timedelta(hours=1)
 
         # ignore events before start time tracking
         if isinstance(start, datetime.datetime):
@@ -96,7 +99,11 @@ def get_events_for_employees(
 def employees_for_user(user: User) -> List[Employee]:
     company = user.employee.company
     if company.is_admin(user):
-        return list(company.employee_set.filter(start_time_tracking_from__isnull=False))
+        return list(
+            company.employee_set.filter(start_time_tracking_from__isnull=False).filter(
+                start_time_tracking_from__gte=datetime.date.today
+            )
+        )
 
     if user.employee.start_time_tracking_from:
         return [user.employee]
