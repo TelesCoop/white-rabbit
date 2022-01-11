@@ -39,11 +39,15 @@ class Command(BaseCommand):
                 last_day = min(end_of_last_week, employee.end_time_tracking_on)
 
             while day < last_day:
-                for day, state_of_day in state_of_days_for_week(
+                for day_in_week, state_of_day in state_of_days_for_week(
                     events, employee, day=day
                 ).items():
+                    if day_in_week < employee.start_time_tracking_from:
+                        # can happen in the first week
+                        continue
+
                     if state_of_day["state"] != DayState.complete:
-                        missing_days.append((day, state_of_day))
+                        missing_days.append((day_in_week, state_of_day))
                 day += datetime.timedelta(days=7)
 
             if not missing_days:
