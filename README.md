@@ -33,9 +33,27 @@ le site de configuration
 Un salarié peut avoir deux statuts :
 
 - normal, dans ce cas il ne voit que ses informations sur le site de Lapin Blanc
-- administrateur d'une entreprise, dans ce cas il peut ajouter d'autres salariés
-de cette entreprise, et depuis l'interface principale il a accès aux informations
-de tous les salariés de cette entreprise
+- administrateur d'une entreprise, dans ce cas :
+  - il peut ajouter d'autres salariés de cette entreprise
+  - depuis l'interface principale il a accès aux informations
+    de tous les salariés de cette entreprise
+  - il peut gérer les alias de projet
+
+## Gérer les alias de projet
+
+Tout nom d'événement est considéré comme un projet en soit, s'il s'il est défini comme
+étant alias d'un autre projet.
+
+La gestion des alias se fait depuis la
+[configuration des projets](http://lapin-blanc.telescoop.fr/configuration/white_rabbit/project/).
+
+En cliquant sur un projet, on peut définir les alias de ce projet. Pour transformer un
+projet déjà détecté en alias de projet, revenir à [configuration des projets](http://lapin-blanc.telescoop.fr/configuration/white_rabbit/project/), sélectionner le projet concerner, puis sélectionner Transformer en alias
+d'un autre projet dans la liste des actions et cliquer sur Envoyer :
+
+![](readme-images/transform-to-alias.png)
+
+Une autre page s'ouvre, il suffit alors de choisir le projet cible.
 
 ## Conventions de de nommage événements
 
