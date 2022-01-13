@@ -41,6 +41,10 @@ Un salarié peut avoir deux statuts :
 
 ## Gérer les alias de projet
 
+Les alias sont une autre manière de nommer les projets. Ils peuvent être utile pour
+créer des raccourcis (utiliser SP à la place de Super Projet) ou gérer des erreurs
+(configurer Mon Super Projet comme alias de Super Projet si les deux sont utilisés).
+
 Tout nom d'événement est considéré comme un projet en soit, s'il s'il est défini comme
 étant alias d'un autre projet.
 
@@ -60,12 +64,22 @@ Une autre page s'ouvre, il suffit alors de choisir le projet cible.
 - Lapin Blanc ignore ce qui commence par `!`
 - Lapin Blanc ignore ce qu'il y a après le tiret ce qui permet d'ajouter des informations
 non prises en compte, ex `nom du projet - détails`
-- casse (majuscule/miniscule) : elle est ignorée, tout est converti en casse de titre
-(majuscule au début des mots), sauf lorsqu'un nom est entièrement en majuscule, auquel cas
-il est gardé tel quel
+- la casse (majuscule/miniscule) est ignorée, tout est converti en casse de titre
+(Majuscule Au Début Des Mots), sauf lorsqu'un nom est entièrement en majuscule
+(par exemple ANCT), auquel cas il est gardé tel quel
+
+## Autres informations utiles
+
+- Lapin Blanc ne garde aucune mémoire de l'historique (hormis les noms de projet et alias).
+À chaque fois que la page d'accueil est chargé, Lapin Blanc télécharge l'historique de tous
+les utilisateurs à afficher et fait les caculs appropriés.
+- Lapin Blanc a un cache de une minute. Donc si vous visualisez la page d'accueil, modifiez
+votre agenda et rechargez moins d'une minute plus tard, vous verrez une page qui peut ne plus
+être à jour. Mais après une minute de patience au plus, les changements opérés dans l'agenda
+seront bien pris en compte.
 
 ## Bogues connus
 
-- Lapin Blanc ne prend pas en compte les événements récurrents.
+- Lapin Blanc ne prend pas en compte les événements récurrents
 - il faut ajouter à la main les jours fériés
 - Lapin Blanc ne sait pas ignorer les événements avec invitation initiées par qqn d'autre
