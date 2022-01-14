@@ -9,7 +9,6 @@ class CompanyAdmin(admin.ModelAdmin):
     filter_horizontal = ("admins",)
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
-        print("### formfield_for_foreignkey", db_field)
         if db_field.name == "admins":
             kwargs["queryset"] = request.user.employee.company.employees
         return super().formfield_for_manytomany(db_field, request, **kwargs)
