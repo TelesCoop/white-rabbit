@@ -101,7 +101,11 @@ class Employee(TimeStampedModel):
         help_text="Nombre d'heures de travail à partir au-delà duquel on considère une journée complète",
     )
     company = models.ForeignKey(
-        Company, verbose_name="entreprise", on_delete=models.CASCADE, null=True
+        Company,
+        verbose_name="entreprise",
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="employees",
     )
     start_time_tracking_from = models.DateField(
         verbose_name="Début du suivi de temps",

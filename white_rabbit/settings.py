@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "white_rabbit",
     "debug_toolbar",
+    "hijack",  # django-hijack
+    "hijack_admin",
 ]
 
 MIDDLEWARE = [
@@ -163,3 +165,6 @@ LOGIN_REDIRECT_URL = "/"
 
 # for django debug toolbar
 INTERNAL_IPS = ["127.0.0.1"]
+
+# djang-hijack
+HIJACK_ALLOW_GET_REQUESTS = True
