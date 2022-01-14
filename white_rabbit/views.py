@@ -81,7 +81,7 @@ def upcoming_time(
     }
     for period_index in range(n_upcoming_periods):
         period_start = start_of_current_period + relativedelta(
-            **{f"{time_period}s": period_index}
+            **{f"{time_period}s": period_index}  # type: ignore
         )
         if is_month_period:
             to_return[return_key].append(period_start.strftime("%b"))
@@ -103,17 +103,17 @@ def upcoming_time(
         to_return[employee.name] = {}
         for period_index in range(n_upcoming_periods):
             period_start = start_of_current_period + relativedelta(
-                **{f"{time_period}s": period_index}
+                **{f"{time_period}s": period_index}  # type: ignore
             )
             period_end = (
                 period_start
-                + relativedelta(**{f"{time_period}s": 1})
+                + relativedelta(**{f"{time_period}s": 1})  # type: ignore
                 - relativedelta(days=1)
             )
             if is_month_period:
                 period_key = period_start.strftime("%b")
             else:
-                period_key = period_start.isocalendar()[1]
+                period_key = period_start.isocalendar()[1]  # type: ignore
 
             projects = time_per_employee_per_month_per_project(
                 {employee: employee_events}, **{time_period: period_start}

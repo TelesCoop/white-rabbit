@@ -21,4 +21,6 @@ urlpatterns = [
     path("", cache_page(60)(vary_on_cookie(views.HomeView.as_view()))),
     path("", views.HomeView.as_view()),
     path("__debug__/", include(debug_toolbar.urls)),
+    # django-hijack
+    path(r"hijack/", include("hijack.urls", namespace="hijack")),
 ]
