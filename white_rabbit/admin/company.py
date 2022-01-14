@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.auth.models import User
 from white_rabbit.admin.user import is_user_admin
 
 from white_rabbit.models import Company
@@ -9,8 +10,11 @@ class CompanyAdmin(admin.ModelAdmin):
     filter_horizontal = ("admins",)
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
+        """Only show employees of that company."""
         if db_field.name == "admins":
-            kwargs["queryset"] = request.user.employee.company.employees
+            kwargs["queryset"] = User.objects.filter(
+                employee__in=request.user.employee.company.employees.all()
+            )
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
     def get_queryset(self, request):
