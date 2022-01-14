@@ -62,7 +62,7 @@ class UserAdmin(BaseUserAdmin):
             return True
 
         # if admin of at least one company
-        if Company.objects.filter(admins=request.user).exists():
+        if is_user_admin():
             return True
 
         return False
@@ -87,3 +87,7 @@ class UserAdmin(BaseUserAdmin):
         if request.user.is_superuser:
             return User.objects.all()
         return User.objects.filter(employee__company__admins=request.user)
+
+
+def is_user_admin(user: User):
+    return Company.objects.filter(admins=user).exists()
