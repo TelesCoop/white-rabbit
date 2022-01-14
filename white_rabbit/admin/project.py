@@ -1,8 +1,9 @@
 from django.contrib import admin, messages
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
+from white_rabbit.admin.company import is_user_admin
 
-from white_rabbit.models import Project, Alias, Company
+from white_rabbit.models import Project, Alias
 
 
 class AliasInline(admin.StackedInline):
@@ -92,7 +93,7 @@ class ProjectAdmin(admin.ModelAdmin):
             return True
 
         # if admin of at least one company
-        if Company.objects.filter(admins=request.user).exists():
+        if is_user_admin(request.user):
             return True
 
         return False

@@ -25,8 +25,8 @@ vide. La partie "Permissions" peut être utile :
 - Pour un ancien employé dont on veut garder l'historique mais dont on ne souhaite
 plus qu'il ait accès à l'outil, décocher la case Actif
 - La case Statut Équipe donne à l'utilisateur l'accès au site de configuration. Même
-avec l'accès, un utilisateur non administrateur d'une entreprise n'a accès à rien sur
-le site de configuration
+avec le Statut Équipe, un utilisateur non administrateur d'une entreprise n'a accès
+à rien sur le site de configuration
 
 ### Types de salariés
 
@@ -38,6 +38,10 @@ Un salarié peut avoir deux statuts :
   - depuis l'interface principale il a accès aux informations
     de tous les salariés de cette entreprise
   - il peut gérer les alias de projet
+
+Pour configurer les administrateurs d'une entreprise, se rendre sur la
+[configuration des entreprise](http://lapin-blanc.telescoop.fr/configuration/white_rabbit/company/),
+l'entreprise concernée, puis ajouter l'utilisateur aux administrateurs de l'entreprise.
 
 ## Gérer les alias de projet
 
