@@ -62,7 +62,7 @@ class UserAdmin(BaseUserAdmin):
             return True
 
         # if admin of at least one company
-        if is_user_admin():
+        if is_user_admin(request.user):
             return True
 
         return False
