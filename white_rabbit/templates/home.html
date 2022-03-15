@@ -4,6 +4,13 @@
 <div class="container" id="app">
     <h1 class="title is-1">Lapin Blanc 🐰</h1>
 
+    {% for message in messages %}
+        <div class="notification {% if message.tags and message.tags == 'error'%}is-danger{% endif %}">
+            {{ message }}
+        </div>
+
+    {% endfor %}
+
     <b-tabs v-model="activeTab" :expanded="true">
         <b-tab-item label="Semaine précédente">
             <table class="table">

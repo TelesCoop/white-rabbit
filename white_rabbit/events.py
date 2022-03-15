@@ -6,6 +6,7 @@ from typing import List, TypedDict, Dict, Iterable
 import requests
 from django.contrib.auth.models import User
 from icalendar import Calendar
+from django.contrib import messages
 
 from white_rabbit.models import Employee
 from white_rabbit.project_name_finder import ProjectNameFinder
@@ -82,16 +83,28 @@ def get_events_by_url(
 
 
 def get_events_for_employees(
-    employees: List[Employee], project_name_finder=None
+    employees: List[Employee], project_name_finder=None, request=None
 ) -> EventsPerEmployee:
     to_return: EventsPerEmployee = {}
     for employee in employees:
         if employee.start_time_tracking_from > datetime.date.today():
             to_return[employee] = []
             continue
-        to_return[employee] = get_events_by_url(
-            employee.calendar_ical_url, employee, project_name_finder
-        )
+        try:
+            to_return[employee] = get_events_by_url(
+                employee.calendar_ical_url, employee, project_name_finder
+            )
+        except ValueError:
+            message = (
+                f"Impossible de récupérer le calendrier de {employee}. Il doit être "
+                "mal configuré. Dans sa configuration, bien mettre l'\"Adresse "
+                'secrète au format iCal" de son calendrier'
+            )
+            if request:
+                messages.error(request, message)
+            else:
+                print(message)
+            to_return[employee] = []
 
     return to_return
 

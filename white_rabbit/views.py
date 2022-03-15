@@ -268,7 +268,7 @@ class HomeView(TemplateView):
         ]
         project_name_finder = ProjectNameFinder()
         events_per_employee: EventsPerEmployee = get_events_for_employees(
-            employees, project_name_finder
+            employees, project_name_finder, request=self.request
         )
 
         today = datetime.date.today()
