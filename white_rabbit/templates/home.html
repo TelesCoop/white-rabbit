@@ -152,7 +152,7 @@
         <b-tab-item label="Total par projet">
             <h2 class="title is-2">Temps total par projet</h2>
 
-            <b-tabs v-model="activeMonth" :expanded="true" :multiline="true" animation="none">
+            <b-tabs v-model="activeMonth" :expanded="true" :multiline="true" :animation="none">
                 <b-tab-item v-for="month in Object.keys(timePerEmployeePerMonthPerProject.Total)" :label="month">
                     <table class="table">
                         <tr>
@@ -164,12 +164,12 @@
                         <tr v-for="projectName in Object.keys(timePerEmployeePerMonthPerProject.Total[month])">
                             <td>[[ projectName ]]</td>
                             <td v-for="employeeKey in Object.keys(timePerEmployeePerMonthPerProject)">
-                                 <b-collapse
-                                         v-if="displayDuration(employeeKey, month, projectName)"
-                                         :animation="''"
-                                         :open="false"
-                                         :aria-id="employeeKey + month + projectName"
-                                         style="display: block">
+                                <b-collapse
+                                        v-if="displayDuration(employeeKey, month, projectName)"
+                                        :animation="''"
+                                        :open="false"
+                                        :aria-id="employeeKey + month + projectName"
+                                        style="display: block">
                                     <template #trigger>
                                         <span :aria-controls="employeeKey + month + projectName">
                                             [[ displayDuration(employeeKey, month, projectName) ]]
@@ -191,26 +191,27 @@
                 </b-tab-item>
             </b-tabs>
         </b-tab-item>
+
     </b-tabs>
 </div>
 
 <script src="/static/vue.js"></script>
 <script src="/static/buefy.min.js"></script>
 <script type="application/javascript">
-     /**
-     * Vue filter to round the decimal to the given place.
-     * http://jsfiddle.net/bryan_k/3ova17y9/*/
+    /**
+    * Vue filter to round the decimal to the given place.
+    * http://jsfiddle.net/bryan_k/3ova17y9/*/
     Vue.filter('round', function(value, decimals) {
-      if(!value) {
-        value = 0;
-      }
+        if(!value) {
+            value = 0;
+        }
 
-      if(!decimals) {
-        decimals = 0;
-      }
+        if(!decimals) {
+            decimals = 0;
+        }
 
-      value = Math.round(value * Math.pow(10, decimals)) / Math.pow(10, decimals);
-      return value;
+        value = Math.round(value * Math.pow(10, decimals)) / Math.pow(10, decimals);
+        return value;
     });
     const COLORS = ["#EEA6A6", "#eec3a6", "#eedaa6", "#eceea6", "#c2eea6"];
     const SUCCESS_COLOR = COLORS[COLORS.length - 1];

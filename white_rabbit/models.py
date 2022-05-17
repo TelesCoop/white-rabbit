@@ -48,6 +48,12 @@ class Project(models.Model):
     lowercase_name = models.CharField(
         max_length=32, verbose_name="nom en minuscule", null=False
     )
+    is_client_project = models.BooleanField(verbose_name="Projet client", default=False)
+    days_sold = models.IntegerField(
+        verbose_name="Jours vendus",
+        default=0,
+        help_text="Il s'agit du nombre de jours vendu au client pour ce projet",
+    )
 
     def save(self, *args, **kwargs):
         self.lowercase_name = self.name.lower()
