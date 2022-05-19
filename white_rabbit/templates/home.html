@@ -192,6 +192,47 @@
             </b-tabs>
         </b-tab-item>
 
+        <b-tab-item label="Jours Vendus">
+            <h2 class="title is-2">Nombre de jours vendus par projet</h2>
+            <table class="table has-text-centered">
+                <tr>
+                    <th>Projet Client</th>
+                    <th>Jours Vendus</th>
+                    <th>Jours Fait</th>
+                    <th>Reste à faire</th>
+                </tr>
+                <tr>
+                    <th>Work in progess</th>
+                    <th>Work in progess</th>
+                    <th>Work in progess</th>
+                    <th>Work in progess</th>
+                </tr>
+                {% comment %} <template v-for="employee in upcomingMonths.employees">
+                    <tr>
+                        <th>[[ employee ]]</th>
+                        <th>dispos</th>
+                        <td v-for="month_name in upcomingMonths.month_names"
+                            :style="{background: monthColor(upcomingMonths[employee][month_name].availability)}">
+                            [[ upcomingMonths[employee][month_name].availability | round(1) ]]
+                        </td>
+                    </tr>
+                    <tr v-for="project in upcomingMonths[employee].projects_total">
+                        <td></td>
+                        <td>
+                            [[ project ]]
+                        </td>
+                        <td v-for="month_name in upcomingMonths.month_names"
+                            :set="duration = (upcomingMonths[employee][month_name].projects[project] || {}).duration">
+                            <template v-if="duration">
+                                [[ duration | round(1) ]]
+                            </template>
+                        </td>
+                    </tr>
+                </template> {% endcomment %}
+
+            </table>
+        </b-tab-item>
+
     </b-tabs>
 </div>
 
