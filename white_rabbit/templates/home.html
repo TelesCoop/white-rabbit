@@ -164,12 +164,12 @@
                         <tr v-for="projectName in Object.keys(timePerEmployeePerMonthPerProject.Total[month])">
                             <td>[[ projectName ]]</td>
                             <td v-for="employeeKey in Object.keys(timePerEmployeePerMonthPerProject)">
-                                 <b-collapse
-                                         v-if="displayDuration(employeeKey, month, projectName)"
-                                         :animation="''"
-                                         :open="false"
-                                         :aria-id="employeeKey + month + projectName"
-                                         style="display: block">
+                                <b-collapse
+                                        v-if="displayDuration(employeeKey, month, projectName)"
+                                        :animation="''"
+                                        :open="false"
+                                        :aria-id="employeeKey + month + projectName"
+                                        style="display: block">
                                     <template #trigger>
                                         <span :aria-controls="employeeKey + month + projectName">
                                             [[ displayDuration(employeeKey, month, projectName) ]]
@@ -191,26 +191,46 @@
                 </b-tab-item>
             </b-tabs>
         </b-tab-item>
+
+        <b-tab-item label="Jours Vendus">
+            <h2 class="title is-2">Nombre de jours vendus par projet</h2>
+            <table class="table has-text-centered">
+                <tr>
+                    <th>Projet Client</th>
+                    <th>Jours Vendus</th>
+                    <th>Jours Fait</th>
+                    <th>Reste à faire</th>
+                </tr>
+                <tr v-for="project in clientProjects">
+                    <th>[[ project[0] ]]</th>
+                    <th>[[ project[1] ]]</th>
+                    <th>[[ displayDuration("Total", "Total effectué", project[0]) ]]</th>
+                    <th>[[ project[1] - displayDuration("Total", "Total effectué", project[0]) ]]</th>
+                </tr>
+
+            </table>
+        </b-tab-item>
+
     </b-tabs>
 </div>
 
 <script src="/static/vue.js"></script>
 <script src="/static/buefy.min.js"></script>
 <script type="application/javascript">
-     /**
-     * Vue filter to round the decimal to the given place.
-     * http://jsfiddle.net/bryan_k/3ova17y9/*/
+    /**
+    * Vue filter to round the decimal to the given place.
+    * http://jsfiddle.net/bryan_k/3ova17y9/*/
     Vue.filter('round', function(value, decimals) {
-      if(!value) {
-        value = 0;
-      }
+        if(!value) {
+            value = 0;
+        }
 
-      if(!decimals) {
-        decimals = 0;
-      }
+        if(!decimals) {
+            decimals = 0;
+        }
 
-      value = Math.round(value * Math.pow(10, decimals)) / Math.pow(10, decimals);
-      return value;
+        value = Math.round(value * Math.pow(10, decimals)) / Math.pow(10, decimals);
+        return value;
     });
     const COLORS = ["#EEA6A6", "#eec3a6", "#eedaa6", "#eceea6", "#c2eea6"];
     const SUCCESS_COLOR = COLORS[COLORS.length - 1];
@@ -225,6 +245,7 @@
             timePerEmployeePerMonthPerProject: JSON.parse('{{ time_per_employee_per_month_per_project_str | escapejs }}'),
             upcomingWeeks: JSON.parse('{{ upcoming_weeks_str | escapejs }}'),
             upcomingMonths: JSON.parse('{{ upcoming_months_str | escapejs }}'),
+            clientProjects: JSON.parse('{{ client_projects | escapejs }}'),
         },
         methods: {
             displayDuration(employee, month, project) {
@@ -273,7 +294,7 @@
             },
         },
         mounted() {
-            console.log("### mounted", this.timePerEmployeePerMonthPerProject, this.upcomingWeeks);
+            console.log("### mounted", this.timePerEmployeePerMonthPerProject, this.upcomingWeeks, this.clientProjects);
         },
     });
 
