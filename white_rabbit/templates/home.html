@@ -201,34 +201,12 @@
                     <th>Jours Fait</th>
                     <th>Reste à faire</th>
                 </tr>
-                <tr>
-                    <th>Work in progess</th>
-                    <th>Work in progess</th>
-                    <th>Work in progess</th>
-                    <th>Work in progess</th>
+                <tr v-for="project in clientProjects">
+                    <th>[[ project[0] ]]</th>
+                    <th>[[ project[1] ]]</th>
+                    <th>[[ displayDuration("Total", "Total effectué", project[0]) ]]</th>
+                    <th>[[ project[1] - displayDuration("Total", "Total effectué", project[0]) ]]</th>
                 </tr>
-                {% comment %} <template v-for="employee in upcomingMonths.employees">
-                    <tr>
-                        <th>[[ employee ]]</th>
-                        <th>dispos</th>
-                        <td v-for="month_name in upcomingMonths.month_names"
-                            :style="{background: monthColor(upcomingMonths[employee][month_name].availability)}">
-                            [[ upcomingMonths[employee][month_name].availability | round(1) ]]
-                        </td>
-                    </tr>
-                    <tr v-for="project in upcomingMonths[employee].projects_total">
-                        <td></td>
-                        <td>
-                            [[ project ]]
-                        </td>
-                        <td v-for="month_name in upcomingMonths.month_names"
-                            :set="duration = (upcomingMonths[employee][month_name].projects[project] || {}).duration">
-                            <template v-if="duration">
-                                [[ duration | round(1) ]]
-                            </template>
-                        </td>
-                    </tr>
-                </template> {% endcomment %}
 
             </table>
         </b-tab-item>
@@ -267,6 +245,7 @@
             timePerEmployeePerMonthPerProject: JSON.parse('{{ time_per_employee_per_month_per_project_str | escapejs }}'),
             upcomingWeeks: JSON.parse('{{ upcoming_weeks_str | escapejs }}'),
             upcomingMonths: JSON.parse('{{ upcoming_months_str | escapejs }}'),
+            clientProjects: JSON.parse('{{ client_projects | escapejs }}'),
         },
         methods: {
             displayDuration(employee, month, project) {
@@ -315,7 +294,7 @@
             },
         },
         mounted() {
-            console.log("### mounted", this.timePerEmployeePerMonthPerProject, this.upcomingWeeks);
+            console.log("### mounted", this.timePerEmployeePerMonthPerProject, this.upcomingWeeks, this.clientProjects);
         },
     });
 
