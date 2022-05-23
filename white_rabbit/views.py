@@ -25,7 +25,7 @@ from .events import (
     get_events_for_employees,
     employees_for_user,
 )
-from .models import Employee
+from .models import Employee, Project
 from .project_name_finder import ProjectNameFinder
 from .state_of_day import (
     state_of_days_per_employee_for_week,
@@ -252,6 +252,14 @@ def available_time_of_employee(
     return availability_duration
 
 
+def find_client_project():
+    all_project_client = Project.objects.filter(is_client_project=True).values_list(
+        "name", "days_sold"
+    )
+
+    return list(all_project_client)
+
+
 class HomeView(TemplateView):
     template_name = "home.html"
 
@@ -309,4 +317,5 @@ class HomeView(TemplateView):
                 upcoming_time(events_per_employee, display_employees, "month"),
                 default=str,
             ),
+            "client_projects": json.dumps(find_client_project()),
         }
