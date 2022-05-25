@@ -162,7 +162,19 @@
                             </th>
                         </tr>
                         <tr v-for="projectName in Object.keys(timePerEmployeePerMonthPerProject.Total[month])">
-                            <td>[[ projectName ]]</td>
+                            <td>[[ projectName ]]
+                                <div
+                                    v-if="Object.keys(timePerEmployeePerMonthPerProject.Total[month][projectName]['subprojects']).length > 0"
+                                        style="display: block">
+                                    <div class="notification">
+                                        <ul>
+                                            <li v-for="subprojectName in Object.keys(timePerEmployeePerMonthPerProject.Total[month][projectName]['subprojects'])">
+                                                [[ subprojectName ]]
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </td>
                             <td v-for="employeeKey in Object.keys(timePerEmployeePerMonthPerProject)">
                                 <b-collapse
                                         v-if="displayDuration(employeeKey, month, projectName)"
@@ -173,6 +185,17 @@
                                     <template #trigger>
                                         <span :aria-controls="employeeKey + month + projectName">
                                             [[ displayDuration(employeeKey, month, projectName) ]]
+                                            <div
+                                                v-if="Object.keys(timePerEmployeePerMonthPerProject[employeeKey][month][projectName]['subprojects']).length > 0"
+                                                    style="display: block">
+                                                <div class="notification">
+                                                    <ul>
+                                                        <li v-for="subprojectName in Object.keys(timePerEmployeePerMonthPerProject.Total[month][projectName]['subprojects'])">
+                                                            [[displayDuration(employeeKey, month, projectName, subprojectName) ]]
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
                                         </span>
                                     </template>
                                     <div class="notification">
@@ -248,8 +271,11 @@
             clientProjects: JSON.parse('{{ client_projects | escapejs }}'),
         },
         methods: {
-            displayDuration(employee, month, project) {
-                const data = (this.timePerEmployeePerMonthPerProject[employee][month] || {})[project] || {};
+            displayDuration(employee, month, project, subproject = null) {
+                let data = (this.timePerEmployeePerMonthPerProject[employee][month] || {})[project] || {};
+                if (subproject) {
+                    data = data['subprojects'][subproject] || {}
+                }
                 if (!data) {
                     return "";
                 }
