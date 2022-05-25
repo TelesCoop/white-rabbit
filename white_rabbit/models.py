@@ -50,9 +50,11 @@ class Project(models.Model):
     )
     is_client_project = models.BooleanField(verbose_name="Projet client", default=False)
 
-    days_sold = models.IntegerField(
+    days_sold = models.DecimalField(
         verbose_name="Jours vendus",
         default=0,
+        max_digits=4,
+        decimal_places=1,
         help_text="Il s'agit du nombre de jours vendu au client pour ce projet",
     )
 
