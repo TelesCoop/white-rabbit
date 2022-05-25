@@ -15,6 +15,9 @@ from typing import (
 from dateutil.relativedelta import relativedelta
 from django.contrib.auth.views import LoginView
 from django.views.generic import TemplateView
+from django.db.models import FloatField
+from django.db.models.functions import Cast
+
 from jours_feries_france import JoursFeries
 
 from .constants import MIN_WORKING_HOURS_FOR_FULL_DAY
@@ -253,10 +256,11 @@ def available_time_of_employee(
 
 
 def find_client_project():
-    all_project_client = Project.objects.filter(is_client_project=True).values_list(
-        "name", "days_sold"
+    all_project_client = (
+        Project.objects.filter(is_client_project=True)
+        .annotate(days_sold_float=Cast("days_sold", FloatField()))
+        .values_list("name", "days_sold_float")
     )
-
     return list(all_project_client)
 
 
