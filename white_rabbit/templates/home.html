@@ -162,18 +162,30 @@
                             </th>
                         </tr>
                         <tr v-for="projectName in Object.keys(timePerEmployeePerMonthPerProject.Total[month])">
-                            <td>[[ projectName ]]
-                                <div
+                            <td>
+                                <div v-if="Object.keys(timePerEmployeePerMonthPerProject.Total[month][projectName]['subprojects']).length <= 0">[[ projectName ]]</div>
+                                <b-collapse
                                     v-if="Object.keys(timePerEmployeePerMonthPerProject.Total[month][projectName]['subprojects']).length > 0"
+                                    :animation="''"
+                                    :open="false"
+                                    :aria-id="employeeKey + month + projectName + subprojectName"
                                         style="display: block">
+                                    <template #trigger>
+                                        <span :aria-controls="employeeKey + month + projectName + subprojectName">
+                                            [[ projectName ]]
+                                        </span>
+                                    </template>
                                     <div class="notification">
                                         <ul>
                                             <li v-for="subprojectName in Object.keys(timePerEmployeePerMonthPerProject.Total[month][projectName]['subprojects'])">
                                                 [[ subprojectName ]]
                                             </li>
+                                            <li v-for="subprojectName in Object.keys(timePerEmployeePerMonthPerProject.Total[month][projectName]['subprojects'])">
+                                                [[displayDuration(employeeKey, month, projectName, subprojectName) ]]
+                                            </li>
                                         </ul>
                                     </div>
-                                </div>
+                                </b-collapse>
                             </td>
                             <td v-for="employeeKey in Object.keys(timePerEmployeePerMonthPerProject)">
                                 <b-collapse
@@ -185,17 +197,6 @@
                                     <template #trigger>
                                         <span :aria-controls="employeeKey + month + projectName">
                                             [[ displayDuration(employeeKey, month, projectName) ]]
-                                            <div
-                                                v-if="Object.keys(timePerEmployeePerMonthPerProject[employeeKey][month][projectName]['subprojects']).length > 0"
-                                                    style="display: block">
-                                                <div class="notification">
-                                                    <ul>
-                                                        <li v-for="subprojectName in Object.keys(timePerEmployeePerMonthPerProject.Total[month][projectName]['subprojects'])">
-                                                            [[displayDuration(employeeKey, month, projectName, subprojectName) ]]
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                            </div>
                                         </span>
                                     </template>
                                     <div class="notification">
@@ -225,10 +226,10 @@
                     <th>Reste à faire</th>
                 </tr>
                 <tr v-for="project in clientProjects">
-                    <th>[[ project[0] ]]</th>
-                    <th>[[ project[1] ]]</th>
-                    <th>[[ displayDuration("Total", "Total effectué", project[0]) ]]</th>
-                    <th>[[ project[1] - displayDuration("Total", "Total effectué", project[0]) ]]</th>
+                    <td>[[ project[0] ]]</td>
+                    <td>[[ project[1] ]]</td>
+                    <td>[[ displayDuration("Total", "Total effectué", project[0]) ]]</td>
+                    <td>[[ project[1] - displayDuration("Total", "Total effectué", project[0]) ]]</td>
                 </tr>
 
             </table>
