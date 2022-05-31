@@ -169,18 +169,6 @@
                         <tr v-for="projectName in Object.keys(timePerEmployeePerMonthPerProject.Total[month])">
                             <td>
                                 <div>[[ projectName ]]</div>
-                                {% comment %} <b-collapse
-
-                                    :animation="''"
-                                    :open="false"
-                                    :aria-id="employeeKey + month + projectName + subprojectName"
-                                        style="display: block">
-                                    <template #trigger>
-                                        <span :aria-controls="employeeKey + month + projectName + subprojectName">
-                                            [[ projectName ]]
-                                        </span>
-                                    </template>
-                                </b-collapse> {% endcomment %}
                                 <div v-if="Object.keys(timePerEmployeePerMonthPerProject.Total[month][projectName]['subprojects']).length > 0  && showSubProjects">
                                     <ul>
                                         <li style="padding-left: 20px; list-style: inside; color: #48c78e;" v-for="subprojectName in Object.keys(timePerEmployeePerMonthPerProject.Total[month][projectName]['subprojects'])">
