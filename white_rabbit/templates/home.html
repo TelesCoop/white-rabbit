@@ -169,7 +169,7 @@
                         <tr v-for="projectName in Object.keys(timePerEmployeePerMonthPerProject.Total[month])">
                             <td>
                                 <div>[[ projectName ]]</div>
-                                <div v-if="Object.keys(timePerEmployeePerMonthPerProject.Total[month][projectName]['subprojects']).length > 0  && showSubProjects">
+                                <div v-if="showSubProjects && Object.keys(timePerEmployeePerMonthPerProject.Total[month][projectName]['subprojects']).length > 0">
                                     <ul>
                                         <li style="padding-left: 20px; list-style: inside; color: #48c78e;" v-for="subprojectName in Object.keys(timePerEmployeePerMonthPerProject.Total[month][projectName]['subprojects'])">
                                             [[ subprojectName ]]
@@ -188,7 +188,7 @@
                                         <span :aria-controls="employeeKey + month + projectName">
                                             [[ displayDuration(employeeKey, month, projectName) ]]
                                         </span>
-                                        <div style="color: #48c78e;" v-if="Object.keys(timePerEmployeePerMonthPerProject.Total[month][projectName]['subprojects']).length > 0 && showSubProjects">
+                                        <div style="color: #48c78e;" v-if="showSubProjects && Object.keys(timePerEmployeePerMonthPerProject.Total[month][projectName]['subprojects']).length > 0">
                                             <ul>
                                                 <li v-for="subprojectName in Object.keys(timePerEmployeePerMonthPerProject.Total[month][projectName]['subprojects'])">
                                                     <span v-if="displayDuration(employeeKey, month, projectName, subprojectName)">
@@ -228,10 +228,10 @@
                     <th>Reste à faire</th>
                 </tr>
                 <tr v-for="project in clientProjects">
-                    <td>[[ project[0] ]]</td>
-                    <td>[[ project[1] ]]</td>
-                    <td>[[ displayDuration("Total", "Total effectué", project[0]) ]]</td>
-                    <td>[[ (project[1] - displayDuration("Total", "Total effectué", project[0])).toFixed(1) ]]</td>
+                    <td>[[ project.name ]]</td>
+                    <td>[[ project.days_sold ]]</td>
+                    <td>[[ displayDuration("Total", "Total effectué", project.name) ]]</td>
+                    <td>[[ (project.days_sold - displayDuration("Total", "Total effectué", project.name)).toFixed(1) ]]</td>
                 </tr>
 
             </table>

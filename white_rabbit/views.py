@@ -4,7 +4,7 @@ from collections import Counter, defaultdict
 from datetime import date
 from typing import (
     Dict,
-    Counter as TypingCounter,
+    # Counter as TypingCounter,
     Any,
     Iterable,
     List,
@@ -276,13 +276,31 @@ def available_time_of_employee(
     return availability_duration
 
 
-def find_client_project():
-    all_project_client = (
+AllProjectClient = List[Dict[str, float]]
+
+
+def find_client_project() -> AllProjectClient:
+
+    to_return: AllProjectClient = list(
+        defaultdict(
+            lambda: {
+                "name": "",
+                "duration": 0.0,
+            }
+        )
+    )
+
+    client_project = list(
         Project.objects.filter(is_client_project=True)
         .annotate(days_sold_float=Cast("days_sold", FloatField()))
         .values_list("name", "days_sold_float")
     )
-    return list(all_project_client)
+    keys = ["name", "days_sold"]
+
+    for project in client_project:
+        to_return.append(dict(zip(keys, project)))
+
+    return to_return
 
 
 class HomeView(TemplateView):
