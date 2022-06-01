@@ -64,9 +64,11 @@ def read_events(
             project_name = calendar_name.split(" [")[0]
             subproject_name = None
             if len(calendar_name.split(" [")) > 1:
-                subproject_name = calendar_name[
-                    calendar_name.find("[") + 1 : calendar_name.find("]")
-                ]
+                subproject_name = (
+                    calendar_name[calendar_name.find("[") + 1 : calendar_name.find("]")]
+                    .strip()
+                    .lower()
+                )
 
             events.append(
                 {
