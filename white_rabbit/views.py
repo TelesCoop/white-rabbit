@@ -4,7 +4,7 @@ from collections import Counter, defaultdict
 from datetime import date
 from typing import (
     Dict,
-    Counter as TypingCounter,
+    # Counter as TypingCounter,
     Any,
     Iterable,
     List,
@@ -39,6 +39,11 @@ class MyLoginView(LoginView):
     template_name = "admin/login.html"
 
 
+class ProjectDistribution(TypedDict):
+    duration: float
+    subproject_name: str
+
+
 def day_distribution(events: Iterable[Event], employee: Employee) -> Dict[str, float]:
     """Given all events for a day for an employee, count the number of days (<= 1) spent on each project."""
     total_time = sum(event["duration"] for event in events)
@@ -48,10 +53,13 @@ def day_distribution(events: Iterable[Event], employee: Employee) -> Dict[str, f
     else:
         divider = float(employee.default_day_working_hours)
 
-    distribution: TypingCounter[str] = Counter()
+    # TypingCounter[str] = Counter()
+    distribution: Dict[str, ProjectDistribution]
+    distribution = defaultdict(lambda: {"duration": 0.0, "subproject_name": ""})
 
     for event in events:
-        distribution[event["name"]] += event["duration"] / divider  # type: ignore
+        distribution[event["name"]]["subproject_name"] = event["subproject_name"]
+        distribution[event["name"]]["duration"] += event["duration"] / divider  # type: ignore
 
     return dict(distribution)
 
@@ -144,6 +152,7 @@ class ProjectDetail(TypedDict):
 
 class ProjectTime(TypedDict):
     duration: float
+    subprojects: dict
     events: List[ProjectDetail]
 
 
@@ -162,7 +171,13 @@ def time_per_employee_per_month_per_project(  # noqa: C901
     """
     to_return: TimePerEmployeePerMonthPerProject = defaultdict(
         lambda: defaultdict(
-            lambda: defaultdict(lambda: {"duration": 0.0, "events": []})
+            lambda: defaultdict(
+                lambda: {
+                    "duration": 0.0,
+                    "events": [],
+                    "subprojects": defaultdict(lambda: {"duration": 0.0}),
+                }
+            )
         )
     )
     # make sure specific keys exist and are at the start
@@ -191,12 +206,18 @@ def time_per_employee_per_month_per_project(  # noqa: C901
             else:
                 date_keys_to_update.append("Total à venir")
 
-            for name, duration in distribution.items():
+            for name, details in distribution.items():
                 # add both to total and relevant employee
+                duration = details["duration"]  # type: ignore
+                subproject_name = details["subproject_name"]  # type: ignore
                 for employee_key in ["Total", employee.name]:
                     # add values both to total and relevant month
                     for date_key in date_keys_to_update:
                         to_return[employee_key][date_key][name]["duration"] += duration
+                        if subproject_name:
+                            to_return[employee_key][date_key][name]["subprojects"][
+                                subproject_name
+                            ]["duration"] += duration
                         to_return[employee_key][date_key][name]["events"].append(
                             {
                                 "employee": employee.name,
@@ -255,13 +276,31 @@ def available_time_of_employee(
     return availability_duration
 
 
-def find_client_project():
-    all_project_client = (
+AllProjectClient = List[Dict[str, float]]
+
+
+def find_client_project() -> AllProjectClient:
+
+    to_return: AllProjectClient = list(
+        defaultdict(
+            lambda: {
+                "name": "",
+                "duration": 0.0,
+            }
+        )
+    )
+
+    client_project = list(
         Project.objects.filter(is_client_project=True)
         .annotate(days_sold_float=Cast("days_sold", FloatField()))
         .values_list("name", "days_sold_float")
     )
-    return list(all_project_client)
+    keys = ["name", "days_sold"]
+
+    for project in client_project:
+        to_return.append(dict(zip(keys, project)))
+
+    return to_return
 
 
 class HomeView(TemplateView):
