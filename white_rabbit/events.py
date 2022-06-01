@@ -15,6 +15,7 @@ from white_rabbit.utils import start_of_day
 
 class Event(TypedDict):
     name: str
+    subproject_name: str
     duration: float
     day: datetime.date
 
@@ -59,11 +60,20 @@ def read_events(
             if isinstance(start_day, datetime.datetime):
                 start_day = start_day.date()
             calendar_name = event["SUMMARY"].split(" - ")[0]
+
+            project_name = calendar_name.split(" [")[0]
+            subproject_name = None
+            if len(calendar_name.split(" [")) > 1:
+                subproject_name = calendar_name[
+                    calendar_name.find("[") + 1 : calendar_name.find("]")
+                ]
+
             events.append(
                 {
                     "name": project_name_finder.get_project_name(
-                        calendar_name, employee.company
+                        project_name, employee.company
                     ),
+                    "subproject_name": subproject_name,
                     "day": start_day,
                     "duration": min((end - start).total_seconds() / 3600, 24),
                 }

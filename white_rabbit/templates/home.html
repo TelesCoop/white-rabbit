@@ -151,6 +151,11 @@
         </b-tab-item>
         <b-tab-item label="Total par projet">
             <h2 class="title is-2">Temps total par projet</h2>
+            <b-field>
+                <b-checkbox v-model="showSubProjects" type="is-success">
+                    [[ showSubProjects ? `Détails affichés` : `Détails non affichés` ]]
+                </b-checkbox>
+            </b-field>
 
             <b-tabs v-model="activeMonth" :expanded="true" :multiline="true" animation="none">
                 <b-tab-item v-for="month in Object.keys(timePerEmployeePerMonthPerProject.Total)" :label="month">
@@ -162,7 +167,16 @@
                             </th>
                         </tr>
                         <tr v-for="projectName in Object.keys(timePerEmployeePerMonthPerProject.Total[month])">
-                            <td>[[ projectName ]]</td>
+                            <td>
+                                <div>[[ projectName ]]</div>
+                                <div v-if="showSubProjects && Object.keys(timePerEmployeePerMonthPerProject.Total[month][projectName]['subprojects']).length > 0">
+                                    <ul>
+                                        <li style="padding-left: 20px; list-style: inside; color: #48c78e;" v-for="subprojectName in Object.keys(timePerEmployeePerMonthPerProject.Total[month][projectName]['subprojects'])">
+                                            [[ subprojectName ]]
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
                             <td v-for="employeeKey in Object.keys(timePerEmployeePerMonthPerProject)">
                                 <b-collapse
                                         v-if="displayDuration(employeeKey, month, projectName)"
@@ -174,6 +188,18 @@
                                         <span :aria-controls="employeeKey + month + projectName">
                                             [[ displayDuration(employeeKey, month, projectName) ]]
                                         </span>
+                                        <div style="color: #48c78e;" v-if="showSubProjects && Object.keys(timePerEmployeePerMonthPerProject.Total[month][projectName]['subprojects']).length > 0">
+                                            <ul>
+                                                <li v-for="subprojectName in Object.keys(timePerEmployeePerMonthPerProject.Total[month][projectName]['subprojects'])">
+                                                    <span v-if="displayDuration(employeeKey, month, projectName, subprojectName)">
+                                                        [[ displayDuration(employeeKey, month, projectName, subprojectName) ]]
+                                                    </span>
+                                                    <span v-else>
+                                                        0
+                                                    </span>
+                                                </li>
+                                            </ul>
+                                        </div>
                                     </template>
                                     <div class="notification">
                                         <ul>
@@ -202,10 +228,10 @@
                     <th>Reste à faire</th>
                 </tr>
                 <tr v-for="project in clientProjects">
-                    <th>[[ project[0] ]]</th>
-                    <th>[[ project[1] ]]</th>
-                    <th>[[ displayDuration("Total", "Total effectué", project[0]) ]]</th>
-                    <th>[[ project[1] - displayDuration("Total", "Total effectué", project[0]) ]]</th>
+                    <td>[[ project.name ]]</td>
+                    <td>[[ project.days_sold ]]</td>
+                    <td>[[ displayDuration("Total", "Total effectué", project.name) ]]</td>
+                    <td>[[ (project.days_sold - displayDuration("Total", "Total effectué", project.name)).toFixed(1) ]]</td>
                 </tr>
 
             </table>
@@ -246,10 +272,14 @@
             upcomingWeeks: JSON.parse('{{ upcoming_weeks_str | escapejs }}'),
             upcomingMonths: JSON.parse('{{ upcoming_months_str | escapejs }}'),
             clientProjects: JSON.parse('{{ client_projects | escapejs }}'),
+            showSubProjects: false,
         },
         methods: {
-            displayDuration(employee, month, project) {
-                const data = (this.timePerEmployeePerMonthPerProject[employee][month] || {})[project] || {};
+            displayDuration(employee, month, project, subproject = null) {
+                let data = (this.timePerEmployeePerMonthPerProject[employee][month] || {})[project] || {};
+                if (subproject) {
+                    data = data['subprojects'][subproject] || {}
+                }
                 if (!data) {
                     return "";
                 }
