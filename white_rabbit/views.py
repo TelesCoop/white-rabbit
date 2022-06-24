@@ -279,7 +279,7 @@ def available_time_of_employee(
 AllProjectClient = List[Dict[str, float]]
 
 
-def find_client_project() -> AllProjectClient:
+def find_client_project(user) -> AllProjectClient:
 
     to_return: AllProjectClient = list(
         defaultdict(
@@ -291,7 +291,7 @@ def find_client_project() -> AllProjectClient:
     )
 
     client_project = list(
-        Project.objects.filter(is_client_project=True)
+        Project.objects.filter(is_client_project=True, company = user.employee.company)
         .annotate(days_sold_float=Cast("days_sold", FloatField()))
         .values_list("name", "days_sold_float")
     )
@@ -360,5 +360,5 @@ class HomeView(TemplateView):
                 upcoming_time(events_per_employee, display_employees, "month"),
                 default=str,
             ),
-            "client_projects": json.dumps(find_client_project()),
+            "client_projects": json.dumps(find_client_project(user)),
         }
