@@ -63,6 +63,22 @@ d'un autre projet dans la liste des actions et cliquer sur Envoyer :
 
 Une autre page s'ouvre, il suffit alors de choisir le projet cible.
 
+## Journée complète
+
+**Il ne faut mettre un évènement en journée complète que si c'est le seul évènement de
+la journée, ou avec d'autres évènements en journée complète de durée égale.** 
+
+Il est possible sur un calendrier d'ajouter un évènement sur une journée complète. Lapin
+Blanc considère alors qu'il dure 24h. Si c'est le seul évènement de la journée, cela
+fonctionne bien et il comptera pour une journée. S'il y a deux évènements en journée 
+complète également, ils compteront pour chacun une demi-journée.
+
+Mais s'il y a un évènement en journée complète et un événement qui dure une heure, celui
+qui dure une heure comptera pour 1/25e d'une journée, et celui en journée complète pour
+24/25e, ce qui n'est probablement pas l'effet recherché. Il vaut mieux alors repasser
+l'évènement en journée complète sur par exemple 7h de travail pour qu'il compte pour
+7/8e d'une journée et l'autre pour 1/8e d'une journée.
+
 ## Conventions de de nommage événements
 
 - Lapin Blanc ignore ce qui commence par `!`
