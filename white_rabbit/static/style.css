@@ -1,0 +1,5 @@
+.fixed-first-row {
+    position: sticky;
+    top: 0;
+    background: white;
+}

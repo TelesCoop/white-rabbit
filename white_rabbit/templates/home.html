@@ -80,7 +80,7 @@
 
         <b-tab-item label="Semaines prochaines">
             <table class="table has-text-centered">
-                <tr>
+                <tr class="fixed-first-row">
                     <th>Salarié</th>
                     <th>Missions</th>
                     <th v-for="week in upcomingWeeks.weeks" class="has-text-centered">
@@ -117,7 +117,7 @@
 
         <b-tab-item label="Mois prochains">
             <table class="table has-text-centered">
-                <tr>
+                <tr class="fixed-first-row">
                     <th>Salarié</th>
                     <th>Missions</th>
                     <th v-for="month_name in upcomingMonths.month_names" class="has-text-centered">
@@ -160,7 +160,7 @@
             <b-tabs v-model="activeMonth" :expanded="true" :multiline="true" animation="none">
                 <b-tab-item v-for="month in Object.keys(timePerEmployeePerMonthPerProject.Total)" :label="month">
                     <table class="table">
-                        <tr>
+                        <tr class="fixed-first-row">
                             <th>Project</th>
                             <th v-for="employeeKey in Object.keys(timePerEmployeePerMonthPerProject)">
                                 [[ employeeKey ]]
@@ -221,7 +221,7 @@
         <b-tab-item label="Jours Vendus">
             <h2 class="title is-2">Nombre de jours vendus par projet</h2>
             <table class="table has-text-centered">
-                <tr>
+                <tr class="fixed-first-row">
                     <th>Projet Client</th>
                     <th>Jours Vendus</th>
                     <th>Jours Faits</th>

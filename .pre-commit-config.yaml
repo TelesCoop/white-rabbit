@@ -63,7 +63,7 @@ repos:
   repo: https://gitlab.com/pycqa/flake8
   rev: 3.8.3
 -   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: ''  # Use the sha / tag you want to point at
+    rev: 'v0.971'  # Use the sha / tag you want to point at
     hooks:
     -   id: mypy
 - hooks:
