@@ -93,7 +93,7 @@ class Employee(TimeStampedModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     calendar_ical_url = models.CharField(
         verbose_name="URL calendrier Google",
-        max_length=150,
+        max_length=256,
         help_text='"Adresse publique au format iCal" si le calendrier est public, sinon "Adresse secrète au format iCal"',
     )
     default_day_working_hours = models.IntegerField(
