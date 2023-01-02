@@ -334,10 +334,16 @@ class HomeView(TemplateView):
             if employee == "Total" or employee in display_employee_names
         }
 
-        return {
-            "active_month": list(
+        filled_month_list = list(
                 computed_time_per_employee_per_month_per_project["Total"].keys()
-            ).index(today.strftime("%b %y")),
+            )
+        try:
+            active_month = filled_month_list.index(today.strftime("%b %y"))
+        except ValueError:
+            active_month = len(filled_month_list)
+
+        return {
+            "active_month": active_month,
             "today": datetime.date.today(),
             "events": events_per_employee,
             "employees": employees,
