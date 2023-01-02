@@ -148,6 +148,7 @@ def upcoming_time(
 class ProjectDetail(TypedDict):
     employee: str
     date: datetime.date
+    duration: float
 
 
 class ProjectTime(TypedDict):
@@ -222,6 +223,7 @@ def time_per_employee_per_month_per_project(  # noqa: C901
                             {
                                 "employee": employee.name,
                                 "date": event_date,
+                                "duration": duration
                             }
                         )
 

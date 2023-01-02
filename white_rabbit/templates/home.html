@@ -149,6 +149,7 @@
 
             </table>
         </b-tab-item>
+
         <b-tab-item label="Total par projet">
             <h2 class="title is-2">Temps total par projet</h2>
             <b-field>
@@ -205,7 +206,7 @@
                                         <ul>
                                             <li v-for="(event, event_ix) in getEvents(employeeKey, month, projectName)"
                                                 :key="event_ix">
-                                                [[ event.employee ]] le [[ event.date ]]
+                                                [[event.duration.toFixed(1)]] par [[ event.employee ]] le [[ event.date ]]
                                             </li>
                                         </ul>
                                     </div>
