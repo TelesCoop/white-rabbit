@@ -376,9 +376,10 @@ class AliasView(TemplateView):
     template_name = "alias.html"
 
     def get_context_data(self, **kwargs):
+        company = self.request.user.employee.company
         aliasesByProject = {}
 
-        for project in Project.objects.all():
+        for project in Project.objects.filter(company=company):
             aliasesByProject[project.name] = [
                 alias.name for alias in project.aliases.all()
             ]
