@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <title>Lapin Blanc</title>
@@ -9,6 +9,19 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@5.8.55/css/materialdesignicons.min.css">
 </head>
 <body>
+    <nav role="navigation" class="navbar container mb-4 is-align-items-center" aria-label="navigation principale">
+        <div class="navbar-brand">
+            <a href="/" target="_self">
+                <h1 class="title is-1">Lapin Blanc 🐰</h1>
+            </a>
+        </div>
+        <div class="navbar-end">
+            <a class="nav-item" href="alias/" target="_self">
+                Liste des alias
+            </a>
+        </div>
+    </nav>
+
     {% block content %}
     {% endblock %}
 </body>
