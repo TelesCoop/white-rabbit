@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2 class="title is-3">Liste des alias</h2>
+    <p class="block">
+        Les alias sont déclarés dans la partie <a href="/configuration" target="_blank">administration</a> de Lapin Blanc.
+        Ils permettent de regrouper sous un seul nom les différents noms d'événement utilisés dans les calendriers des collaborateurs
+    </p>
+    <div class="aliases-container">
+        {% for project, aliases in aliasesByProject.items %}
+            <p><span class="has-text-weight-bold">{{project}}</span> :
+                {% if aliases|length > 0 %}
+                <ul>
+                    {% for alias in aliases %}
+                        <li>{{alias}}</li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <span class="sr-only">Aucun alias</span>
+                {% endif %}
+            </p>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

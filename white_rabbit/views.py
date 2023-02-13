@@ -223,7 +223,7 @@ def time_per_employee_per_month_per_project(  # noqa: C901
                             {
                                 "employee": employee.name,
                                 "date": event_date,
-                                "duration": duration
+                                "duration": duration,
                             }
                         )
 
@@ -293,7 +293,7 @@ def find_client_project(user) -> AllProjectClient:
     )
 
     client_project = list(
-        Project.objects.filter(is_client_project=True, company = user.employee.company)
+        Project.objects.filter(is_client_project=True, company=user.employee.company)
         .annotate(days_sold_float=Cast("days_sold", FloatField()))
         .values_list("name", "days_sold_float")
     )
@@ -337,8 +337,8 @@ class HomeView(TemplateView):
         }
 
         filled_month_list = list(
-                computed_time_per_employee_per_month_per_project["Total"].keys()
-            )
+            computed_time_per_employee_per_month_per_project["Total"].keys()
+        )
         try:
             active_month = filled_month_list.index(today.strftime("%b %y"))
         except ValueError:
@@ -370,3 +370,16 @@ class HomeView(TemplateView):
             ),
             "client_projects": json.dumps(find_client_project(user)),
         }
+
+
+class AliasView(TemplateView):
+    template_name = "alias.html"
+
+    def get_context_data(self, **kwargs):
+        aliasesByProject = {}
+
+        for project in Project.objects.all():
+            aliasesByProject[project.name] = [
+                alias.name for alias in project.aliases.all()
+            ]
+        return {"aliasesByProject": aliasesByProject}
