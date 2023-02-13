@@ -379,7 +379,7 @@ class AliasView(TemplateView):
         company = self.request.user.employee.company
         aliasesByProject = {}
 
-        for project in Project.objects.filter(company=company):
+        for project in Project.objects.filter(company=company).order_by("name"):
             aliasesByProject[project.name] = [
                 alias.name for alias in project.aliases.all()
             ]
