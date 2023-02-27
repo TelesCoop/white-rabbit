@@ -4,20 +4,17 @@ from collections import Counter, defaultdict
 from datetime import date
 from typing import (
     Dict,
-    # Counter as TypingCounter,
     Any,
     Iterable,
     List,
     DefaultDict,
     TypedDict,
+    Union,
 )
 
 from dateutil.relativedelta import relativedelta
 from django.contrib.auth.views import LoginView
 from django.views.generic import TemplateView
-from django.db.models import FloatField
-from django.db.models.functions import Cast
-
 from jours_feries_france import JoursFeries
 
 from .constants import MIN_WORKING_HOURS_FOR_FULL_DAY
@@ -28,7 +25,7 @@ from .events import (
     get_events_for_employees,
     employees_for_user,
 )
-from .models import Employee, Project
+from .models import Employee, Project, Company
 from .project_name_finder import ProjectNameFinder
 from .state_of_day import (
     state_of_days_per_employee_for_week,
@@ -41,11 +38,16 @@ class MyLoginView(LoginView):
 
 class ProjectDistribution(TypedDict):
     duration: float
-    subproject_name: str
+    subproject_name: Union[str, None]
 
 
-def day_distribution(events: Iterable[Event], employee: Employee) -> Dict[str, float]:
-    """Given all events for a day for an employee, count the number of days (<= 1) spent on each project."""
+def day_distribution(
+    events: Iterable[Event], employee: Employee
+) -> Dict[int, ProjectDistribution]:
+    """
+    Given all events for a day for an employee, count the number of days
+    (<= 1) spent on each project.
+    """
     total_time = sum(event["duration"] for event in events)
     is_full_day = total_time >= employee.min_working_hours_for_full_day
     if is_full_day:
@@ -53,13 +55,13 @@ def day_distribution(events: Iterable[Event], employee: Employee) -> Dict[str, f
     else:
         divider = float(employee.default_day_working_hours)
 
-    # TypingCounter[str] = Counter()
-    distribution: Dict[str, ProjectDistribution]
-    distribution = defaultdict(lambda: {"duration": 0.0, "subproject_name": ""})
+    distribution: Dict[int, ProjectDistribution] = defaultdict(
+        lambda: {"duration": 0.0, "subproject_name": ""}
+    )
 
     for event in events:
-        distribution[event["name"]]["subproject_name"] = event["subproject_name"]
-        distribution[event["name"]]["duration"] += event["duration"] / divider  # type: ignore
+        distribution[event["project_id"]]["subproject_name"] = event["subproject_name"]
+        distribution[event["project_id"]]["duration"] += event["duration"] / divider
 
     return dict(distribution)
 
@@ -126,11 +128,11 @@ def upcoming_time(
             else:
                 period_key = period_start.isocalendar()[1]  # type: ignore
 
-            projects = time_per_employee_per_month_per_project(
+            projects = month_detail_per_employee_per_month(
                 {employee: employee_events}, **{time_period: period_start}
-            )["Total"]["Total"]
-            for project, project_data in projects.items():
-                projects_total[employee][project] += project_data["duration"]
+            )["Total"]["Total"]["values"]
+            for project_id, project_data in projects.items():
+                projects_total[employee][project_id] += project_data["duration"]
 
             to_return[employee.name][period_key] = {
                 "availability": available_time_of_employee(
@@ -157,20 +159,25 @@ class ProjectTime(TypedDict):
     events: List[ProjectDetail]
 
 
-TimePerEmployeePerMonthPerProject = Dict[str, Dict[str, Dict[str, ProjectTime]]]
+class MonthDetail(TypedDict):
+    order: List[int]
+    values: Dict[int, ProjectTime]
 
 
-def time_per_employee_per_month_per_project(  # noqa: C901
+MonthDetailPerEmployeePerMonth = Dict[str, Dict[str, MonthDetail]]
+
+
+def month_detail_per_employee_per_month(  # noqa: C901
     events_per_employee: EventsPerEmployee,
     month: datetime.date = None,
     week: datetime.date = None,
-) -> TimePerEmployeePerMonthPerProject:
+) -> MonthDetailPerEmployeePerMonth:
     """
     Counts the number of days spent per project for selected month or week.
 
     If week and month are None, counts the historical total.
     """
-    to_return: TimePerEmployeePerMonthPerProject = defaultdict(
+    to_return_1: Dict[str, Dict[str, Dict[int, ProjectTime]]] = defaultdict(
         lambda: defaultdict(
             lambda: defaultdict(
                 lambda: {
@@ -182,9 +189,9 @@ def time_per_employee_per_month_per_project(  # noqa: C901
         )
     )
     # make sure specific keys exist and are at the start
-    to_return["Total"]["Total"]  # noqa
-    to_return["Total"]["Total effectué"]  # noqa
-    to_return["Total"]["Total à venir"]  # noqa
+    to_return_1["Total"]["Total"]  # noqa
+    to_return_1["Total"]["Total effectué"]  # noqa
+    to_return_1["Total"]["Total à venir"]  # noqa
 
     for employee, employee_events in events_per_employee.items():
         for event_date, events_for_day in group_events_by_day(employee_events).items():
@@ -199,7 +206,9 @@ def time_per_employee_per_month_per_project(  # noqa: C901
             # format : YY-MM
             month_label = f"{event_date.strftime('%b %y')}"
 
-            distribution = day_distribution(events_for_day, employee=employee)
+            distribution: Dict[int, ProjectDistribution] = day_distribution(
+                events_for_day, employee=employee
+            )
 
             date_keys_to_update = ["Total", month_label]
             if event_date <= datetime.date.today():
@@ -207,19 +216,23 @@ def time_per_employee_per_month_per_project(  # noqa: C901
             else:
                 date_keys_to_update.append("Total à venir")
 
-            for name, details in distribution.items():
+            for project_id, details in distribution.items():
                 # add both to total and relevant employee
                 duration = details["duration"]  # type: ignore
                 subproject_name = details["subproject_name"]  # type: ignore
                 for employee_key in ["Total", employee.name]:
                     # add values both to total and relevant month
                     for date_key in date_keys_to_update:
-                        to_return[employee_key][date_key][name]["duration"] += duration
+                        to_return_1[employee_key][date_key][project_id][
+                            "duration"
+                        ] += duration
                         if subproject_name:
-                            to_return[employee_key][date_key][name]["subprojects"][
-                                subproject_name
-                            ]["duration"] += duration
-                        to_return[employee_key][date_key][name]["events"].append(
+                            to_return_1[employee_key][date_key][project_id][
+                                "subprojects"
+                            ][subproject_name]["duration"] += duration
+                        to_return_1[employee_key][date_key][project_id][
+                            "events"
+                        ].append(
                             {
                                 "employee": employee.name,
                                 "date": event_date,
@@ -227,17 +240,32 @@ def time_per_employee_per_month_per_project(  # noqa: C901
                             }
                         )
 
-    # sort by total duration for each month and total
-    for employee_key, employee_values in to_return.items():
+    to_return: MonthDetailPerEmployeePerMonth = defaultdict(
+        lambda: defaultdict(
+            lambda: defaultdict(
+                lambda: {
+                    "order": [],
+                    "values": {
+                        "duration": 0.0,
+                        "events": [],
+                        "subprojects": defaultdict(lambda: {"duration": 0.0}),
+                    },
+                }
+            )
+        )
+    )
+
+    # sort by total duration for each month and total and keep order
+    for employee_key, employee_values in to_return_1.items():
         for display_month, time_per_project in employee_values.items():
-            project_names_ordered = sorted(
+            project_ids_ordered = sorted(
                 time_per_project.keys(),
-                key=lambda project: time_per_project[project]["duration"],
+                key=lambda project_id: time_per_project[project_id]["duration"],
                 reverse=True,
             )
             to_return[employee_key][display_month] = {
-                project: to_return[employee_key][display_month][project]
-                for project in project_names_ordered
+                "order": project_ids_ordered,
+                "values": time_per_project,
             }
 
     return to_return
@@ -281,28 +309,8 @@ def available_time_of_employee(
 AllProjectClient = List[Dict[str, float]]
 
 
-def find_client_project(user) -> AllProjectClient:
-
-    to_return: AllProjectClient = list(
-        defaultdict(
-            lambda: {
-                "name": "",
-                "duration": 0.0,
-            }
-        )
-    )
-
-    client_project = list(
-        Project.objects.filter(is_client_project=True, company=user.employee.company)
-        .annotate(days_sold_float=Cast("days_sold", FloatField()))
-        .values_list("name", "days_sold_float")
-    )
-    keys = ["name", "days_sold"]
-
-    for project in client_project:
-        to_return.append(dict(zip(keys, project)))
-
-    return to_return
+def client_projects_for_company(company: Company) -> List[Project]:
+    return list(Project.objects.filter(is_client_project=True, company=company))
 
 
 class HomeView(TemplateView):
@@ -326,23 +334,39 @@ class HomeView(TemplateView):
 
         today = datetime.date.today()
 
-        computed_time_per_employee_per_month_per_project = (
-            time_per_employee_per_month_per_project(events_per_employee)
+        computed_month_detail_per_employee_per_month = (
+            month_detail_per_employee_per_month(events_per_employee)
         )
         display_employee_names = {employee.name for employee in employees}
-        computed_time_per_employee_per_month_per_project = {
+        # filter out employees we are not supposed to know about
+        computed_month_detail_per_employee_per_month = {
             employee: employee_data
-            for employee, employee_data in computed_time_per_employee_per_month_per_project.items()
+            for employee, employee_data in computed_month_detail_per_employee_per_month.items()
             if employee == "Total" or employee in display_employee_names
         }
 
+        # get current month
         filled_month_list = list(
-            computed_time_per_employee_per_month_per_project["Total"].keys()
+            computed_month_detail_per_employee_per_month["Total"].keys()
         )
         try:
             active_month = filled_month_list.index(today.strftime("%b %y"))
         except ValueError:
             active_month = len(filled_month_list)
+
+        project_details = project_name_finder.projects_for_company(
+            user.employee.company
+        )
+
+        client_projects = client_projects_for_company(user.employee.company)
+        for project in client_projects:
+            try:
+                project.done = computed_month_detail_per_employee_per_month["Total"][
+                    "Total"
+                ]["values"][project.pk]["duration"]
+            except KeyError:
+                project.done = 0
+            project.remaining = float(project.days_sold) - project.done
 
         return {
             "active_month": active_month,
@@ -350,8 +374,8 @@ class HomeView(TemplateView):
             "events": events_per_employee,
             "employees": employees,
             "display_employees": display_employees,
-            "time_per_employee_per_month_per_project_str": json.dumps(
-                computed_time_per_employee_per_month_per_project,
+            "month_detail_per_employee_per_month_str": json.dumps(
+                computed_month_detail_per_employee_per_month,
                 default=str,
             ),
             "past_week_state": state_of_days_per_employee_for_week(
@@ -368,7 +392,9 @@ class HomeView(TemplateView):
                 upcoming_time(events_per_employee, display_employees, "month"),
                 default=str,
             ),
-            "client_projects": json.dumps(find_client_project(user)),
+            "client_projects": client_projects,
+            "project_details_str": json.dumps(project_details),
+            "project_details": project_details,
         }
 
 

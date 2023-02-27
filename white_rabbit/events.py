@@ -1,7 +1,7 @@
 import datetime
 from datetime import date, timedelta
 from itertools import groupby
-from typing import List, TypedDict, Dict, Iterable
+from typing import List, TypedDict, Dict, Iterable, Union
 
 import requests
 from django.contrib.auth.models import User
@@ -14,8 +14,8 @@ from white_rabbit.utils import start_of_day
 
 
 class Event(TypedDict):
-    name: str
-    subproject_name: str
+    project_id: int
+    subproject_name: Union[str, None]
     duration: float
     day: datetime.date
 
@@ -54,12 +54,13 @@ def read_events(
         if event["SUMMARY"].startswith("!"):
             continue
 
+        calendar_name = event["SUMMARY"].split(" - ")[0]
+
         # events can be on multiple days
         while start < end:
             start_day = start
             if isinstance(start_day, datetime.datetime):
                 start_day = start_day.date()
-            calendar_name = event["SUMMARY"].split(" - ")[0]
 
             project_name = calendar_name.split(" [")[0]
             subproject_name = None
@@ -69,20 +70,18 @@ def read_events(
                     .strip()
                     .lower()
                 )
-
-            events.append(
-                {
-                    "name": project_name_finder.get_project_name(
-                        project_name, employee.company
-                    ),
-                    "subproject_name": subproject_name,
-                    "day": start_day,
-                    "duration": min((end - start).total_seconds() / 3600, 24),
-                }
-            )
+            event_data: Event = {
+                "project_id": project_name_finder.get_project_id(
+                    project_name, employee.company, start_day
+                ),
+                "subproject_name": subproject_name,
+                "day": start_day,
+                "duration": min((end - start).total_seconds() / 3600, 24),
+            }
+            events.append(event_data)
             start = start_of_day(start + datetime.timedelta(days=1))
 
-    return sorted(events, key=lambda event: event["day"])
+    return sorted(events, key=lambda ev: ev["day"])
 
 
 def get_events_by_url(
