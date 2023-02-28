@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load white_rabbit_tags %}
 
 {% block content %}
 <div class="container" id="app">
@@ -29,7 +30,7 @@
                                             {% if data.state == 'empty' %}<span style="color: red">❌</span>{% endif %}
                                             <span style="font-weight: bold">{{ employee.name }}</span>
                                             {% for event in data.events %}
-                                                {{ event.name }}{% if not forloop.last %},{% endif %}
+                                                {% project_name project_details event.project_id %}{% if not forloop.last %},{% endif %}
                                             {% endfor %}
                                         </li>
                                     {% endif %}
@@ -62,7 +63,7 @@
                                             {% if data.state == 'empty' %}<span style="color: red">❌</span>{% endif %}
                                             <span style="font-weight: bold">{{ employee.name }}</span>
                                             {% for event in data.events %}
-                                                {{ event.name }}{% if not forloop.last %},{% endif %}
+                                                {% project_name project_details event.project_id %}{% if not forloop.last %},{% endif %}
                                             {% endfor %}
                                         </li>
                                     {% endif %}
@@ -157,41 +158,43 @@
             </b-field>
 
             <b-tabs v-model="activeMonth" :expanded="true" :multiline="true" animation="none">
-                <b-tab-item v-for="month in Object.keys(timePerEmployeePerMonthPerProject.Total)" :label="month">
+                <b-tab-item v-for="month in Object.keys(monthDetailPerEmployeePerMonth.Total)" :label="month" :key="month">
                     <table class="table">
                         <tr class="fixed-first-row">
                             <th>Project</th>
-                            <th v-for="employeeKey in Object.keys(timePerEmployeePerMonthPerProject)">
+                            <th v-for="employeeKey in Object.keys(monthDetailPerEmployeePerMonth)">
                                 [[ employeeKey ]]
                             </th>
                         </tr>
-                        <tr v-for="projectName in Object.keys(timePerEmployeePerMonthPerProject.Total[month])">
+                        <tr v-for="projectId in monthDetailPerEmployeePerMonth.Total[month].order">
                             <td>
-                                <div>[[ projectName ]]</div>
-                                <div v-if="showSubProjects && Object.keys(timePerEmployeePerMonthPerProject.Total[month][projectName]['subprojects']).length > 0">
+                                <div v-html="displayProject(projectId)"></div>
+                                <div v-if="showSubProjects && Object.keys(monthDetailPerEmployeePerMonth.Total[month].values[projectId]['subprojects']).length > 0">
                                     <ul>
-                                        <li style="padding-left: 20px; list-style: inside; color: #48c78e;" v-for="subprojectName in Object.keys(timePerEmployeePerMonthPerProject.Total[month][projectName]['subprojects'])">
+                                        <li style="padding-left: 20px; list-style: inside; color: #48c78e;" v-for="subprojectName in Object.keys(monthDetailPerEmployeePerMonth.Total[month].values[projectId]['subprojects'])">
                                             [[ subprojectName ]]
                                         </li>
                                     </ul>
                                 </div>
                             </td>
-                            <td v-for="employeeKey in Object.keys(timePerEmployeePerMonthPerProject)">
+                            <td v-for="employeeKey in Object.keys(monthDetailPerEmployeePerMonth)">
                                 <b-collapse
-                                        v-if="displayDuration(employeeKey, month, projectName)"
+                                        v-if="displayDuration(employeeKey, month, projectId)"
                                         :animation="''"
                                         :open="false"
-                                        :aria-id="employeeKey + month + projectName"
+                                        :aria-id="employeeKey + month + projectId"
                                         style="display: block">
                                     <template #trigger>
-                                        <span :aria-controls="employeeKey + month + projectName">
-                                            [[ displayDuration(employeeKey, month, projectName) ]]
+                                        <span :aria-controls="employeeKey + month + projectId">
+                                            [[ displayDuration(employeeKey, month, projectId)
+                                          ]]
                                         </span>
-                                        <div style="color: #48c78e;" v-if="showSubProjects && Object.keys(timePerEmployeePerMonthPerProject.Total[month][projectName]['subprojects']).length > 0">
+                                        <div style="color: #48c78e;" v-if="showSubProjects && Object.keys(monthDetailPerEmployeePerMonth.Total[month].values[projectId]['subprojects']).length > 0">
                                             <ul>
-                                                <li v-for="subprojectName in Object.keys(timePerEmployeePerMonthPerProject.Total[month][projectName]['subprojects'])">
-                                                    <span v-if="displayDuration(employeeKey, month, projectName, subprojectName)">
-                                                        [[ displayDuration(employeeKey, month, projectName, subprojectName) ]]
+                                                <li v-for="subprojectName in Object.keys(monthDetailPerEmployeePerMonth.Total[month].values[projectId]['subprojects'])">
+                                                    <span v-if="displayDuration(employeeKey, month, projectId, subprojectName)">
+                                                        [[ displayDuration(employeeKey, month, projectId, subprojectName)
+                                                      ]]
                                                     </span>
                                                     <span v-else>
                                                         0
@@ -202,7 +205,7 @@
                                     </template>
                                     <div class="notification">
                                         <ul>
-                                            <li v-for="(event, event_ix) in getEvents(employeeKey, month, projectName)"
+                                            <li v-for="(event, event_ix) in getEvents(employeeKey, month, projectId)"
                                                 :key="event_ix">
                                                 [[event.duration.toFixed(1)]] par [[ event.employee ]] le [[ event.date ]]
                                             </li>
@@ -226,13 +229,14 @@
                     <th>Jours Faits</th>
                     <th>Reste à faire</th>
                 </tr>
-                <tr v-for="project in clientProjects">
-                    <td>[[ project.name ]]</td>
-                    <td>[[ project.days_sold ]]</td>
-                    <td>[[ displayDuration("Total", "Total effectué", project.name) ]]</td>
-                    <td>[[ (project.days_sold - displayDuration("Total", "Total effectué", project.name)).toFixed(1) ]]</td>
-                </tr>
-
+                {% for project in client_projects %}
+                  <tr>
+                    <td v-html="displayProject({{ project.id }})"></td>
+                    <td>{{ project.days_sold|floatformat:1 }}</td>
+                    <td>{{ project.done|floatformat:1 }}</td>
+                    <td>{{ project.remaining|floatformat:1 }}</td>
+                  </tr>
+                {% endfor %}
             </table>
         </b-tab-item>
 
@@ -267,15 +271,15 @@
         data: {
             activeTab: 1,
             activeMonth: {{ active_month }},
-            timePerEmployeePerMonthPerProject: JSON.parse('{{ time_per_employee_per_month_per_project_str | escapejs }}'),
+            projectDetails: JSON.parse('{{ project_details_str | escapejs }}'),
+            monthDetailPerEmployeePerMonth: JSON.parse('{{ month_detail_per_employee_per_month_str | escapejs }}'),
             upcomingWeeks: JSON.parse('{{ upcoming_weeks_str | escapejs }}'),
             upcomingMonths: JSON.parse('{{ upcoming_months_str | escapejs }}'),
-            clientProjects: JSON.parse('{{ client_projects | escapejs }}'),
             showSubProjects: false,
         },
         methods: {
             displayDuration(employee, month, project, subproject = null) {
-                let data = (this.timePerEmployeePerMonthPerProject[employee][month] || {})[project] || {};
+                let data = ((this.monthDetailPerEmployeePerMonth[employee][month] || {}).values || {})[project] || {};
                 if (subproject) {
                     data = data['subprojects'][subproject] || {}
                 }
@@ -288,8 +292,19 @@
                 }
                 return duration.toFixed(1);
             },
+            displayProject(projectId) {
+                const project = this.projectDetails[projectId]
+                if (!project.start_date) {
+                    return project.name
+                }
+                let toReturn = project.name + "<span class='project-dates'>" + project.start_date
+                if (project.end_date) {
+                     toReturn += (" ➡ " + project.end_date + "</span>")
+                }
+                return toReturn
+            },
             getEvents(employee, month, project) {
-                const data = (this.timePerEmployeePerMonthPerProject[employee][month] || {})[project] || {};
+                const data = ((this.monthDetailPerEmployeePerMonth[employee][month] || {}).values || {})[project] || {};
                 if (!data) {
                     return [];
                 }
@@ -323,10 +338,17 @@
             },
         },
         mounted() {
-            console.log("### mounted", this.timePerEmployeePerMonthPerProject, this.upcomingWeeks, this.clientProjects);
+            console.log("### mounted", this.timePerEmployeePerMonthPerProject);
         },
     });
 
 
 </script>
+{% endblock %}
+
+{% block extra_css %}
+  .project-dates {
+    color: grey;
+    font-size: 0.6rem;
+  }
 {% endblock %}
