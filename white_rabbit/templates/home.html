@@ -294,6 +294,9 @@
             },
             displayProject(projectId) {
                 const project = this.projectDetails[projectId]
+                if (project == null) {
+                    return 'infos introuvables'
+                }
                 if (!project.start_date) {
                     return project.name
                 }
