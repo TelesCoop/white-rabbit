@@ -362,7 +362,7 @@ class HomeView(TemplateView):
         for project in client_projects:
             try:
                 project.done = computed_month_detail_per_employee_per_month["Total"][
-                    "Total"
+                    "Total effectué"
                 ]["values"][project.pk]["duration"]
             except KeyError:
                 project.done = 0
