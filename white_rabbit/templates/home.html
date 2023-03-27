@@ -97,13 +97,13 @@
                             [[ upcomingWeeks[employee][week.number].availability | round(1) ]]
                         </td>
                     </tr>
-                    <tr v-for="project in upcomingWeeks[employee].projects_total">
+                    <tr v-for="projectId in upcomingWeeks[employee].projects_total">
                         <td></td>
                         <td>
-                            [[ project ]]
+                            <div v-html="displayProject(projectId)"></div>
                         </td>
                         <td v-for="week in upcomingWeeks.weeks"
-                            :set="duration = (upcomingWeeks[employee][week.number].projects[project] || {}).duration"
+                            :set="duration = (upcomingWeeks[employee][week.number].projects[projectId] || {}).duration"
                         >
                             <template v-if="duration">
                                 [[ duration | round(1) ]]
@@ -132,13 +132,13 @@
                             [[ upcomingMonths[employee][month_name].availability | round(1) ]]
                         </td>
                     </tr>
-                    <tr v-for="project in upcomingMonths[employee].projects_total">
+                    <tr v-for="projectId in upcomingMonths[employee].projects_total">
                         <td></td>
                         <td>
-                            [[ project ]]
+                          <div v-html="displayProject(projectId)"></div>
                         </td>
                         <td v-for="month_name in upcomingMonths.month_names"
-                            :set="duration = (upcomingMonths[employee][month_name].projects[project] || {}).duration">
+                            :set="duration = (upcomingMonths[employee][month_name].projects[projectId] || {}).duration">
                             <template v-if="duration">
                                 [[ duration | round(1) ]]
                             </template>
