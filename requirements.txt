@@ -1,4 +1,4 @@
-Django==3.2.10
+Django==3.2.19
 django-anymail==8.2
 django-debug-toolbar==3.2.1
 django-hijack>=2.1.5,<3
