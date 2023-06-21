@@ -46,6 +46,8 @@ class ProjectNameFinder:
             for project in self.all_projects:
                 if project.lowercase_name != name.lower():
                     continue
+                if project.company != company:
+                    continue
                 if not project.start_date:
                     return project.pk
                 if project.end_date:
