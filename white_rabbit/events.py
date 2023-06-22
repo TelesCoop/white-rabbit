@@ -15,6 +15,7 @@ from white_rabbit.utils import start_of_day
 
 class Event(TypedDict):
     project_id: int
+    name: str
     subproject_name: Union[str, None]
     duration: float
     day: datetime.date
@@ -34,9 +35,7 @@ def read_events(
         project_name_finder = ProjectNameFinder()
 
     for event in cal.walk():
-        if event.name != "VEVENT":
-            continue
-        if not event.get("SUMMARY"):
+        if event.name != "VEVENT" or not event.get("SUMMARY"):
             continue
         start = event["DTSTART"].dt
         try:
@@ -60,30 +59,36 @@ def read_events(
 
         # events can be on multiple days
         while start < end:
-            start_day = start
-            if isinstance(start_day, datetime.datetime):
-                start_day = start_day.date()
-
-            project_name = calendar_name.split(" [")[0]
-            subproject_name = None
-            if len(calendar_name.split(" [")) > 1:
-                subproject_name = (
-                    calendar_name[calendar_name.find("[") + 1 : calendar_name.find("]")]
-                    .strip()
-                    .lower()
-                )
-            event_data: Event = {
-                "project_id": project_name_finder.get_project_id(
-                    project_name, employee.company, start_day
-                ),
-                "subproject_name": subproject_name,
-                "day": start_day,
-                "duration": min((end - start).total_seconds() / 3600, 24),
-            }
-            events.append(event_data)
+            events.append(
+                get_event_data(start, end, calendar_name, project_name_finder, employee)
+            )
             start = start_of_day(start + datetime.timedelta(days=1))
 
     return sorted(events, key=lambda ev: ev["day"])
+
+
+def get_event_data(start, end, calendar_name, project_name_finder, employee) -> Event:
+    start_day = start
+    if isinstance(start_day, datetime.datetime):
+        start_day = start_day.date()
+
+    project_name = calendar_name.split(" [")[0]
+    subproject_name = None
+    if len(calendar_name.split(" [")) > 1:
+        subproject_name = (
+            calendar_name[calendar_name.find("[") + 1 : calendar_name.find("]")]
+            .strip()
+            .lower()
+        )
+    return {
+        "project_id": project_name_finder.get_project_id(
+            project_name, employee.company, start_day
+        ),
+        "name": project_name,
+        "subproject_name": subproject_name,
+        "day": start_day,
+        "duration": min((end - start).total_seconds() / 3600, 24),
+    }
 
 
 def get_events_by_url(

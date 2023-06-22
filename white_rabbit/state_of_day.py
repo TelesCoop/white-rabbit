@@ -97,7 +97,8 @@ def state_of_day(events: Iterable[Event], employee: Employee, display=False) -> 
     if total_duration < employee.min_working_hours_for_full_day:
         if display:
             return DayStateDisplay.incomplete.format(
-                total_duration, employee.min_working_hours_for_full_day - total_duration
+                total_duration,
+                float(employee.min_working_hours_for_full_day) - total_duration,
             )
         return DayState.incomplete
     if display:
