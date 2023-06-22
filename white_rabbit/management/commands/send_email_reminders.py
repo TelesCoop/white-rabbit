@@ -12,19 +12,21 @@ from white_rabbit.models import Employee
 from white_rabbit.project_name_finder import ProjectNameFinder
 from white_rabbit.state_of_day import state_of_days_for_week
 
-FIRST_DAY = datetime.date(2021, 4, 5)
-
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
         project_name_finder = ProjectNameFinder()
-        for employee in Employee.objects.all():
-            if not employee.user.email:
+        for employee in Employee.objects.filter(
+            user__email__isnull=False,
+            start_time_tracking_from__isnull=False,
+        ):
+            try:
+                events = get_events_by_url(
+                    employee.calendar_ical_url, employee, project_name_finder
+                )
+            except ValueError:
+                print(f"could not get events for {employee.user.email}")
                 continue
-
-            events = get_events_by_url(
-                employee.calendar_ical_url, employee, project_name_finder
-            )
 
             missing_days: List[Tuple] = []
             day = employee.start_time_tracking_from
@@ -42,6 +44,9 @@ class Command(BaseCommand):
                 for day_in_week, state_of_day in state_of_days_for_week(
                     events, employee, day=day
                 ).items():
+                    if not getattr(employee, f"works_day_{day_in_week.weekday() + 1}"):
+                        # employee does not work on that day, so no reminders to be sent
+                        continue
                     if day_in_week < employee.start_time_tracking_from:
                         # can happen in the first week
                         continue

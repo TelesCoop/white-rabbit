@@ -10,7 +10,7 @@
 </p>
 <ul>
     {% for day, state in days %}
-        <li>{{ day | date:'l j F' }}: {{ state.state }}
+        <li>{{ day | date:'l j F' }}: {{ state.display_state }}
             {% if state.events %}
                 ({% for event in state.events %}{{ event.name }}
                    ({{ event.duration }}h){% if not forloop.last %},{% endif %}{% endfor %})

@@ -36,6 +36,8 @@ def read_events(
     for event in cal.walk():
         if event.name != "VEVENT":
             continue
+        if not event.get("SUMMARY"):
+            continue
         start = event["DTSTART"].dt
         try:
             end = event["DTEND"].dt

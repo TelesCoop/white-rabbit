@@ -3,7 +3,7 @@ from collections import defaultdict
 from datetime import date
 from typing import Dict, Any, Iterable, DefaultDict
 
-from white_rabbit.constants import DayState
+from white_rabbit.constants import DayState, DayStateDisplay
 from white_rabbit.events import Event, EventsPerEmployee, events_per_day
 from white_rabbit.models import Employee
 
@@ -50,6 +50,9 @@ def state_of_days(
     for day, events_for_day in per_day_events.items():
         to_return[day] = {
             "state": state_of_day(events_for_day, employee=employee),
+            "display_state": state_of_day(
+                events_for_day, employee=employee, display=True
+            ),
             "events": events_for_day,
         }
 
@@ -76,17 +79,27 @@ def state_of_days_for_week(
     if day is None:
         day = datetime.date.today()
     start_of_week = day - datetime.timedelta(days=day.weekday())
-    end_of_week = start_of_week + datetime.timedelta(days=4)
+    end_of_week = start_of_week + datetime.timedelta(days=6)
     return state_of_days(employee, events, start_of_week, end_of_week)
 
 
-def state_of_day(events: Iterable[Event], employee: Employee) -> str:
+def state_of_day(events: Iterable[Event], employee: Employee, display=False) -> str:
     """Returns the state of a day as a string."""
     if not events:
+        if display:
+            return DayStateDisplay.empty
         return DayState.empty
     total_duration = sum(event["duration"] for event in events)
     if not total_duration:
+        if display:
+            return DayStateDisplay.empty
         return DayState.empty
     if total_duration < employee.min_working_hours_for_full_day:
+        if display:
+            return DayStateDisplay.incomplete.format(
+                total_duration, employee.min_working_hours_for_full_day - total_duration
+            )
         return DayState.incomplete
+    if display:
+        return DayStateDisplay.complete.format(total_duration)
     return DayState.complete

@@ -131,6 +131,19 @@ class Employee(TimeStampedModel):
         blank=True,
         help_text="Date de fin de contrat d'un salarié, le cas échéant",
     )
+    works_day_1 = models.BooleanField(verbose_name="travaille le lundi", default=True)
+    works_day_2 = models.BooleanField(verbose_name="travaille le mardi", default=True)
+    works_day_3 = models.BooleanField(
+        verbose_name="travaille le mercredi", default=True
+    )
+    works_day_4 = models.BooleanField(verbose_name="travaille le jeudi", default=True)
+    works_day_5 = models.BooleanField(
+        verbose_name="travaille le vendredi", default=True
+    )
+    works_day_6 = models.BooleanField(verbose_name="travaille le samedi", default=False)
+    works_day_7 = models.BooleanField(
+        verbose_name="travaille le dimanche", default=False
+    )
 
     def __str__(self):
         return self.name
