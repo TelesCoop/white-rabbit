@@ -44,18 +44,21 @@ class ProjectNameFinder:
             return self.cache[key]
         else:
             for project in self.all_projects:
-                if project.lowercase_name != name.lower():
-                    continue
-                if project.company != company:
-                    continue
-                if not project.start_date:
-                    return project.pk
-                if project.end_date:
-                    if project.start_date <= date <= project.end_date:
+                for project_name in [project.lowercase_name] + list(
+                    project.aliases.values_list("lowercase_name", flat=True)
+                ):
+                    if project_name != name.lower():
+                        continue
+                    if project.company != company:
+                        continue
+                    if not project.start_date:
                         return project.pk
-                else:
-                    if project.start_date <= date:
-                        return project.pk
+                    if project.end_date:
+                        if project.start_date <= date <= project.end_date:
+                            return project.pk
+                    else:
+                        if project.start_date <= date:
+                            return project.pk
 
         # no project has been found, create a new one
         if key not in self.cache:
