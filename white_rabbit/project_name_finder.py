@@ -17,7 +17,9 @@ def get_key(
 class ProjectNameFinder:
     def __init__(self):
         self.cache = {}
-        self.all_projects = list(Project.objects.prefetch_related("company").all())
+        self.all_projects = list(
+            Project.objects.prefetch_related("company", "aliases").all()
+        )
         for project in self.all_projects:
             key = get_key(
                 project.lowercase_name, project.company.name, project.start_date
@@ -44,9 +46,10 @@ class ProjectNameFinder:
             return self.cache[key]
         else:
             for project in self.all_projects:
-                for project_name in [project.lowercase_name] + list(
-                    project.aliases.values_list("lowercase_name", flat=True)
-                ):
+                names = [project.lowercase_name] + [
+                    alias.lowercase_name for alias in project.aliases.all()
+                ]
+                for project_name in names:
                     if project_name != name.lower():
                         continue
                     if project.company != company:
