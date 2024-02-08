@@ -221,13 +221,13 @@
         </b-tab-item>
 
         <b-tab-item label="Suivi projets">
-            <h2 class="title is-2">Nombre de jours travaillé par projet</h2>
+            <h2 class="title is-2">Nombre de jours travaillés par projet</h2>
             <h3 class="title is-3">Nombre de jours vendus par projet</h3>
             <table class="table has-text-centered">
                 <tr class="fixed-first-row">
-                    <th>Projet Client</th>
-                    <th>Jours Vendus</th>
-                    <th>Jours Faits</th>
+                    <th>Projet client</th>
+                    <th>Jours vendus</th>
+                    <th>Jours réalisés</th>
                     <th>Reste à faire</th>
                 </tr>
                 {% for project in client_projects %}
@@ -240,11 +240,11 @@
                 {% endfor %}
             </table>
 
-            <h3 class="title is-3">Nombre de jours offerts par projet</h3>
+            <h3 class="title is-3">Nombre de jours bénévoles par projet</h3>
             <table class="table has-text-centered">
                 <tr class="fixed-first-row">
-                    <th>Projet Pro Bono</th>
-                    <th>Jours Faits</th>
+                    <th>Projet pro bono</th>
+                    <th>Jours réalisés</th>
                 </tr>
                 {% for project in pro_bono_projects %}
                   <tr>
