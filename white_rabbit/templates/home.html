@@ -221,7 +221,8 @@
         </b-tab-item>
 
         <b-tab-item label="Jours Vendus">
-            <h2 class="title is-2">Nombre de jours vendus par projet</h2>
+            <h2 class="title is-2">Nombre de jours travaillé par projet</h2>
+            <h3 class="title is-3">Nombre de jours vendus par projet</h3>
             <table class="table has-text-centered">
                 <tr class="fixed-first-row">
                     <th>Projet Client</th>
@@ -235,6 +236,20 @@
                     <td>{{ project.days_sold|floatformat:1 }}</td>
                     <td>{{ project.done|floatformat:1 }}</td>
                     <td>{{ project.remaining|floatformat:1 }}</td>
+                  </tr>
+                {% endfor %}
+            </table>
+
+            <h3 class="title is-3">Nombre de jours offerts par projet</h3>
+            <table class="table has-text-centered">
+                <tr class="fixed-first-row">
+                    <th>Projet Pro Bono</th>
+                    <th>Jours Faits</th>
+                </tr>
+                {% for project in pro_bono_projects %}
+                  <tr>
+                    <td v-html="displayProject({{ project.id }})"></td>
+                    <td>{{ project.done|floatformat:1 }}</td>
                   </tr>
                 {% endfor %}
             </table>

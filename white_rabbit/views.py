@@ -313,6 +313,10 @@ def client_projects_for_company(company: Company) -> List[Project]:
     return list(Project.objects.filter(is_client_project=True, company=company))
 
 
+def pro_bono_projects_for_company(company: Company) -> List[Project]:
+    return list(Project.objects.filter(is_pro_bono_project=True, company=company))
+
+
 class HomeView(TemplateView):
     template_name = "home.html"
 
@@ -368,6 +372,15 @@ class HomeView(TemplateView):
                 project.done = 0
             project.remaining = float(project.days_sold) - project.done
 
+        pro_bono_projects = pro_bono_projects_for_company(user.employee.company)
+        for project in pro_bono_projects:
+            try:
+                project.done = computed_month_detail_per_employee_per_month["Total"][
+                    "Total effectué"
+                ]["values"][project.pk]["duration"]
+            except KeyError:
+                project.done = 0
+
         return {
             "active_month": active_month,
             "today": datetime.date.today(),
@@ -393,6 +406,7 @@ class HomeView(TemplateView):
                 default=str,
             ),
             "client_projects": client_projects,
+            "pro_bono_projects": pro_bono_projects,
             "project_details_str": json.dumps(project_details),
             "project_details": project_details,
         }
