@@ -49,6 +49,7 @@ class Project(models.Model):
         max_length=32, verbose_name="nom en minuscule", null=False
     )
     is_client_project = models.BooleanField(verbose_name="Projet client", default=False)
+    is_pro_bono_project = models.BooleanField(verbose_name="Projet pro bono", default=False)
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
 

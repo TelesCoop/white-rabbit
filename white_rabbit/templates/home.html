@@ -149,7 +149,7 @@
             </table>
         </b-tab-item>
 
-        <b-tab-item label="Total par projet">
+        <b-tab-item label="Total par mois par projet">
             <h2 class="title is-2">Temps total par projet</h2>
             <b-field>
                 <b-checkbox v-model="showSubProjects" type="is-success">
@@ -220,13 +220,14 @@
             </b-tabs>
         </b-tab-item>
 
-        <b-tab-item label="Jours Vendus">
-            <h2 class="title is-2">Nombre de jours vendus par projet</h2>
+        <b-tab-item label="Suivi projets">
+            <h2 class="title is-2">Nombre de jours travaillés par projet</h2>
+            <h3 class="title is-3">Nombre de jours vendus par projet</h3>
             <table class="table has-text-centered">
                 <tr class="fixed-first-row">
-                    <th>Projet Client</th>
-                    <th>Jours Vendus</th>
-                    <th>Jours Faits</th>
+                    <th>Projet client</th>
+                    <th>Jours vendus</th>
+                    <th>Jours réalisés</th>
                     <th>Reste à faire</th>
                 </tr>
                 {% for project in client_projects %}
@@ -235,6 +236,20 @@
                     <td>{{ project.days_sold|floatformat:1 }}</td>
                     <td>{{ project.done|floatformat:1 }}</td>
                     <td>{{ project.remaining|floatformat:1 }}</td>
+                  </tr>
+                {% endfor %}
+            </table>
+
+            <h3 class="title is-3">Nombre de jours bénévoles par projet</h3>
+            <table class="table has-text-centered">
+                <tr class="fixed-first-row">
+                    <th>Projet pro bono</th>
+                    <th>Jours réalisés</th>
+                </tr>
+                {% for project in pro_bono_projects %}
+                  <tr>
+                    <td v-html="displayProject({{ project.id }})"></td>
+                    <td>{{ project.done|floatformat:1 }}</td>
                   </tr>
                 {% endfor %}
             </table>

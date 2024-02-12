@@ -313,6 +313,22 @@ def client_projects_for_company(company: Company) -> List[Project]:
     return list(Project.objects.filter(is_client_project=True, company=company))
 
 
+def pro_bono_projects_for_company(company: Company) -> List[Project]:
+    return list(Project.objects.filter(is_pro_bono_project=True, company=company))
+
+
+def add_done_and_remaining_days_to_projects(project_list_by_type, employee_monthly_details):
+    for project_list in project_list_by_type:
+        for project in project_list:
+            try:
+                project.done = employee_monthly_details["Total"][
+                    "Total effectué"
+                ]["values"][project.pk]["duration"]
+            except KeyError:
+                project.done = 0
+            if project.days_sold > 0:
+                project.remaining = float(project.days_sold) - project.done
+
 class HomeView(TemplateView):
     template_name = "home.html"
 
@@ -334,20 +350,20 @@ class HomeView(TemplateView):
 
         today = datetime.date.today()
 
-        computed_month_detail_per_employee_per_month = (
+        employee_monthly_details = (
             month_detail_per_employee_per_month(events_per_employee)
         )
         display_employee_names = {employee.name for employee in employees}
         # filter out employees we are not supposed to know about
-        computed_month_detail_per_employee_per_month = {
+        employee_monthly_details = {
             employee: employee_data
-            for employee, employee_data in computed_month_detail_per_employee_per_month.items()
+            for employee, employee_data in employee_monthly_details.items()
             if employee == "Total" or employee in display_employee_names
         }
 
         # get current month
         filled_month_list = list(
-            computed_month_detail_per_employee_per_month["Total"].keys()
+            employee_monthly_details["Total"].keys()
         )
         try:
             active_month = filled_month_list.index(today.strftime("%b %y"))
@@ -359,14 +375,8 @@ class HomeView(TemplateView):
         )
 
         client_projects = client_projects_for_company(user.employee.company)
-        for project in client_projects:
-            try:
-                project.done = computed_month_detail_per_employee_per_month["Total"][
-                    "Total effectué"
-                ]["values"][project.pk]["duration"]
-            except KeyError:
-                project.done = 0
-            project.remaining = float(project.days_sold) - project.done
+        pro_bono_projects = pro_bono_projects_for_company(user.employee.company)
+        add_done_and_remaining_days_to_projects([client_projects, pro_bono_projects], employee_monthly_details)
 
         return {
             "active_month": active_month,
@@ -375,7 +385,7 @@ class HomeView(TemplateView):
             "employees": employees,
             "display_employees": display_employees,
             "month_detail_per_employee_per_month_str": json.dumps(
-                computed_month_detail_per_employee_per_month,
+                employee_monthly_details,
                 default=str,
             ),
             "past_week_state": state_of_days_per_employee_for_week(
@@ -393,6 +403,7 @@ class HomeView(TemplateView):
                 default=str,
             ),
             "client_projects": client_projects,
+            "pro_bono_projects": pro_bono_projects,
             "project_details_str": json.dumps(project_details),
             "project_details": project_details,
         }
