@@ -20,8 +20,12 @@ urlpatterns = [
     path("auth/", include("django.contrib.auth.urls")),
     path("", cache_page(60)(vary_on_cookie(views.HomeView.as_view()))),
     path("", views.HomeView.as_view()),
+    path("availability/week", views.AvailabilityPerWeekView.as_view()),
+    path("availability/month", views.AvailabilityPerMonthView.as_view()),
+    path("projects/total", views.TotalPerProjectView.as_view()),
     path("alias/", views.AliasView.as_view()),
     path("__debug__/", include(debug_toolbar.urls)),
     # django-hijack
     path(r"hijack/", include("hijack.urls", namespace="hijack")),
+    path('silk/', include('silk.urls', namespace='silk'))
 ]

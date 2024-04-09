@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load white_rabbit_tags %}
+{% load cache %}
+{% load static %}
+
+{% block content %}
+    <h1 class="text-xl font-bold mb-4 text-left">{{ title }}</h1>
+    <div class="overflow-x-scroll w-[80vw]">
+        <table class="table w-64">
+            <thead>
+            <tr class="font-bold bg-indigo-50 text-bold">
+                <th class="font-bold text-bold text-black">Employé</th>
+                {% for period in periods|json_loads %}
+                    <th class="min-w-32 font-bold bg-indigo-50">
+                        {% if period.start and period.end %}
+                            <p class="text-black">{{ period.start }} - {{ period.end }}</p>
+                        {% endif %}
+                        <span class="uppercase text-gray-500 font-bold">{{ period.key }}</span>
+                    </th>
+                {% endfor %}
+            </tr>
+            </thead>
+            <tbody>
+            {% with events|json_loads as events_items %}
+                {% for employee_name, employee_events in events_items.items %}
+                    <tr>
+                        <td class="font-bold bg-gray-50">{{ employee_name }}</td>
+                        {% for period, event_data in employee_events.items %}
+                            <td class="text-center">
+                                <div class="flex">
+                                    <span style="background: {{ event_data.availability|week_color }}" class="pastille pastille-xl">{{ event_data.availability }}</span>
+                                    <div>
+
+                                        {% if event_data.projects.items  %}
+                                            <div class="tooltip pastille pastille-sm bg-slate-100 z-100" data-tip="{% get_projects_str event_data.projects projects periodicity %}">
+                                                ?
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            {% endwith %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

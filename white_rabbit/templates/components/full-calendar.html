@@ -1,0 +1,28 @@
+<div class="full-calendar" x-data="{calendarData: {{ items }}}">
+    <template x-for="(employeeData, day) in calendarData">
+        <div class="full-calendar-item">
+            <div class="full-calendar-header" x-text="day">
+            </div>
+            <div class="full-calendar-content">
+                <template x-for="(data, employee) in employeeData">
+                    <div>
+                        <div>
+                            <span style="font-weight: bold" x-text="employee"></span>
+                            <span x-show="data.state == 'complete'" style="color: green">✔</span>
+                            <span x-show="data.state == 'incomplete'" style="color: orange">❌</span>
+                            <span x-show="data.state == 'empty'" style="color: red">❌</span>
+                        </div>
+                        <ul>
+                            <template x-for="(event, index) in data.events">
+                                <li>
+                                    <span x-text="event.name"></span>
+                                    <span x-show="index !== data.events.length - 1"></span>
+                                </li>
+                            </template>
+                        </ul>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </template>
+</div>

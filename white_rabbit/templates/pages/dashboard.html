@@ -1,0 +1,391 @@
+{% extends "base.html" %}
+{% load white_rabbit_tags %}
+
+{% block content %}
+    <div class="container" id="app">
+        {% for message in messages %}
+            <div class="notification {% if message.tags and message.tags == 'error'%}is-danger{% endif %}">
+                {{ message }}
+            </div>
+
+        {% endfor %}
+
+        <b-tabs v-model="activeTab" :expanded="true">
+            <b-tab-item label="Semaine précédente">
+                <table class="table">
+                    <tr>
+                        <th>Jour</th>
+                        <th>État</th>
+                    </tr>
+                    {% for day, day_data in past_week_state.items %}
+                        <tr>
+                            <td>{{ day | date }}</td>
+                            <td>
+                                <ul>
+                                    {% for employee, data in day_data.items %}
+                                        {% if employee in display_employees %}
+                                            <li>
+                                                {% if data.state == 'complete' %}<span style="color: green">✔</span>{% endif %}
+                                                {% if data.state == 'incomplete' %}<span style="color: orange">❌</span>{% endif %}
+                                                {% if data.state == 'empty' %}<span style="color: red">❌</span>{% endif %}
+                                                <span style="font-weight: bold">{{ employee.name }}</span>
+                                                {% for event in data.events %}
+                                                    {% project_name project_details event.project_id %}{% if not forloop.last %},{% endif %}
+                                                {% endfor %}
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                </ul>
+
+                            </td>
+                        </tr>
+                    {% endfor %}
+
+                </table>
+            </b-tab-item>
+
+            <b-tab-item label="Cette semaine">
+                <table class="table">
+                    <tr>
+                        <th>Jour</th>
+                        <th>État</th>
+                    </tr>
+                    {% for day, day_data in curent_week_state.items %}
+                        <tr>
+                            <td>{{ day | date }}</td>
+                            <td>
+                                <ul>
+                                    {% for employee, data in day_data.items %}
+                                        {% if employee in display_employees %}
+                                            <li>
+                                                {% if data.state == 'complete' %}<span style="color: green">✔</span>{% endif %}
+                                                {% if data.state == 'incomplete' %}<span style="color: orange">❌</span>{% endif %}
+                                                {% if data.state == 'empty' %}<span style="color: red">❌</span>{% endif %}
+                                                <span style="font-weight: bold">{{ employee.name }}</span>
+                                                {% for event in data.events %}
+                                                    {% project_name project_details event.project_id %}{% if not forloop.last %},{% endif %}
+                                                {% endfor %}
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                </ul>
+
+                            </td>
+                        </tr>
+                    {% endfor %}
+
+                </table>
+            </b-tab-item>
+
+            <b-tab-item label="Semaines prochaines">
+                <table class="table has-text-centered">
+                    <tr class="fixed-first-row">
+                        <th>Salarié</th>
+                        <th>Missions</th>
+                        <th v-for="week in upcomingWeeks.weeks" class="has-text-centered">
+                            <h4 class="subtitle is-4">[[ week.number ]]</h4>
+                            <p class="is-size-7">[[ week.start ]] - [[ week.end ]]</p>
+                        </th>
+                    </tr>
+                    <template v-for="employee in upcomingWeeks.employees">
+                        <tr>
+                            <th>[[ employee ]]</th>
+                            <th>dispos</th>
+                            <template></template>
+                            <td v-for="week in upcomingWeeks.weeks"
+                                :style="{background: weekColor(upcomingWeeks[employee][week.number].availability)}">
+                                [[ upcomingWeeks[employee][week.number].availability | round(1) ]]
+                            </td>
+                        </tr>
+                        <tr v-for="projectId in upcomingWeeks[employee].projects_total">
+                            <td></td>
+                            <td>
+                                <div v-html="displayProject(projectId)"></div>
+                            </td>
+                            <td v-for="week in upcomingWeeks.weeks"
+                                :set="duration = (upcomingWeeks[employee][week.number].projects[projectId] || {}).duration"
+                            >
+                                <template v-if="duration">
+                                    [[ duration | round(1) ]]
+                                </template>
+                            </td>
+                        </tr>
+                    </template>
+                </table>
+            </b-tab-item>
+
+            <b-tab-item label="Mois prochains">
+                <table class="table has-text-centered">
+                    <tr class="fixed-first-row">
+                        <th>Salarié</th>
+                        <th>Missions</th>
+                        <th v-for="month_name in upcomingMonths.month_names" class="has-text-centered">
+                            <h4 class="subtitle is-4">[[ month_name ]]</h4>
+                        </th>
+                    </tr>
+                    <template v-for="employee in upcomingMonths.employees">
+                        <tr>
+                            <th>[[ employee ]]</th>
+                            <th>dispos</th>
+                            <td v-for="month_name in upcomingMonths.month_names"
+                                :style="{background: monthColor(upcomingMonths[employee][month_name].availability)}">
+                                [[ upcomingMonths[employee][month_name].availability | round(1) ]]
+                            </td>
+                        </tr>
+                        <tr v-for="projectId in upcomingMonths[employee].projects_total">
+                            <td></td>
+                            <td>
+                                <div v-html="displayProject(projectId)"></div>
+                            </td>
+                            <td v-for="month_name in upcomingMonths.month_names"
+                                :set="duration = (upcomingMonths[employee][month_name].projects[projectId] || {}).duration">
+                                <template v-if="duration">
+                                    [[ duration | round(1) ]]
+                                </template>
+                            </td>
+                        </tr>
+                    </template>
+
+                </table>
+            </b-tab-item>
+
+            <b-tab-item label="Total par mois par projet">
+                <h2 class="title is-2">Temps total par projet</h2>
+                <b-field>
+                    <b-checkbox v-model="showSubProjects" type="is-success">
+                        [[ showSubProjects ? `Détails affichés` : `Détails non affichés` ]]
+                    </b-checkbox>
+                </b-field>
+
+                <b-tabs v-model="activeMonth" :expanded="true" :multiline="true" animation="none">
+                    <b-tab-item v-for="month in Object.keys(monthDetailPerEmployeePerMonth.Total)" :label="month" :key="month">
+                        <table class="table">
+                            <tr class="fixed-first-row">
+                                <th>Project</th>
+                                <th v-for="employeeKey in Object.keys(monthDetailPerEmployeePerMonth)">
+                                    [[ employeeKey ]]
+                                </th>
+                            </tr>
+                            <tr v-for="projectId in monthDetailPerEmployeePerMonth.Total[month].order">
+                                <td>
+                                    <div v-html="displayProject(projectId)"></div>
+                                    <div v-if="showSubProjects && Object.keys(monthDetailPerEmployeePerMonth.Total[month].values[projectId]['subprojects']).length > 0">
+                                        <ul>
+                                            <li style="padding-left: 20px; list-style: inside; color: #48c78e;" v-for="subprojectName in Object.keys(monthDetailPerEmployeePerMonth.Total[month].values[projectId]['subprojects'])">
+                                                [[ subprojectName ]]
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                                <td v-for="employeeKey in Object.keys(monthDetailPerEmployeePerMonth)">
+                                    <b-collapse
+                                            v-if="displayDuration(employeeKey, month, projectId)"
+                                            :animation="''"
+                                            :open="false"
+                                            :aria-id="employeeKey + month + projectId"
+                                            style="display: block">
+                                        <template #trigger>
+                                        <span :aria-controls="employeeKey + month + projectId">
+                                            [[ displayDuration(employeeKey, month, projectId)
+                                            ]]
+                                        </span>
+                                            <div style="color: #48c78e;" v-if="showSubProjects && Object.keys(monthDetailPerEmployeePerMonth.Total[month].values[projectId]['subprojects']).length > 0">
+                                                <ul>
+                                                    <li v-for="subprojectName in Object.keys(monthDetailPerEmployeePerMonth.Total[month].values[projectId]['subprojects'])">
+                                                    <span v-if="displayDuration(employeeKey, month, projectId, subprojectName)">
+                                                        [[ displayDuration(employeeKey, month, projectId, subprojectName)
+                                                        ]]
+                                                    </span>
+                                                        <span v-else>
+                                                        0
+                                                    </span>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </template>
+                                        <div class="notification">
+                                            <ul>
+                                                <li v-for="(event, event_ix) in getEvents(employeeKey, month, projectId)"
+                                                    :key="event_ix">
+                                                    [[event.duration.toFixed(1)]] par [[ event.employee ]] le [[ event.date ]]
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </b-collapse>
+
+                                </td>
+                            </tr>
+                        </table>
+                    </b-tab-item>
+                </b-tabs>
+            </b-tab-item>
+
+            <b-tab-item label="Suivi projets">
+                <h2 class="title is-2">Nombre de jours travaillés par projet</h2>
+                <h3 class="title is-3">Nombre de jours vendus par projet</h3>
+                <table class="table has-text-centered">
+                    <tr class="fixed-first-row">
+                        <th>Projet client</th>
+                        <th>Jours vendus</th>
+                        <th>Jours réalisés</th>
+                        <th>Reste à faire</th>
+                    </tr>
+                    {% for project in client_projects %}
+                        <tr>
+                            <td v-html="displayProject({{ project.id }})"></td>
+                            <td>{{ project.days_sold|floatformat:1 }}</td>
+                            <td>{{ project.done|floatformat:1 }}</td>
+                            <td>{{ project.remaining|floatformat:1 }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+
+                <h3 class="title is-3">Nombre de jours bénévoles par projet</h3>
+                <table class="table has-text-centered">
+                    <tr class="fixed-first-row">
+                        <th>Projet pro bono</th>
+                        <th>Jours réalisés</th>
+                    </tr>
+                    {% for project in pro_bono_projects %}
+                        <tr>
+                            <td v-html="displayProject({{ project.id }})"></td>
+                            <td>{{ project.done|floatformat:1 }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </b-tab-item>
+            <b-tab-item label="Proportion de temps passé par type de projet">
+                <table class="table has-text-centered">
+                    <tr class="fixed-first-row">
+                        <th>Projet client</th>
+                        <th>Jours vendus</th>
+                        <th>Jours réalisés</th>
+                        <th>Reste à faire</th>
+                    </tr>
+                    {% for project in client_projects %}
+                        <tr>
+                            <td v-html="displayProject({{ project.id }})"></td>
+                            <td>{{ project.days_sold|floatformat:1 }}</td>
+                            <td>{{ project.done|floatformat:1 }}</td>
+                            <td>{{ project.remaining|floatformat:1 }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+
+                <h3 class="title is-3">Nombre de jours bénévoles par projet</h3>
+                <table class="table has-text-centered">
+                    <tr class="fixed-first-row">
+                        <th>Projet pro bono</th>
+                        <th>Jours réalisés</th>
+                    </tr>
+                    {% for project in pro_bono_projects %}
+                        <tr>
+                            <td v-html="displayProject({{ project.id }})"></td>
+                            <td>{{ project.done|floatformat:1 }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </b-tab-item>
+
+        </b-tabs>
+    </div>
+    <script src="/static/buefy.min.js"></script>
+    <script type="application/javascript">
+        /**
+         * Vue filter to round the decimal to the given place.
+         * http://jsfiddle.net/bryan_k/3ova17y9/*/
+        
+        const COLORS = ["#EEA6A6", "#eec3a6", "#eedaa6", "#eceea6", "#c2eea6"];
+        const SUCCESS_COLOR = COLORS[COLORS.length - 1];
+        const WEEK_THRESHOLDS = [1, 2, 3, 4, 5];
+        const MONTH_THRESHOLDS = [3, 6, 9, 12, 15];
+        const app = new Vue({
+            el: "#app",
+            delimiters: ['[[', ']]'],
+            data: {
+                activeTab: 1,
+                activeMonth: {{ active_month }},
+                projectDetails: JSON.parse('{{ project_details_str | escapejs }}'),
+                monthDetailPerEmployeePerMonth: JSON.parse('{{ month_detail_per_employee_per_month_str | escapejs }}'),
+                upcomingWeeks: JSON.parse('{{ upcoming_weeks_str | escapejs }}'),
+                upcomingMonths: JSON.parse('{{ upcoming_months_str | escapejs }}'),
+                showSubProjects: false,
+            },
+            methods: {
+                displayDuration(employee, month, project, subproject = null) {
+                    let data = ((this.monthDetailPerEmployeePerMonth[employee][month] || {}).values || {})[project] || {};
+                    if (subproject) {
+                        data = data['subprojects'][subproject] || {}
+                    }
+                    if (!data) {
+                        return "";
+                    }
+                    const duration = data.duration;
+                    if (!duration) {
+                        return "";
+                    }
+                    return duration.toFixed(1);
+                },
+                displayProject(projectId) {
+                    const project = this.projectDetails[projectId]
+                    if (project == null) {
+                        return 'infos introuvables'
+                    }
+                    if (!project.start_date) {
+                        return project.name
+                    }
+                    let toReturn = project.name + "<span class='project-dates'>" + project.start_date
+                    if (project.end_date) {
+                        toReturn += (" ➡ " + project.end_date + "</span>")
+                    }
+                    return toReturn
+                },
+                getEvents(employee, month, project) {
+                    const data = ((this.monthDetailPerEmployeePerMonth[employee][month] || {}).values || {})[project] || {};
+                    if (!data) {
+                        return [];
+                    }
+                    const events = data.events;
+                    if (events == null) {
+                        return [];
+                    }
+                    return events;
+                },
+                monthColor(value) {
+                    if (value == null) {
+                        return "";
+                    }
+                    for (const [index, color] of COLORS.entries()) {
+                        if (value < MONTH_THRESHOLDS[index]) {
+                            return color;
+                        }
+                    }
+                    return SUCCESS_COLOR;
+                },
+                weekColor(value) {
+                    if (value == null) {
+                        return "";
+                    }
+                    for (const [index, color] of COLORS.entries()) {
+                        if (value < WEEK_THRESHOLDS[index]) {
+                            return color;
+                        }
+                    }
+                    return SUCCESS_COLOR;
+                },
+            },
+            mounted() {
+                console.log("### mounted", this.timePerEmployeePerMonthPerProject);
+            },
+        });
+
+
+    </script>
+{% endblock %}
+
+{% block extra_css %}
+    .project-dates {
+    color: grey;
+    font-size: 0.6rem;
+    }
+{% endblock %}

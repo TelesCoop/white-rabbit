@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block content %}
+<div role="tablist" class="tabs tabs-lifted">
+    {% for project in test_2 %}
+        <li>{{ test.project }}</li>
+    {% endfor %}
+    {{ test.project }}
+    <template x-for="month in Object.keys(monthDetailPerEmployeePerMonth.Total)" :label="month" :key="month">
+        <input type="radio" name="my_tabs_2" role="tab" class="tab" aria-label="Tab 1" />
+        <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
+            <table class="table">
+                <tr class="fixed-first-row">
+                    <th>Project</th>
+                    <th v-for="employeeKey in Object.keys(monthDetailPerEmployeePerMonth)">
+                        [[ employeeKey ]]
+                    </th>
+                </tr>
+                <tr v-for="projectId in monthDetailPerEmployeePerMonth.Total[month].order">
+                    <td>
+                        <div v-html="displayProject(projectId)"></div>
+                        <div v-if="showSubProjects && Object.keys(monthDetailPerEmployeePerMonth.Total[month].values[projectId]['subprojects']).length > 0">
+                            <ul>
+                                <li style="padding-left: 20px; list-style: inside; color: #48c78e;" v-for="subprojectName in Object.keys(monthDetailPerEmployeePerMonth.Total[month].values[projectId]['subprojects'])">
+                                    [[ subprojectName ]]
+                                </li>
+                            </ul>
+                        </div>
+                    </td>
+                    <td v-for="employeeKey in Object.keys(monthDetailPerEmployeePerMonth)">
+                        <b-collapse
+                                v-if="displayDuration(employeeKey, month, projectId)"
+                                :animation="''"
+                                :open="false"
+                                :aria-id="employeeKey + month + projectId"
+                                style="display: block">
+                            <template #trigger>
+                                        <span :aria-controls="employeeKey + month + projectId">
+                                            [[ displayDuration(employeeKey, month, projectId)
+                                          ]]
+                                        </span>
+                                <div style="color: #48c78e;" v-if="showSubProjects && Object.keys(monthDetailPerEmployeePerMonth.Total[month].values[projectId]['subprojects']).length > 0">
+                                    <ul>
+                                        <li v-for="subprojectName in Object.keys(monthDetailPerEmployeePerMonth.Total[month].values[projectId]['subprojects'])">
+                                                    <span v-if="displayDuration(employeeKey, month, projectId, subprojectName)">
+                                                        [[ displayDuration(employeeKey, month, projectId, subprojectName)
+                                                      ]]
+                                                    </span>
+                                            <span v-else>
+                                                        0
+                                                    </span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </template>
+                            <div class="notification">
+                                <ul>
+                                    <li v-for="(event, event_ix) in getEvents(employeeKey, month, projectId)"
+                                        :key="event_ix">
+                                        [[event.duration.toFixed(1)]] par [[ event.employee ]] le [[ event.date ]]
+                                    </li>
+                                </ul>
+                            </div>
+                        </b-collapse>
+
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </template>
+</div>
+{% endblock %}

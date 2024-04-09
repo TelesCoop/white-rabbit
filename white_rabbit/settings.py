@@ -30,11 +30,20 @@ if IS_LOCAL_DEV:
     # SECURITY WARNING: keep the secret key used in production secret!
     SECRET_KEY = "9cang=0bgw9jfnroblq6rv%7kk$s-6*%^7t^(e08nrqj-dj@#6"
     ALLOWED_HOSTS = []
+    # SILKY_PYTHON_PROFILER=True
 else:
     SECRET_KEY = config.getstr("security.secret_key")
     ALLOWED_HOSTS = config.getlist("security.allowed_hosts")
 
 
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',  # A unique identifier for the cache
+    }
+}
+DEFAULT_CACHE_DURATION = 3600
 # Application definition
 
 INSTALLED_APPS = [
@@ -48,7 +57,9 @@ INSTALLED_APPS = [
     "debug_toolbar",
     "hijack",  # django-hijack
     "hijack_admin",
+     'silk'
 ]
+
 
 MIDDLEWARE = [
     "debug_toolbar.middleware.DebugToolbarMiddleware",
@@ -61,7 +72,9 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "rollbar.contrib.django.middleware.RollbarNotifierMiddleware",
     "white_rabbit.middleware.only_logged_in_users",
+    # 'silk.middleware.SilkyMiddleware'
 ]
+
 
 ROOT_URLCONF = "white_rabbit.urls"
 
@@ -112,6 +125,8 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
+
+
 
 
 # Internationalization

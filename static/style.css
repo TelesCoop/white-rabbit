@@ -37,13 +37,11 @@ h2 {
     clip: rect(0, 0, 0, 0)
 }
 
-
 .pastille {
     display: flex;
     border-radius: 50%;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
 }
 .pastille-sm {
     width: 1.5rem;

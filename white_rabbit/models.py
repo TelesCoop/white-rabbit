@@ -145,6 +145,9 @@ class Employee(TimeStampedModel):
     works_day_7 = models.BooleanField(
         verbose_name="travaille le dimanche", default=False
     )
+    disabled = models.BooleanField(
+        verbose_name="désactivé", default=False, help_text="Salarié désactivé"
+    )
 
     def __str__(self):
         return self.name

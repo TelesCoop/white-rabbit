@@ -30,7 +30,9 @@ def state_of_days_per_employee(
         employee_events = events_per_employee[employee]
         per_day_events = events_per_day(employee_events, start_date, end_date)
         for day, events in per_day_events.items():
-            to_return[day][employee] = {
+
+            day_to_return = day.strftime("%Y-%m-%d")
+            to_return[day_to_return][employee.name] = {
                 "state": state_of_day(events, employee=employee),
                 "events": events,
             }
@@ -48,7 +50,8 @@ def state_of_days(
     to_return: DefaultDict[datetime.date, Dict[str, Any]] = defaultdict()
     per_day_events = events_per_day(events, start_date, end_date)
     for day, events_for_day in per_day_events.items():
-        to_return[day] = {
+        day_to_return = day.strftime("%Y-%m-%d")
+        to_return[day_to_return] = {
             "state": state_of_day(events_for_day, employee=employee),
             "display_state": state_of_day(
                 events_for_day, employee=employee, display=True
