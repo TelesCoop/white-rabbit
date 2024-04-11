@@ -4,9 +4,10 @@ from typing import Iterable
 from jours_feries_france import JoursFeries
 
 from white_rabbit.constants import MIN_WORKING_HOURS_FOR_FULL_DAY
-from white_rabbit.events import group_events_by_day
+
 from white_rabbit.models import Employee
 from white_rabbit.typing import Event
+from white_rabbit.utils import group_events_by_day
 
 
 def available_time_of_employee(
@@ -17,6 +18,7 @@ def available_time_of_employee(
 
     Note: days in the past cannot be available.
     """
+    
     events_per_day = group_events_by_day(events)
     availability_duration = 0
     today = datetime.date.today()

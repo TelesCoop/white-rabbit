@@ -4,7 +4,7 @@
 {% block content %}
     <div class="container" id="app">
         {% for message in messages %}
-            <div class="notification {% if message.tags and message.tags == 'error'%}is-danger{% endif %}">
+            <div class="notification {% if message.tags and message.tags == 'error' %}is-danger{% endif %}">
                 {{ message }}
             </div>
 
@@ -17,7 +17,7 @@
                         <th>Jour</th>
                         <th>État</th>
                     </tr>
-                    {% for day, day_data in past_week_state.items %}
+                    {% for day, day_data in past_week_events.items %}
                         <tr>
                             <td>{{ day | date }}</td>
                             <td>
@@ -25,12 +25,16 @@
                                     {% for employee, data in day_data.items %}
                                         {% if employee in display_employees %}
                                             <li>
-                                                {% if data.state == 'complete' %}<span style="color: green">✔</span>{% endif %}
-                                                {% if data.state == 'incomplete' %}<span style="color: orange">❌</span>{% endif %}
-                                                {% if data.state == 'empty' %}<span style="color: red">❌</span>{% endif %}
+                                                {% if data.state == 'complete' %}
+                                                    <span style="color: green">✔</span>{% endif %}
+                                                {% if data.state == 'incomplete' %}
+                                                    <span style="color: orange">❌</span>{% endif %}
+                                                {% if data.state == 'empty' %}
+                                                    <span style="color: red">❌</span>{% endif %}
                                                 <span style="font-weight: bold">{{ employee.name }}</span>
                                                 {% for event in data.events %}
-                                                    {% project_name project_details event.project_id %}{% if not forloop.last %},{% endif %}
+                                                    {% project_name project_details event.project_id %}
+                                                            {% if not forloop.last %},{% endif %}
                                                 {% endfor %}
                                             </li>
                                         {% endif %}
@@ -50,7 +54,7 @@
                         <th>Jour</th>
                         <th>État</th>
                     </tr>
-                    {% for day, day_data in curent_week_state.items %}
+                    {% for day, day_data in current_week_event.items %}
                         <tr>
                             <td>{{ day | date }}</td>
                             <td>
@@ -58,12 +62,16 @@
                                     {% for employee, data in day_data.items %}
                                         {% if employee in display_employees %}
                                             <li>
-                                                {% if data.state == 'complete' %}<span style="color: green">✔</span>{% endif %}
-                                                {% if data.state == 'incomplete' %}<span style="color: orange">❌</span>{% endif %}
-                                                {% if data.state == 'empty' %}<span style="color: red">❌</span>{% endif %}
+                                                {% if data.state == 'complete' %}
+                                                    <span style="color: green">✔</span>{% endif %}
+                                                {% if data.state == 'incomplete' %}
+                                                    <span style="color: orange">❌</span>{% endif %}
+                                                {% if data.state == 'empty' %}
+                                                    <span style="color: red">❌</span>{% endif %}
                                                 <span style="font-weight: bold">{{ employee.name }}</span>
                                                 {% for event in data.events %}
-                                                    {% project_name project_details event.project_id %}{% if not forloop.last %},{% endif %}
+                                                    {% project_name project_details event.project_id %}
+                                                            {% if not forloop.last %},{% endif %}
                                                 {% endfor %}
                                             </li>
                                         {% endif %}
@@ -158,7 +166,8 @@
                 </b-field>
 
                 <b-tabs v-model="activeMonth" :expanded="true" :multiline="true" animation="none">
-                    <b-tab-item v-for="month in Object.keys(monthDetailPerEmployeePerMonth.Total)" :label="month" :key="month">
+                    <b-tab-item v-for="month in Object.keys(monthDetailPerEmployeePerMonth.Total)" :label="month"
+                                :key="month">
                         <table class="table">
                             <tr class="fixed-first-row">
                                 <th>Project</th>
@@ -171,7 +180,8 @@
                                     <div v-html="displayProject(projectId)"></div>
                                     <div v-if="showSubProjects && Object.keys(monthDetailPerEmployeePerMonth.Total[month].values[projectId]['subprojects']).length > 0">
                                         <ul>
-                                            <li style="padding-left: 20px; list-style: inside; color: #48c78e;" v-for="subprojectName in Object.keys(monthDetailPerEmployeePerMonth.Total[month].values[projectId]['subprojects'])">
+                                            <li style="padding-left: 20px; list-style: inside; color: #48c78e;"
+                                                v-for="subprojectName in Object.keys(monthDetailPerEmployeePerMonth.Total[month].values[projectId]['subprojects'])">
                                                 [[ subprojectName ]]
                                             </li>
                                         </ul>
@@ -189,7 +199,8 @@
                                             [[ displayDuration(employeeKey, month, projectId)
                                             ]]
                                         </span>
-                                            <div style="color: #48c78e;" v-if="showSubProjects && Object.keys(monthDetailPerEmployeePerMonth.Total[month].values[projectId]['subprojects']).length > 0">
+                                            <div style="color: #48c78e;"
+                                                 v-if="showSubProjects && Object.keys(monthDetailPerEmployeePerMonth.Total[month].values[projectId]['subprojects']).length > 0">
                                                 <ul>
                                                     <li v-for="subprojectName in Object.keys(monthDetailPerEmployeePerMonth.Total[month].values[projectId]['subprojects'])">
                                                     <span v-if="displayDuration(employeeKey, month, projectId, subprojectName)">
@@ -207,7 +218,8 @@
                                             <ul>
                                                 <li v-for="(event, event_ix) in getEvents(employeeKey, month, projectId)"
                                                     :key="event_ix">
-                                                    [[event.duration.toFixed(1)]] par [[ event.employee ]] le [[ event.date ]]
+                                                    [[event.duration.toFixed(1)]] par [[ event.employee ]] le [[
+                                                    event.date ]]
                                                 </li>
                                             </ul>
                                         </div>
@@ -294,7 +306,7 @@
         /**
          * Vue filter to round the decimal to the given place.
          * http://jsfiddle.net/bryan_k/3ova17y9/*/
-        
+
         const COLORS = ["#EEA6A6", "#eec3a6", "#eedaa6", "#eceea6", "#c2eea6"];
         const SUCCESS_COLOR = COLORS[COLORS.length - 1];
         const WEEK_THRESHOLDS = [1, 2, 3, 4, 5];
@@ -306,7 +318,7 @@
                 activeTab: 1,
                 activeMonth: {{ active_month }},
                 projectDetails: JSON.parse('{{ project_details_str | escapejs }}'),
-                monthDetailPerEmployeePerMonth: JSON.parse('{{ month_detail_per_employee_per_month_str | escapejs }}'),
+                monthDetailPerEmployeePerMonth: JSON.parse('{{ process_employees_events_str | escapejs }}'),
                 upcomingWeeks: JSON.parse('{{ upcoming_weeks_str | escapejs }}'),
                 upcomingMonths: JSON.parse('{{ upcoming_months_str | escapejs }}'),
                 showSubProjects: false,

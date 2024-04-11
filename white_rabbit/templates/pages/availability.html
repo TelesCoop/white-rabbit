@@ -21,24 +21,29 @@
             </tr>
             </thead>
             <tbody>
-            {% with events|json_loads as events_items %}
-                {% for employee_name, employee_events in events_items.items %}
+            {% with events as events_items %}
+                {% for employee_events in events_items %}
                     <tr>
-                        <td class="font-bold bg-gray-50">{{ employee_name }}</td>
-                        {% for period, event_data in employee_events.items %}
-                            <td class="text-center">
-                                <div class="flex">
-                                    <span style="background: {{ event_data.availability|week_color }}" class="pastille pastille-xl">{{ event_data.availability }}</span>
-                                    <div>
-
-                                        {% if event_data.projects.items  %}
-                                            <div class="tooltip pastille pastille-sm bg-slate-100 z-100" data-tip="{% get_projects_str event_data.projects projects periodicity %}">
-                                                ?
-                                            </div>
-                                        {% endif %}
+                        {% for employee_name, events in employee_events.items %}
+                            <td class="font-bold bg-gray-50">{{ employee_name }}</td>
+                            {% for week, event in events.items %}
+                                <td class="text-center">
+                                    <div class="flex">
+                                    <span style="background: {{ event_data.availability|week_color }}"
+                                          class="pastille pastille-xl">{{ event.availability }}</span>
+                                        <div>
+                                            {% if event.projects.items %}
+                                                <div class="tooltip pastille pastille-sm bg-slate-100 z-100"
+                                                     data-tip="{% get_projects_str event.projects projects periodicity %}">
+                                                    ?
+                                                </div>
+                                            {% endif %}
+                                        </div>
                                     </div>
-                                </div>
-                            </td>
+                                </td>
+                            {% endfor %}
+
+
                         {% endfor %}
                     </tr>
                 {% endfor %}

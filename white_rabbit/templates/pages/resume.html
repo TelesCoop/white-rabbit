@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load white_rabbit_tags %}
+
+{% block content %}
+    <div class="container" id="app">
+        <h2 class="text-2xl font-bold">
+            Historique
+        </h2>
+        {% with events|json_loads as userEvents %}
+            {{ userEvents }}
+            {% for employee, details in userEvents.items %}
+                {{ employee }}
+                {#                <h3>{{ employee }}</h3>#}
+                {#                {% for period, period_data in details.items %}#}
+                {#                    <h4>Période: {{ period }}</h4>#}
+                {#                    <p>Disponibilité cette semaine: {{ period_data.availability }} jour(s)</p>#}
+                {#                    <h5>Projects:</h5>#}
+                {#                    {% get_projects period_data.projects projects "week" %}#}
+                {#                    <div class="flex gap-8">#}
+                {#                        {% for employee_name, events_data in period_data.projects.items %}#}
+                {#                            <div class="flex flex-col bg-gray-200 p-4 rounded-xl">#}
+                {#                                <h3 class="text-lg font-bold">{{ project_id|find_project_name:projects }}#}
+                {#                                    - {{ project_data.duration|convert_duration_based_on_periodicity:"week" }}</h3>#}
+                {#                                {% for event in project_data.events %}#}
+                {#                                    <p>Date: {{ event.date }}</p>#}
+                {#                                {% endfor %}#}
+                {#                            </div>#}
+                {#                        {% endfor %}#}
+                {#                    </div>#}
+                {#                {% endfor %}#}
+            {% endfor %}
+        {% endwith %}
+
+    </div>
+{% endblock %}
+{% block extra_css %}
+{% endblock %}

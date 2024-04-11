@@ -11,19 +11,23 @@ from white_rabbit.utils import convert_duration_to_work_hours_and_minutes, conve
 def project_name(project_details, project_id):
     return project_details[project_id]["name"]
 
+
 @register.simple_tag
 def iterate_json(json_string):
     return json.loads(json_string).items()
+
 
 @register.filter
 def json_loads(value):
     """ It returns variable type as a pure string name """
     return json.loads(value)
 
+
 @register.filter
 def get_type(value):
     """ It returns variable type as a pure string name """
     return type(value).__name__
+
 
 @register.filter
 def find_project(project_id, projects):
@@ -33,26 +37,36 @@ def find_project(project_id, projects):
     return project
 
 
-@register.simple_tag
-def get_projects_str(projects_events_by_ids, projects_details, periodicity):
+@register.filter
+def find_project_name(project_id, projects):
+    return find_project(project_id, projects).get("name", None)
 
+
+@register.filter
+def convert_duration_based_on_periodicity(duration, periodicity):
+    if periodicity == "week":
+        return convert_duration_to_work_hours_and_minutes(duration)
+    return convert_duration_to_work_day(duration)
+
+
+@register.simple_tag
+def get_projects(projects_events_by_ids, projects_details, periodicity):
     projects = []
     for project_id in projects_events_by_ids:
         project = find_project(project_id, projects_details)
         if project is None or project.get("name") is None:
             continue
-
-        duration = projects_events_by_ids[project_id].get("duration", None)
-        if duration is not None and isinstance(duration, numbers.Number):
-            if periodicity == "week":
-                duration = convert_duration_to_work_hours_and_minutes(duration)
-            else:
-                duration = f"{round(duration, DEFAULT_ROUND_DURATION_PRECISION)} jours"
-
-
-
+        duration = projects_events_by_ids[project_id].total_duration
+        # breakpoint()
+        # if duration is not None and isinstance(duration, numbers.Number):
+        #     duration = convert_duration_based_on_periodicity(duration, periodicity)
         projects.append(f"{project["name"]} {duration}")
+    return projects
 
+
+@register.simple_tag
+def get_projects_str(projects_events_by_ids, projects_details, periodicity):
+    projects = get_projects(projects_events_by_ids, projects_details, periodicity)
     return ", ".join(projects)
 
 

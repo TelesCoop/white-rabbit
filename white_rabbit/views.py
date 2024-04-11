@@ -5,21 +5,24 @@ from typing import (
     List,
 
 )
+
+import jsonpickle
 from django.contrib.auth.views import LoginView
 from django.shortcuts import render
 from django.views.generic import TemplateView
 
 from .events import (
     EventsPerEmployee,
-    get_events_for_employees,
-    employees_for_user
+    get_events_from_employees_from_cache,
+    employees_for_user, process_employees_events, EmployeeEvents
 )
-from .models import  Project, Company
+from .models import Project, Company, Employee
 from .project_name_finder import ProjectNameFinder
 from .state_of_day import (
     state_of_days_per_employee_for_week,
 )
 from .upcoming import UpcomingEvents
+from .utils import generate_time_periods
 
 
 class MyLoginView(LoginView):
@@ -38,13 +41,14 @@ def add_done_and_remaining_days_to_projects(project_list_by_type, employee_month
     for project_list in project_list_by_type:
         for project in project_list:
             try:
-                project.done = employee_monthly_details["Total"][
-                    "Total effectué"
+                project.done = employee_monthly_details["total"][
+                    "completed"
                 ]["values"][project.pk]["duration"]
             except KeyError:
                 project.done = 0
             if project.days_sold > 0:
                 project.remaining = float(project.days_sold) - project.done
+
 
 class HomeView(TemplateView):
     template_name = "pages/home.html"
@@ -55,17 +59,18 @@ class HomeView(TemplateView):
         employees = employees_for_user(user)
         today = datetime.date.today()
         project_name_finder = ProjectNameFinder()
-        events_per_employee: EventsPerEmployee = get_events_for_employees(
+        events_per_employee: EventsPerEmployee = get_events_from_employees_from_cache(
             employees, project_name_finder, request=self.request
         )
         return {
-            "past_week_state": json.dumps(state_of_days_per_employee_for_week(
+            "past_week_events": json.dumps(state_of_days_per_employee_for_week(
                 events_per_employee, today - datetime.timedelta(days=7)
             ), default=str),
-             "curent_week_state": json.dumps(state_of_days_per_employee_for_week(
-                 events_per_employee, today, employees
-             ), default=str),
+            "current_week_event": json.dumps(state_of_days_per_employee_for_week(
+                events_per_employee, today, employees
+            ), default=str),
         }
+
 
 class AvailabilityBaseView(TemplateView):
     template_name = "pages/availability.html"
@@ -87,31 +92,39 @@ class AvailabilityBaseView(TemplateView):
         ]
 
         project_name_finder = ProjectNameFinder()
-        events_per_employee: EventsPerEmployee = get_events_for_employees(
+        events: EventsPerEmployee = get_events_from_employees_from_cache(
             employees, project_name_finder, request=self.request
         )
-        upcoming_events = UpcomingEvents(events_per_employee, self.time_period)
-        up_events = upcoming_events.events()
-        up_periods = upcoming_events.periods()
+        events_per_employee = process_employees_events(events, upcoming_periods=1)
+
+        upcoming_events = [employee_events.upcoming_events(self.time_period) for employee_name, employee_events in
+                           events_per_employee.items()]
+        breakpoint()
+        up_periods = generate_time_periods(12, self.time_period)
+
         project_details = project_name_finder.projects_for_company(
             user.employee.company
         )
+
         return render(request, self.template_name, {
             "employees": json.dumps([employee.name for employee in display_employees]),
-            "events": json.dumps(up_events, default=str),
+            "events": upcoming_events,
             "periods": json.dumps(up_periods, default=str),
             "projects": project_details,
             "title": self.title,
             "periodicity": self.time_period,
         })
 
+
 class AvailabilityPerWeekView(AvailabilityBaseView):
     def __init__(self, *args, **kwargs):
         super().__init__("week", "Disponibilités pour les prochaines semaines", *args, **kwargs)
 
+
 class AvailabilityPerMonthView(AvailabilityBaseView):
     def __init__(self, *args, **kwargs):
         super().__init__("month", "Disponibilités pour les prochains mois", *args, **kwargs)
+
 
 class AliasView(TemplateView):
     template_name = "pages/alias.html"
@@ -127,34 +140,51 @@ class AliasView(TemplateView):
         return {"aliasesByProject": aliasesByProject}
 
 
-class TotalPerProjectView(TemplateView):
-    template_name = "components/total-per-project.html"
+class ResumeView(TemplateView):
+    template_name = "pages/resume.html"
 
     def get_context_data(self, **kwargs):
-        # request = self.request
-        # user = request.user
-        # employees = employees_for_user(user)
-        # project_name_finder = ProjectNameFinder()
-        # events_per_employee: EventsPerEmployee = get_events_for_employees(
-        #     employees, project_name_finder, request=self.request
-        # )
-        #
-        # employee_monthly_details = (
-        #     month_detail_per_employee_per_month(events_per_employee)
-        # )
-        # display_employee_names = {employee.name for employee in employees}
-        # # filter out employees we are not supposed to know about
-        # employee_monthly_details = {
-        #     employee: employee_data
-        #     for employee, employee_data in employee_monthly_details.items()
-        #     if employee == "Total" or employee in display_employee_names
-        # }
-
+        project_name_finder = ProjectNameFinder()
+        employee = Employee.objects.get(user=self.request.user)
+        events: EventsPerEmployee = get_events_from_employees_from_cache(
+            [employee], project_name_finder, request=self.request
+        )
+        up_events = EmployeeEvents(employee, events[employee], 1).upcoming_events()
+        project_details = project_name_finder.projects_for_company(
+            employee.company
+        )
         return {
-            # "month_detail_per_employee": json.dumps(
-            #     employee_monthly_details,
-            #     default=str,
-            # ),
+            "events": json.dumps(up_events, default=str),
+            "projects": project_details
+        }
+
+
+class TotalPerProjectView(TemplateView):
+    template_name = "pages/projects-total.html"
+
+    def get_context_data(self, **kwargs):
+        request = self.request
+        user = request.user
+        employees = employees_for_user(user)
+        project_name_finder = ProjectNameFinder()
+        events_per_employee: EventsPerEmployee = get_events_from_employees_from_cache(
+            employees, project_name_finder, request=self.request
+        )
+        employee_monthly_details = (
+            process_employees_events(events_per_employee)
+        )
+        display_employee_names = {employee.name for employee in employees}
+        # filter out employees we are not supposed to know about
+        employee_monthly_details = {
+            employee: employee_data
+            for employee, employee_data in employee_monthly_details.items()
+            if employee == "total" or employee in display_employee_names
+        }
+        return {
+            "employee_monthly_details": json.dumps(
+                employee_monthly_details,
+                default=str,
+            ),
             "test": {
                 "project": 1
             },
