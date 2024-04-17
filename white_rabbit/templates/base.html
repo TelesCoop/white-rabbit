@@ -6,25 +6,29 @@
     <meta charset="UTF-8">
     <title>Lapin Blanc</title>
     <link rel="stylesheet" href="{% static 'style.css' %}">
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.10.1/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.10.1/dist/full.min.css" rel="stylesheet" type="text/css"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet"/>
+
     <style>
-      {% block extra_css %}
-      {% endblock %}
+        {% block extra_css %}
+        {% endblock %}
     </style>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.8/dist/cdn.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
+
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
-    {% load white_rabbit_tags %}
-    {% include "components/header.html" %}
-    <main class="flex w-full">
-        {% include "components/sidebar.html" %}
-        <div class="w-10/12">
-            <div class="p-8">
-                {% block content %}
-                {% endblock %}
-            </div>
+{% load white_rabbit_tags %}
+{% include "components/header.html" %}
+<main class="flex w-full">
+    {% include "components/sidebar.html" %}
+    <div class="w-10/12">
+        <div class="p-8">
+            {% block content %}
+            {% endblock %}
         </div>
-    </main>
+    </div>
+</main>
 </body>
 </html>

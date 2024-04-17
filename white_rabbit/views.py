@@ -95,11 +95,10 @@ class AvailabilityBaseView(TemplateView):
         events: EventsPerEmployee = get_events_from_employees_from_cache(
             employees, project_name_finder, request=self.request
         )
-        events_per_employee = process_employees_events(events, upcoming_periods=1)
+        events_per_employee = process_employees_events(events, n_periods=1)
 
         upcoming_events = [employee_events.upcoming_events(self.time_period) for employee_name, employee_events in
                            events_per_employee.items()]
-        breakpoint()
         up_periods = generate_time_periods(12, self.time_period)
 
         project_details = project_name_finder.projects_for_company(
@@ -149,13 +148,13 @@ class ResumeView(TemplateView):
         events: EventsPerEmployee = get_events_from_employees_from_cache(
             [employee], project_name_finder, request=self.request
         )
-        up_events = EmployeeEvents(employee, events[employee], 1).upcoming_events()
+        up_events = EmployeeEvents(employee, events[employee], 1).upcoming_events("week")
         project_details = project_name_finder.projects_for_company(
             employee.company
         )
         return {
-            "events": json.dumps(up_events, default=str),
-            "projects": project_details
+            "events": up_events,
+            "projects_details": project_details
         }
 
 
@@ -166,27 +165,48 @@ class TotalPerProjectView(TemplateView):
         request = self.request
         user = request.user
         employees = employees_for_user(user)
+        employees_names = {employee.name for employee in employees}
         project_name_finder = ProjectNameFinder()
         events_per_employee: EventsPerEmployee = get_events_from_employees_from_cache(
             employees, project_name_finder, request=self.request
         )
-        employee_monthly_details = (
+
+        employees_events = (
             process_employees_events(events_per_employee)
         )
-        display_employee_names = {employee.name for employee in employees}
-        # filter out employees we are not supposed to know about
-        employee_monthly_details = {
-            employee: employee_data
-            for employee, employee_data in employee_monthly_details.items()
-            if employee == "total" or employee in display_employee_names
-        }
+        projects = {}
+
+        for employee_name, employee_events in employees_events.items():
+            total_per_projects = employee_events.total_per_projects()
+
+            for month, project_details in total_per_projects.items():
+                for project_id, project_detail in project_details["projects"].items():
+                    if month not in projects:
+                        projects[month] = {}
+
+                    if project_id not in projects[month]:
+                        projects[month][project_id] = {
+                            "total_duration": project_detail.total_duration,
+                            "total_days": project_detail.days_spent,
+                            "project_name": "project_detail.name",
+                            "employees_events": {}
+                        }
+                    else:
+                        projects[month][project_id]["total_duration"] += project_detail.total_duration
+                        projects[month][project_id]["total_days"] += project_detail.days_spent
+
+                    projects[month][project_id]["employees_events"][employee_name] = {
+                        "total_duration": project_detail.total_duration,
+                        "days_spent": project_detail.days_spent,
+                        "events": project_detail.events
+                    }
         return {
-            "employee_monthly_details": json.dumps(
-                employee_monthly_details,
-                default=str,
+
+            "employees_events": employees_events,
+            "employees_names": employees_names,
+            "projects_per_month": projects,
+            "projects_details": project_name_finder.projects_for_company(
+                user.employee.company
             ),
-            "test": {
-                "project": 1
-            },
-            "test_2": ["project"]
+
         }

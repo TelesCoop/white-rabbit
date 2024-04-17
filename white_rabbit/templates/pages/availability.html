@@ -29,7 +29,7 @@
                             {% for week, event in events.items %}
                                 <td class="text-center">
                                     <div class="flex">
-                                    <span style="background: {{ event_data.availability|week_color }}"
+                                    <span style="background: {{ event.availability|week_color }}"
                                           class="pastille pastille-xl">{{ event.availability }}</span>
                                         <div>
                                             {% if event.projects.items %}
@@ -42,8 +42,6 @@
                                     </div>
                                 </td>
                             {% endfor %}
-
-
                         {% endfor %}
                     </tr>
                 {% endfor %}

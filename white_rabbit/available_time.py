@@ -11,20 +11,20 @@ from white_rabbit.utils import group_events_by_day
 
 
 def available_time_of_employee(
-        employee: Employee, events: Iterable[Event], start_date: datetime.date, end_date: datetime.date
+        employee: Employee, events: Iterable[Event], start_datetime: datetime.datetime, end_datetime: datetime.datetime
 ):
     """
     Returns the number of working days that are available for an employee.
 
     Note: days in the past cannot be available.
     """
-    
+
     events_per_day = group_events_by_day(events)
     availability_duration = 0
     today = datetime.date.today()
 
-    day = start_date - datetime.timedelta(days=1)
-    while day < end_date:
+    day = start_datetime - datetime.timedelta(days=1)
+    while day < end_datetime:
         day += datetime.timedelta(days=1)
 
         if day < today:

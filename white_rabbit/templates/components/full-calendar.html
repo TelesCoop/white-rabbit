@@ -1,7 +1,7 @@
 <div class="full-calendar" x-data="{calendarData: {{ items }}}">
     <template x-for="(employeeData, day) in calendarData">
         <div class="full-calendar-item">
-            <div class="full-calendar-header" x-text="day">
+            <div class="full-calendar-header" x-text="start_datetime">
             </div>
             <div class="full-calendar-content">
                 <template x-for="(data, employee) in employeeData">

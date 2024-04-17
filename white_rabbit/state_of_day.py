@@ -9,10 +9,10 @@ from white_rabbit.models import Employee
 
 
 def state_of_days_per_employee(
-    events_per_employee: EventsPerEmployee,
-    start_date: date,
-    end_date: date,
-    employees: Iterable[Employee] = None,
+        events_per_employee: EventsPerEmployee,
+        start_datetime: date,
+        end_datetime: date,
+        employees: Iterable[Employee] = None,
 ) -> Dict[datetime.date, Dict[Employee, Dict[str, Any]]]:
     """
     Returns a dict date -> (employee -> state of day) for each
@@ -28,9 +28,8 @@ def state_of_days_per_employee(
     )
     for employee in employees:
         employee_events = events_per_employee[employee]
-        per_day_events = events_per_day(employee_events, start_date, end_date)
+        per_day_events = events_per_day(employee_events, start_datetime, end_datetime)
         for day, events in per_day_events.items():
-
             day_to_return = day.strftime("%Y-%m-%d")
             to_return[day_to_return][employee.name] = {
                 "state": state_of_day(events, employee=employee),
@@ -41,14 +40,14 @@ def state_of_days_per_employee(
 
 
 def state_of_days(
-    employee: Employee, events: Iterable[Event], start_date: date, end_date: date
+        employee: Employee, events: Iterable[Event], start_datetime: date, end_datetime: date
 ) -> Dict[datetime.date, Dict[str, Any]]:
     """
     Returns a dict date -> (employee -> state of day) for each
     combination, including days without events.
     """
     to_return: DefaultDict[datetime.date, Dict[str, Any]] = defaultdict()
-    per_day_events = events_per_day(events, start_date, end_date)
+    per_day_events = events_per_day(events, start_datetime, end_datetime)
     for day, events_for_day in per_day_events.items():
         day_to_return = day.strftime("%Y-%m-%d")
         to_return[day_to_return] = {
@@ -63,9 +62,9 @@ def state_of_days(
 
 
 def state_of_days_per_employee_for_week(
-    events_per_employee: EventsPerEmployee,
-    day: datetime.date = None,
-    employees: Iterable[Employee] = None,
+        events_per_employee: EventsPerEmployee,
+        day: datetime.date = None,
+        employees: Iterable[Employee] = None,
 ) -> Dict[datetime.date, Dict[Employee, Dict[str, Any]]]:
     if day is None:
         day = datetime.date.today()
@@ -77,7 +76,7 @@ def state_of_days_per_employee_for_week(
 
 
 def state_of_days_for_week(
-    events: Iterable[Event], employee: Employee, day: datetime.date = None
+        events: Iterable[Event], employee: Employee, day: datetime.date = None
 ) -> Dict[datetime.date, Dict[str, Any]]:
     if day is None:
         day = datetime.date.today()

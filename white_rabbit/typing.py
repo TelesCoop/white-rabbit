@@ -1,4 +1,3 @@
-
 from typing import List, TypedDict, Dict, Iterable, Union
 import datetime
 
@@ -32,7 +31,8 @@ class Event(TypedDict):
     name: str
     subproject_name: Union[str, None]
     duration: float
-    day: datetime.date
+    start_datetime: datetime.date
+    end_datetime: datetime.date
 
 
 AllProjectClient = List[Dict[str, float]]

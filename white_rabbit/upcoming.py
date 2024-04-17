@@ -10,12 +10,12 @@ from white_rabbit.typing import EventsPerEmployee
 
 
 class UpcomingEvents:
-    def __init__(self, events_per_employee: EventsPerEmployee, time_period: str, n_upcoming_periods: int = 12):
+    def __init__(self, events_per_employee: EventsPerEmployee, time_period: str, n_periods: int = 12):
         if time_period not in ["week", "month"]:
             raise NotImplementedError("time_period must be one of week, month")
 
         self.time_period = time_period
-        self.n_upcoming_periods = n_upcoming_periods
+        self.n_periods = n_periods
 
         self.events_per_employee = events_per_employee
 
@@ -38,8 +38,8 @@ class UpcomingEvents:
 
         for employee, employee_events in self.events_per_employee.items():
             events[employee.name] = {}
-            for period_index in range(self.n_upcoming_periods):
-                period_start = self.get_period_start(period_index)
+            for period_index in range(self.n_periods):
+                period_start = self.calculate_period_start(period_index)
                 period_end = (
                         period_start
                         + relativedelta(**{f"{self.time_period}s": 1})  # type: ignore

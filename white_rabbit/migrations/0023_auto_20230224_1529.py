@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('white_rabbit', '0022_alter_employee_calendar_ical_url'),
     ]
@@ -17,11 +16,11 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='project',
-            name='start_date',
+            name='start_datetime',
             field=models.DateField(blank=True, null=True),
         ),
         migrations.AlterUniqueTogether(
             name='project',
-            unique_together={('lowercase_name', 'company', 'start_date')},
+            unique_together={('lowercase_name', 'company', 'start_datetime')},
         ),
     ]

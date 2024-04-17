@@ -36,7 +36,7 @@ class Company(TimeStampedModel):
 class Project(models.Model):
     class Meta:
         verbose_name = "projet"
-        unique_together = ("lowercase_name", "company", "start_date")
+        unique_together = ("lowercase_name", "company", "start_datetime")
 
     company = models.ForeignKey(
         Company,
@@ -50,8 +50,8 @@ class Project(models.Model):
     )
     is_client_project = models.BooleanField(verbose_name="Projet client", default=False)
     is_pro_bono_project = models.BooleanField(verbose_name="Projet pro bono", default=False)
-    start_date = models.DateField(null=True, blank=True)
-    end_date = models.DateField(null=True, blank=True)
+    start_datetime = models.DateTimeField(null=True, blank=True)
+    end_datetime = models.DateTimeField(null=True, blank=True)
 
     days_sold = models.DecimalField(
         verbose_name="Jours vendus",

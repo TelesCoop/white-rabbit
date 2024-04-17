@@ -20,7 +20,7 @@ from white_rabbit.project_name_finder import ProjectNameFinder
 from white_rabbit.settings import DEFAULT_CACHE_DURATION
 from white_rabbit.typing import EventsPerEmployee, Event, MonthDetailPerEmployeePerMonth, ProjectDistribution, \
     ProjectTime
-from white_rabbit.utils import start_of_day, count_number_days_spent_per_project, get_period_start, \
+from white_rabbit.utils import start_of_day, count_number_days_spent_per_project, calculate_period_start, \
     calculate_period_key, group_events_by_day, generate_time_periods
 
 
@@ -40,37 +40,36 @@ def read_events(
 
     events_data: List[Event] = []
     for event in events:
-        start = event["DTSTART"].dt
+        start_datetime = event["DTSTART"].dt
+
         try:
             end = event["DTEND"].dt
         except KeyError:
-            end = start + datetime.timedelta(hours=1)
+            end = start_datetime + datetime.timedelta(hours=1)
 
-        # ignore events before start time tracking
-        if isinstance(start, datetime.datetime):
-            start_day = start.date()
-        else:
-            start_day = start
-        if start_day < employee.start_time_tracking_from:
+        start_date = start_datetime.date() if isinstance(start_datetime, datetime.datetime) else start_datetime
+        if start_date < employee.start_time_tracking_from:
             continue
 
         calendar_name = event["SUMMARY"].split(" - ")[0]
 
         # events can be on multiple days
-        next_day_start = start_of_day(start + datetime.timedelta(days=1))
-        while start < end:
-            event_data = get_event_data(start, end, calendar_name, project_name_finder, employee)
-            insort(events_data, event_data, key=lambda ev: ev["day"])
-            start = next_day_start
-            next_day_start = start_of_day(start + datetime.timedelta(days=1))
+        next_day_start = start_of_day(start_datetime + datetime.timedelta(days=1))
 
+        while start_datetime < end:
+            event_data = get_event_data(start_datetime, end, calendar_name, project_name_finder, employee)
+
+            insort(events_data, event_data,
+                   key=lambda ev: ev["start_datetime"].date() if isinstance(ev["start_datetime"],
+                                                                            datetime.datetime) else ev[
+                       "start_datetime"])
+            start_datetime = next_day_start
+            next_day_start = start_of_day(start_datetime + datetime.timedelta(days=1))
     return events_data
 
 
 def get_event_data(start, end, calendar_name, project_name_finder, employee) -> Event:
-    start_day = start
-    if isinstance(start_day, datetime.datetime):
-        start_day = start_day.date()
+    start_datetime = start
 
     project_name = calendar_name.split(" [")[0]
     subproject_name = None
@@ -82,11 +81,14 @@ def get_event_data(start, end, calendar_name, project_name_finder, employee) -> 
         )
     return {
         "project_id": project_name_finder.get_project_id(
-            project_name, employee.company, start_day
+            project_name,
+            employee.company,
+            start_datetime
         ),
         "name": project_name,
         "subproject_name": subproject_name,
-        "day": start_day,
+        "start_datetime": start_datetime,
+        "end_datetime": end,
         "duration": min((end - start).total_seconds() / 3600, 24),
     }
 
@@ -131,9 +133,11 @@ def get_events_from_employees_from_cache(
         employees: List[Employee], project_name_finder=None, request=None
 ) -> EventsPerEmployee:
     events = cache.get('events', None)
+
     if events is None:
         events = create_events(employees, project_name_finder, request)
         cache.set('events', events, DEFAULT_CACHE_DURATION)
+
     return events
 
 
@@ -155,20 +159,20 @@ def employees_for_user(user: User) -> List[Employee]:
 
 
 def events_per_day(
-        events: Iterable[Event], start_date: date, end_date: date
+        events: Iterable[Event], start_datetime: date, end_datetime: date
 ) -> Dict[datetime.date, Iterable[Event]]:
     """
     Returns a dict day -> events for day for each day from start date to end
     date (included).
     Days without events are included.
     """
-    delta = end_date - start_date
-    events = [event for event in events if start_date <= event["day"] <= end_date]
+    delta = end_datetime - start_datetime
+    events = [event for event in events if start_datetime <= event["start_datetime"] <= end_datetime]
     to_return = group_events_by_day(events)
 
     # also include days without events
     for i in range(delta.days + 1):
-        day = start_date + timedelta(days=i)
+        day = start_datetime + timedelta(days=i)
         if day not in to_return:
             to_return[day] = []
 
@@ -204,31 +208,21 @@ class ProjectEventsTracker:
 
 
 class EmployeeEvents:
-    def __init__(self, employee: Employee, events, upcoming_periods=12):
+    def __init__(self, employee: Employee, events, n_periods=12):
         self.employee = employee
         self.events = events
-        self.projects = {}
-        self.n_upcoming_periods = upcoming_periods
+        self.n_periods = n_periods
 
     @property
     def employee_name(self):
         return self.employee.name
-
-    def add_project_by_id(self, project_id):
-        if project_id not in self.projects:
-            self.projects[project_id] = ProjectEventsTracker()
-
-    def get_or_create_project_by_id(self, project_id):
-        if self.projects.get(project_id, None) is None:
-            self.add_project_by_id(project_id)
-        return self.projects.get(project_id)
 
     @property
     def events_per_day(self):
         return group_events_by_day(self.events)
 
     def filter_events_per_month(self, date: datetime):
-        events = [event for event in self.events if event["day"].month == date.month]
+        events = [event for event in self.events if event["start_datetime"].month == date.month]
         return {date: events}
 
     @property
@@ -243,6 +237,7 @@ class EmployeeEvents:
         projects = {}
 
         for event_date, events_for_day in self.events_per_day.items():
+
             if month and (event_date.month, event_date.year) != (
                     month.month,
                     month.year,
@@ -272,7 +267,7 @@ class EmployeeEvents:
                     {
                         "project_id": project_id,
                         "employee": employee_name,
-                        "date": event_date,
+                        "start_datetime": event_date,
                         "duration": duration,
                         "days_spent": days_spent
                     }
@@ -282,14 +277,17 @@ class EmployeeEvents:
     def _calculate_total_projects(self, employee, projects_total):
         return [proj[0] for proj in projects_total[employee].most_common()]
 
-    def upcoming_events(self, time_period: str = "month", n_upcoming_periods: int = 12):
+    def upcoming_events(self, time_period: str = "month", n_periods: int = None):
+
         events: Any = {}
         projects_total: DefaultDict = defaultdict(Counter)
+        if n_periods is None:
+            n_periods = self.n_periods
 
         events[self.employee.name] = {}
-        for period_index in range(n_upcoming_periods):
+        for period_index in range(n_periods):
 
-            period_start = get_period_start(period_index, time_period)
+            period_start = calculate_period_start(period_index, time_period)
 
             period_end = (
                     period_start
@@ -318,20 +316,51 @@ class EmployeeEvents:
 
         return events
 
-    def generate_time_periods(self, time_period: str = "month", n_upcoming_periods: int = None):
-        if n_upcoming_periods is None:
-            n_upcoming_periods = self.n_upcoming_periods
-        return generate_time_periods(n_upcoming_periods, time_period)
+    def total_per_projects(self, time_period: str = "month", n_periods: int = 24):
+        events: Any = {}
+        projects_total: DefaultDict = defaultdict(Counter)
+
+        for period_index in range(n_periods):
+
+            period_start = calculate_period_start(period_index, time_period, "past")
+            period_end = (
+                    period_start
+                    + relativedelta(**{f"{time_period}s": 1})  # type: ignore
+                    - relativedelta(days=1)
+            )
+            period_key = calculate_period_key(period_start, time_period)
+            employee_data_events = self.process_events_per_projects(**{time_period: period_start})
+
+            events[period_key] = {
+                "availability": available_time_of_employee(
+                    self.employee,
+                    self.events,
+                    period_start,
+                    period_end
+                ),
+                "projects": employee_data_events,
+            }
+
+            for project_id, event_data in employee_data_events.items():
+                projects_total[self.employee.name][project_id] += event_data.total_duration
+
+        # events[self.employee.name]["projects_total"] = self._calculate_total_projects(self.employee, projects_total)
+
+        return events
+
+    def generate_time_periods(self, time_period: str = "month", n_periods: int = None):
+        if n_periods is None:
+            n_periods = self.n_periods
+        return generate_time_periods(n_periods, time_period)
 
 
 def process_employees_events(  # noqa: C901
         events_per_employee: EventsPerEmployee,
         month: datetime.date = None,
         week: datetime.date = None,
-        upcoming_periods: int = 12,
+        n_periods: int = 12,
 ) -> MonthDetailPerEmployeePerMonth:
     employees = {}
     for employee_instance, employee_events in events_per_employee.items():
-        employees[employee_instance.name] = EmployeeEvents(employee_instance, employee_events, upcoming_periods)
-        employees[employee_instance.name].process_events_per_projects(month, week)
+        employees[employee_instance.name] = EmployeeEvents(employee_instance, employee_events, n_periods)
     return employees

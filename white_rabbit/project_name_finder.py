@@ -5,11 +5,11 @@ from white_rabbit.models import Project, Alias, Company
 
 
 def get_key(
-    name: str, company_name: str, start_date: Union[datetime.date, None]
+        name: str, company_name: str, start_datetime: Union[datetime.date, None]
 ) -> str:
     to_return = f"{name.lower()}__{company_name}"
-    if start_date:
-        to_return += f"__{start_date.strftime('%Y-%m-%d')}"
+    if start_datetime:
+        to_return += f"__{start_datetime.strftime('%Y-%m-%d')}"
 
     return to_return
 
@@ -22,16 +22,16 @@ class ProjectNameFinder:
         )
         for project in self.all_projects:
             key = get_key(
-                project.lowercase_name, project.company.name, project.start_date
+                project.lowercase_name, project.company.name, project.start_datetime
             )
             self.cache[key] = project.pk
-        for lowercase_name, pk, company_name, start_date in Alias.objects.values_list(
-            "lowercase_name",
-            "project__pk",
-            "project__company__name",
-            "project__start_date",
+        for lowercase_name, pk, company_name, start_datetime in Alias.objects.values_list(
+                "lowercase_name",
+                "project__pk",
+                "project__company__name",
+                "project__start_datetime",
         ).all():
-            key = get_key(lowercase_name, company_name, start_date)
+            key = get_key(lowercase_name, company_name, start_datetime)
             self.cache[key] = pk
 
     def get_project_id(self, name: str, company: Company, date: datetime.date):
@@ -54,13 +54,13 @@ class ProjectNameFinder:
                         continue
                     if project.company != company:
                         continue
-                    if not project.start_date:
+                    if not project.start_datetime:
                         return project.pk
-                    if project.end_date:
-                        if project.start_date <= date <= project.end_date:
+                    if project.end_datetime:
+                        if project.start_datetime <= date <= project.end_datetime:
                             return project.pk
                     else:
-                        if project.start_date <= date:
+                        if project.start_datetime <= date:
                             return project.pk
 
         # no project has been found, create a new one
@@ -80,9 +80,9 @@ class ProjectNameFinder:
 
             to_return[project.pk] = {
                 "name": project.name,
-                "start_date": project.start_date
-                and project.start_date.strftime("%b %y"),
-                "end_date": project.end_date and project.end_date.strftime("%b %y"),
+                "start_datetime": project.start_datetime
+                                  and project.start_datetime.strftime("%b %y"),
+                "end_datetime": project.end_datetime and project.end_datetime.strftime("%b %y"),
             }
 
         return to_return

@@ -1,10 +1,8 @@
+import datetime
 import json
 import numbers
-
 from django.template.defaulttags import register
-
-from white_rabbit.constants import DEFAULT_ROUND_DURATION_PRECISION, DEFAULT_DAY_WORKING_HOURS
-from white_rabbit.utils import convert_duration_to_work_hours_and_minutes, convert_duration_to_work_day
+from white_rabbit.utils import convert_duration_to_work_hours_and_minutes
 
 
 @register.simple_tag
@@ -38,15 +36,40 @@ def find_project(project_id, projects):
 
 
 @register.filter
+def format_datetime_to_hour(project_datetime):
+    if datetime is None or isinstance(project_datetime, datetime.date):
+        return ""
+    return project_datetime.strftime("%H:%M")
+
+
+@register.filter
 def find_project_name(project_id, projects):
     return find_project(project_id, projects).get("name", None)
+
+
+@register.simple_tag
+def filter_by_project_id_and_month(events, project_id, month):
+    month_data = events.get(month)
+    if month_data:
+        project_data = month_data.get("projects")
+        if project_data:
+            project = project_data.get(project_id, None)
+            if project:
+                return project.total_duration
+    return ""
+
+
+@register.filter
+def get_employee_events(employees_events, employee_name):
+    return employees_events.get(employee_name, None)
 
 
 @register.filter
 def convert_duration_based_on_periodicity(duration, periodicity):
     if periodicity == "week":
         return convert_duration_to_work_hours_and_minutes(duration)
-    return convert_duration_to_work_day(duration)
+
+    return f"{round(duration, 2)} jours"
 
 
 @register.simple_tag
@@ -56,11 +79,12 @@ def get_projects(projects_events_by_ids, projects_details, periodicity):
         project = find_project(project_id, projects_details)
         if project is None or project.get("name") is None:
             continue
-        duration = projects_events_by_ids[project_id].total_duration
-        # breakpoint()
-        # if duration is not None and isinstance(duration, numbers.Number):
-        #     duration = convert_duration_based_on_periodicity(duration, periodicity)
+        duration = projects_events_by_ids[project_id].days_spent
+
+        if duration is not None and isinstance(duration, numbers.Number):
+            duration = convert_duration_based_on_periodicity(duration, periodicity)
         projects.append(f"{project["name"]} {duration}")
+
     return projects
 
 

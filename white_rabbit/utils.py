@@ -33,16 +33,6 @@ def convert_duration_to_work_hours_and_minutes(duration: float) -> str:
     return f"({hours}h{minutes})"
 
 
-def convert_duration_to_work_day(duration: float) -> str:
-    # Convert duration to work days
-    duration_in_work_days = duration / DEFAULT_DAY_WORKING_HOURS
-
-    # Round the days to the nearest whole number
-    days = round(duration_in_work_days)
-
-    return f"{days} jours"
-
-
 def calculate_days_spent(duration, divider):
     days_spent = duration / divider
     if days_spent > 1:
@@ -50,14 +40,24 @@ def calculate_days_spent(duration, divider):
     return days_spent
 
 
-def get_period_start(period_index, time_period="month"):
+def calculate_period_start(period_index, time_period="month"):
+    today = datetime.date.today()
+    days_delta = today.day - 1 if time_period == "month" else today.weekday()
+    start_of_current_period = today - datetime.timedelta(days=days_delta)
+    return start_of_current_period + relativedelta(**{f"{time_period}s": period_index})
+
+
+def calculate_period_start(period_index, time_period="month", time_shift_direction="future"):
     today = datetime.date.today()
     days_delta = today.day - 1 if time_period == "month" else today.weekday()
     start_of_current_period = today - datetime.timedelta(days=days_delta)
 
-    return start_of_current_period + relativedelta(
-        **{f"{time_period}s": period_index}
-    )
+    if time_shift_direction == "future":
+        return start_of_current_period + relativedelta(**{f"{time_period}s": period_index})
+    elif time_shift_direction == "past":
+        return start_of_current_period - relativedelta(**{f"{time_period}s": period_index})
+    else:
+        raise ValueError("Invalid time_shift_direction. Choose either 'past' or 'future'.")
 
 
 def calculate_period_key(period, time_period="month"):
@@ -95,13 +95,14 @@ def group_events_by_day(
         events: Iterable[Event],
 ) -> Dict[datetime.date, Iterable[Event]]:
     """Returns a dict day -> events for day."""
-    return {k: list(g) for k, g in groupby(events, lambda x: x["day"])}
+    return {k: list(g) for k, g in groupby(events, lambda event: event["start_datetime"].date() if isinstance(
+        event["start_datetime"], datetime.datetime) else event["start_datetime"])}
 
 
-def generate_time_periods(n_upcoming_periods: int, time_period: str = "month"):
+def generate_time_periods(n_periods: int, time_period: str = "month"):
     periods: Any = []
-    for period_index in range(n_upcoming_periods):
-        period_start = get_period_start(period_index, time_period)
+    for period_index in range(n_periods):
+        period_start = calculate_period_start(period_index, time_period)
         if time_period == "month":
             period_key = f"{period_start.month}/{period_start.year}"
             end_of_period = None
