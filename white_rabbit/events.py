@@ -2,9 +2,7 @@ import datetime
 from bisect import insort
 from collections import defaultdict
 from datetime import date, timedelta
-from functools import lru_cache
-from itertools import groupby
-from typing import List, TypedDict, Dict, Iterable, Union, DefaultDict, Any, Counter
+from typing import List, Dict, Iterable, DefaultDict, Any, Counter
 from django.core.cache import cache
 
 import requests
@@ -14,7 +12,7 @@ from django.contrib import messages
 from dateutil.relativedelta import relativedelta
 
 from white_rabbit.available_time import available_time_of_employee
-from white_rabbit.constants import DEFAULT_ROUND_DURATION_PRECISION
+from white_rabbit.constants import MAX_WORKING_HOURS_FOR_FULL_DAY
 from white_rabbit.models import Employee
 from white_rabbit.project_name_finder import ProjectNameFinder
 from white_rabbit.settings import DEFAULT_CACHE_DURATION
@@ -59,12 +57,15 @@ def read_events(
         while start_datetime < end:
             event_data = get_event_data(start_datetime, end, calendar_name, project_name_finder, employee)
 
-            insort(events_data, event_data,
-                   key=lambda ev: ev["start_datetime"].date() if isinstance(ev["start_datetime"],
-                                                                            datetime.datetime) else ev[
-                       "start_datetime"])
+            insort(
+                events_data,
+                event_data,
+                key=lambda ev: ev["start_datetime"].date()
+                if isinstance(ev["start_datetime"], datetime.datetime)
+                else ev["start_datetime"])
             start_datetime = next_day_start
             next_day_start = start_of_day(start_datetime + datetime.timedelta(days=1))
+
     return events_data
 
 
@@ -89,7 +90,7 @@ def get_event_data(start, end, calendar_name, project_name_finder, employee) -> 
         "subproject_name": subproject_name,
         "start_datetime": start_datetime,
         "end_datetime": end,
-        "duration": min((end - start).total_seconds() / 3600, 24),
+        "duration": min((end - start).total_seconds() / 3600, MAX_WORKING_HOURS_FOR_FULL_DAY),
     }
 
 
@@ -343,9 +344,6 @@ class EmployeeEvents:
 
             for project_id, event_data in employee_data_events.items():
                 projects_total[self.employee.name][project_id] += event_data.total_duration
-
-        # events[self.employee.name]["projects_total"] = self._calculate_total_projects(self.employee, projects_total)
-
         return events
 
     def generate_time_periods(self, time_period: str = "month", n_periods: int = None):

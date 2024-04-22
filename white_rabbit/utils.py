@@ -62,7 +62,7 @@ def calculate_period_start(period_index, time_period="month", time_shift_directi
 
 def calculate_period_key(period, time_period="month"):
     if time_period == "month":
-        return f"{period.month}/{period.year}"
+        return f"{period.month}-{period.year}"
     else:
         return period.isocalendar()[1]
 
@@ -104,7 +104,7 @@ def generate_time_periods(n_periods: int, time_period: str = "month"):
     for period_index in range(n_periods):
         period_start = calculate_period_start(period_index, time_period)
         if time_period == "month":
-            period_key = f"{period_start.month}/{period_start.year}"
+            period_key = f"{period_start.month}-{period_start.year}"
             end_of_period = None
         else:
             period_key = f"{period_start.isocalendar()[1]}"
@@ -113,3 +113,31 @@ def generate_time_periods(n_periods: int, time_period: str = "month"):
         periods.append({"key": period_key, "start": period_start, "end": end_of_period})
 
     return periods
+
+
+def get_or_create_project(dictionary, key, project_detail):
+    if key not in dictionary:
+        dictionary[key] = {
+            "total_duration": project_detail.total_duration,
+            "total_days": project_detail.days_spent,
+            "employees_events": {}
+        }
+    else:
+        dictionary[key]["total_duration"] += project_detail.total_duration
+        dictionary[key]["total_days"] += project_detail.days_spent
+
+    return dictionary[key]
+
+
+def get_or_create_employee_event(dictionary, key, project_detail):
+    if key not in dictionary:
+        dictionary[key] = {
+            "days_spent": project_detail.days_spent,
+            "total_duration": project_detail.total_duration,
+            "events": project_detail.events
+        }
+    else:
+        dictionary[key]["days_spent"] += project_detail.days_spent
+        dictionary[key]["total_duration"] += project_detail.total_duration
+        dictionary[key]["events"] += project_detail.events
+    return dictionary[key]

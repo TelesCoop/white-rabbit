@@ -5,17 +5,23 @@
 
 {% block content %}
     <h1 class="text-xl font-bold mb-4 text-left">{{ title }}</h1>
-    <div class="overflow-x-scroll w-[80vw]">
-        <table class="table w-64">
+    <div class="overflow-x-scroll w-[80vw] rounded-xl">
+        <table class="table border border-gray-200 border-separate rounded-lg divide-y divide-gray-200">
             <thead>
-            <tr class="font-bold bg-indigo-50 text-bold">
-                <th class="font-bold text-bold text-black">Employé</th>
+            <tr class="font-bold bg-indigo-50 text-bold text-md">
+                <th class="font-bold text-black left-0 sticky z-50 bg-indigo-50" scope="col">Employé</th>
                 {% for period in periods|json_loads %}
                     <th class="min-w-32 font-bold bg-indigo-50">
                         {% if period.start and period.end %}
                             <p class="text-black">{{ period.start }} - {{ period.end }}</p>
                         {% endif %}
-                        <span class="uppercase text-gray-500 font-bold">{{ period.key }}</span>
+
+                        <span class="uppercase text-gray-500 font-bold">
+                            {% if periodicity == "week" %}
+                                Semaine n°
+                            {% endif %}
+                            {{ period.key }}
+                        </span>
                     </th>
                 {% endfor %}
             </tr>
@@ -23,29 +29,41 @@
             <tbody>
             {% with events as events_items %}
                 {% for employee_events in events_items %}
-                    <tr>
-                        {% for employee_name, events in employee_events.items %}
-                            <td class="font-bold bg-gray-50">{{ employee_name }}</td>
+                    {% for employee_name, events in employee_events.items %}
+
+                        <tr class="bg-gray-50">
+                            <th class="font-bold bg-gray-100 left-0 sticky z-50 text-center uppercase">{{ employee_name }}</th>
                             {% for week, event in events.items %}
-                                <td class="text-center">
-                                    <div class="flex">
+                                <td>
+                                    <div class="flex flex-col justify-center items-center">
                                     <span style="background: {{ event.availability|week_color }}"
                                           class="pastille pastille-xl">{{ event.availability }}</span>
-                                        <div>
-                                            {% if event.projects.items %}
-                                                <div class="tooltip pastille pastille-sm bg-slate-100 z-100"
-                                                     data-tip="{% get_projects_str event.projects projects periodicity %}">
-                                                    ?
-                                                </div>
-                                            {% endif %}
-                                        </div>
+
                                     </div>
                                 </td>
                             {% endfor %}
-                        {% endfor %}
-                    </tr>
+                        </tr>
+                        <tr class="bg-gray-50">
+                            <th class="font-bold bg-gray-100 left-0 sticky z-50 text-center"></th>
+                            {% for week, event in events.items %}
+                                <td>
+                                    <div class="flex flex-col gap-2">
+                                        {% get_projects_str event.projects projects periodicity as project_events_list %}
+                                        {% for project in project_events_list %}
+                                            <div class="flex flex-col justify-center text-xs">
+                                                <span class="font-bold">{{ project.0 }}</span>
+                                                <span>{{ project.1 }}</span>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+
+                                </td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
                 {% endfor %}
             {% endwith %}
+
             </tbody>
         </table>
     </div>

@@ -1,6 +1,8 @@
 import datetime
 import json
 import numbers
+
+from django.template.defaultfilters import pluralize, floatformat
 from django.template.defaulttags import register
 from white_rabbit.utils import convert_duration_to_work_hours_and_minutes
 
@@ -29,7 +31,7 @@ def get_type(value):
 
 @register.filter
 def find_project(project_id, projects):
-    project = projects.get(int(project_id), None)
+    project = projects.get(project_id, None)
     if project is None:
         return None
     return project
@@ -65,11 +67,21 @@ def get_employee_events(employees_events, employee_name):
 
 
 @register.filter
-def convert_duration_based_on_periodicity(duration, periodicity):
-    if periodicity == "week":
-        return convert_duration_to_work_hours_and_minutes(duration)
+def format_date(date):
+    if date == "Total":
+        return date
+    # Convert the string to a datetime object
+    date_object = datetime.datetime.strptime(date, "%m-%Y")
 
-    return f"{round(duration, 2)} jours"
+    # Format the datetime object into a readable date
+    readable_date = date_object.strftime("%B %Y")
+
+    return readable_date
+
+
+@register.filter
+def convert_duration_based_on_periodicity(duration, periodicity):
+    return f"{round(duration, 2)} jour{pluralize(duration)} "
 
 
 @register.simple_tag
@@ -83,7 +95,7 @@ def get_projects(projects_events_by_ids, projects_details, periodicity):
 
         if duration is not None and isinstance(duration, numbers.Number):
             duration = convert_duration_based_on_periodicity(duration, periodicity)
-        projects.append(f"{project["name"]} {duration}")
+        projects.append((project["name"], duration))
 
     return projects
 
@@ -91,7 +103,8 @@ def get_projects(projects_events_by_ids, projects_details, periodicity):
 @register.simple_tag
 def get_projects_str(projects_events_by_ids, projects_details, periodicity):
     projects = get_projects(projects_events_by_ids, projects_details, periodicity)
-    return ", ".join(projects)
+
+    return projects
 
 
 @register.filter
@@ -107,3 +120,12 @@ def week_color(value):
         if value < WEEK_THRESHOLDS[index]:
             return color
     return SUCCESS_COLOR
+
+
+@register.filter
+def employee_events_to_tooltip(employee_events):
+    days_spent = []
+    for project in employee_events["events"]:
+        days_spent.append(
+            f"{floatformat(project["days_spent"], 2)} jour{pluralize(project["days_spent"])} le {project["start_datetime"]} \n")
+    return days_spent

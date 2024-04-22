@@ -4,22 +4,19 @@
 {% block content %}
     <div class="container" id="app">
         <div class="flex flex-col rounded-xl border border-gray-200">
-            <div class="bg-gray-100 p-4 rounded-t-xl">
+            <div class="bg-indigo-50 p-4 rounded-t-xl">
                 <h2 class="text-lg font-bold">
                     Cette semaine
                 </h2>
             </div>
-
             {% with events as userEvents %}
                 {% for employee_name, events in userEvents.items %}
                     {% for week, event in events.items %}
-
                         {% for project_id, project in event.projects.items %}
-                            {{ project }}
-                            <div class="p-4 flex justify-between">
-                                <h3 class="font-semibold">{{ project_id|find_project_name:projects_details }}</h3>
-                                <div class="flex">
-                                    {% for project_detail in project.events %}
+                            {% for project_detail in project.events %}
+                                <div class="p-4 flex justify-between">
+                                    <h3 class="font-semibold">{{ project_id|find_project_name:projects_details }}</h3>
+                                    <div class="flex">
                                         <div class="badge p-4 bg-red-200">{{ project_detail.days_spent }} jour(s)</div>
                                         <div>
                                             {{ project_detail.start_datetime|format_datetime_to_hour }}
@@ -32,20 +29,14 @@
                                             </svg>
                                             {{ project_detail.start_datetime }}
                                         </div>
-                                    {% endfor %}
+                                    </div>
                                 </div>
-
-                            </div>
+                            {% endfor %}
                         {% endfor %}
-
                     {% endfor %}
                 {% endfor %}
             {% endwith %}
-
-
         </div>
-
-
     </div>
 {% endblock %}
 {% block extra_css %}

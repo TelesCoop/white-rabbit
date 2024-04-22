@@ -22,7 +22,7 @@ from .state_of_day import (
     state_of_days_per_employee_for_week,
 )
 from .upcoming import UpcomingEvents
-from .utils import generate_time_periods
+from .utils import generate_time_periods, get_or_create_project, get_or_create_employee_event
 
 
 class MyLoginView(LoginView):
@@ -95,7 +95,7 @@ class AvailabilityBaseView(TemplateView):
         events: EventsPerEmployee = get_events_from_employees_from_cache(
             employees, project_name_finder, request=self.request
         )
-        events_per_employee = process_employees_events(events, n_periods=1)
+        events_per_employee = process_employees_events(events, n_periods=12)
 
         upcoming_events = [employee_events.upcoming_events(self.time_period) for employee_name, employee_events in
                            events_per_employee.items()]
@@ -174,7 +174,9 @@ class TotalPerProjectView(TemplateView):
         employees_events = (
             process_employees_events(events_per_employee)
         )
+
         projects = {}
+        total_days = {}
 
         for employee_name, employee_events in employees_events.items():
             total_per_projects = employee_events.total_per_projects()
@@ -184,29 +186,23 @@ class TotalPerProjectView(TemplateView):
                     if month not in projects:
                         projects[month] = {}
 
-                    if project_id not in projects[month]:
-                        projects[month][project_id] = {
-                            "total_duration": project_detail.total_duration,
-                            "total_days": project_detail.days_spent,
-                            "project_name": "project_detail.name",
-                            "employees_events": {}
-                        }
-                    else:
-                        projects[month][project_id]["total_duration"] += project_detail.total_duration
-                        projects[month][project_id]["total_days"] += project_detail.days_spent
+                    project = get_or_create_project(projects[month], project_id, project_detail)
+                    project["employees_events"][employee_name] = get_or_create_employee_event(
+                        project["employees_events"],
+                        employee_name, project_detail)
 
-                    projects[month][project_id]["employees_events"][employee_name] = {
-                        "total_duration": project_detail.total_duration,
-                        "days_spent": project_detail.days_spent,
-                        "events": project_detail.events
-                    }
+                    total_day = get_or_create_project(total_days, project_id, project_detail)
+                    total_day["employees_events"][employee_name] = get_or_create_employee_event(
+                        total_day["employees_events"],
+                        employee_name, project_detail)
+
+        projects_per_month = {**{"Total": total_days}, **projects}
+
         return {
-
             "employees_events": employees_events,
             "employees_names": employees_names,
-            "projects_per_month": projects,
+            "projects_per_month": projects_per_month,
             "projects_details": project_name_finder.projects_for_company(
                 user.employee.company
             ),
-
         }

@@ -4,139 +4,90 @@
 {% load static %}
 
 {% block content %}
-    <h1 class="text-xl font-bold mb-4 text-left">{{ title }}</h1>
+    <h1 class="text-2xl font-bold mb-4 text-left">
+        Total par projet
+    </h1>
+    <div class="border-b border-gray-200">
+        <nav class="flex space-x-1 overflow-x-auto" aria-label="Tabs" role="tablist">
+            {% for month, projects_per_ids in projects_per_month.items %}
+                <button type="button"
+                        class="hs-tab-active:font-semibold hs-tab-active:border-blue-600 hs-tab-active:text-blue-600 py-4 px-1 inline-flex items-center gap-x-2 border-b-2 border-transparent text-sm whitespace-nowrap text-gray-500 hover:text-blue-600 focus:outline-none focus:text-blue-600 disabled:opacity-50 disabled:pointer-events-none active"
+                        id="tabs-with-badges-item-{{ month | slugify }}"
+                        data-hs-tab="#tabs-with-badges-{{ month | slugify }}"
+                        aria-controls="tabs-with-badges-{{ month | slugify }}"
+                        role="tab">
+                    {{ month|format_date }}
 
-    <div class="grid grid-cols-1 gap-4 lg:col-span-3 ">
-        <div class="p-6">
-            <div class="relative">
-                <div class="relative  sm:overflow-hidden">
-                    <div class="pb-3">
-                        <div class="hidden sm:block">
-                            <div class="border-b border-gray-200">
-                                <nav
-                                        class="-mb-px flex space-x-8 overflow-x-auto"
-                                        aria-label="Tabs"
-                                >
-                                    {% for month, projects_per_ids in projects_per_month.items %}
-
-
-                                        <input type="radio" name="my_tabs_2" role="tab" class="tab" aria-label={{ month }}/>
-                                        <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
-                                            <table class="border border-gray-200 border-separate space-y-6 md:rounded-lg divide-y divide-gray-200">
-                                                <thead class="bg-gray-50">
-                                                <tr class="text-left font-normal text-gray-500">
-                                                    <th class="p-4 divide-x divide-gray-200">Project</th>
-                                                    <th>Total</th>
-                                                    {% for employee_name in employees_names %}
-                                                        <th class="text-gray-800">
-                                                            {{ employee_name }}
-                                                        </th>
-                                                    {% endfor %}
-                                                </tr>
-                                                </thead>
-                                                <tbody class="divide-y divide-gray-200">
-                                                {% for project_id, project_details in projects_per_ids.items %}
-                                                    <tr>
-                                                        <th scope="row"
-                                                            class="text-left px-4 py-3.5">{{ project_id|find_project_name:projects_details }}</th>
-                                                        <td>{{ project_details.total_days }}</td>
-                                                        {% for employee_name in employees_names %}
-                                                            {% with project_details.employees_events|get_employee_events:employee_name as employee_events %}
-                                                                <td>{{ employee_events.days_spent }}</td>
-                                                            {% endwith %}
-                                                        {% endfor %}
-                                                    </tr>
-                                                {% endfor %}
-                                                </tbody>
-                                            </table>
-
-
-                                        </div>
-
-                                    {% endfor %}
-                                </nav>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+                </button>
+            {% endfor %}
+        </nav>
     </div>
-    <div class="flex flex-col">
+    <div class="mt-3">
         {% for month, projects_per_ids in projects_per_month.items %}
-            
-            
-                <input type="radio" name="my_tabs_2" role="tab" class="tab" aria-label={{ month }}/>
-                <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
-                    <table class="border border-gray-200 border-separate space-y-6 md:rounded-lg divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                        <tr class="text-left font-normal text-gray-500">
-                            <th class="p-4 divide-x divide-gray-200">Project</th>
-                            <th>Total</th>
+            <div id="tabs-with-badges-{{ month | slugify }}"
+                 role="tabpanel"
+                 class="{% if forloop.counter > 1 %}hidden{% endif %}"
+                 aria-labelledby="tabs-with-badges-item-{{ month | slugify }}"
+            >
+                <span class="text-xl p-4">
+                    {{ month|format_date }}
+                </span>
+                <table class="border border-gray-200 border-separate rounded-lg divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                    <tr class="font-bold bg-indigo-50 text-black uppercase text-xs">
+                        <th class="p-4 sticky z-50 left-0 bg-indigo-50">Nom du projet</th>
+                        <th class="p-4 sticky z-50 left-[110px] bg-indigo-50">Total (en jours)</th>
+                        {% for employee_name in employees_names %}
+                            <th class="p-4 text-gray-800">
+                                {{ employee_name }}
+                            </th>
+                        {% endfor %}
+                    </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                    {% for project_id, project_details in projects_per_ids.items %}
+                        <tr class="text-left">
+                            <th scope="row"
+                                class="font-bold bg-gray-100 left-0 sticky z-50 p-2 uppercase text-sm">
+                                {{ project_id|find_project_name:projects_details }}
+                            </th>
+                            <td class="font-bold text-center bg-gray-100 sticky z-40 p-2 text-sm left-[110px]">
+                                {{ project_details.total_days|floatformat:2 }}
+                                jours
+                            </td>
                             {% for employee_name in employees_names %}
-                                <th class="text-gray-800">
-                                    {{ employee_name }}
-                                </th>
+                                {% with project_details.employees_events|get_employee_events:employee_name as employee_events %}
+                                    <td class="p-4 bg-gray-50 text-center">
+                                        {% if employee_events.days_spent %}
+                                            <div tabindex="0" class="collapse ">
+                                                <div class="collapse-title font-semibold underline">
+                                                    {{ employee_events.days_spent|floatformat:2 }}
+                                                    jour{{ employee_events.days_spent|pluralize:'s' }}
+                                                </div>
+                                                <div class="collapse-content bg-gray-100 max-h-[150px] w-[200px] overflow-y-scroll p-2 rounded-xl">
+                                                    {% with employee_events|employee_events_to_tooltip as evnts %}
+                                                        <ul class="list-disc">
+                                                            {% for evnt in evnts %}
+                                                                <li>
+                                                                    {{ evnt }}
+                                                                </li>
+                                                            {% endfor %}
+                                                        </ul>
+                                                    {% endwith %}
+
+
+                                                </div>
+                                            </div>
+                                        {% endif %}
+
+                                    </td>
+                                {% endwith %}
                             {% endfor %}
                         </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200">
-                        {% for project_id, project_details in projects_per_ids.items %}
-                            <tr>
-                                <th scope="row"
-                                    class="text-left px-4 py-3.5">{{ project_id|find_project_name:projects_details }}</th>
-                                <td>{{ project_details.total_days }}</td>
-                                {% for employee_name in employees_names %}
-                                    {% with project_details.employees_events|get_employee_events:employee_name as employee_events %}
-                                        <td>{{ employee_events.days_spent }}</td>
-                                    {% endwith %}
-                                {% endfor %}
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-
-
-                </div>
-            
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         {% endfor %}
     </div>
 {% endblock %}
-
-{% for month, projects_per_ids in projects_per_month.items %}
-
-
-    <input type="radio" name="my_tabs_2" role="tab" class="tab" aria-label={{ month }}/>
-    <div role="tabpanel" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
-        <table class="border border-gray-200 border-separate space-y-6 md:rounded-lg divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-            <tr class="text-left font-normal text-gray-500">
-                <th class="p-4 divide-x divide-gray-200">Project</th>
-                <th>Total</th>
-                {% for employee_name in employees_names %}
-                    <th class="text-gray-800">
-                        {{ employee_name }}
-                    </th>
-                {% endfor %}
-            </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-            {% for project_id, project_details in projects_per_ids.items %}
-                <tr>
-                    <th scope="row"
-                        class="text-left px-4 py-3.5">{{ project_id|find_project_name:projects_details }}</th>
-                    <td>{{ project_details.total_days }}</td>
-                    {% for employee_name in employees_names %}
-                        {% with project_details.employees_events|get_employee_events:employee_name as employee_events %}
-                            <td>{{ employee_events.days_spent }}</td>
-                        {% endwith %}
-                    {% endfor %}
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-
-
-    </div>
-
-{% endfor %}
