@@ -29,47 +29,48 @@
             </tr>
             </thead>
             <tbody>
-            {% with events as events_items %}
-                {% for employee_events in events_items %}
-                    {% for employee_name, events in employee_events.items %}
 
-                        <tr class="bg-gray-50">
-                            <th class="font-bold bg-gray-100 left-0 sticky z-50 text-center uppercase">{{ employee_name }}</th>
-                            {% for week, event in events.items %}
-                                <td>
-                                    <div class="flex flex-col justify-center items-center">
-                                        <div style="background: {{ event.availability|week_color }}"
-                                             class="pastille pastille-2xl font-bold flex gap-1">
-                                            {{ event.availability }}
-                                            <span class="font-normal">jours</span>
-
-                                        </div>
-
+            {% for employees_upcoming_events_per_timeperiod in upcoming_events_by_employee_and_timeperiod %}
+                {% for employee_name, upcoming_events_per_timeperiod  in employees_upcoming_events_per_timeperiod.items %}
+                    <tr class="bg-gray-50">
+                        <th class="font-bold bg-gray-100 left-0 sticky z-50 text-center uppercase">{{ employee_name }}</th>
+                        {% for time_period, upcoming_events in upcoming_events_per_timeperiod.items %}
+                            <td>
+                                <div class="flex flex-col justify-center items-center">
+                                    <div style="background: {{ upcoming_events.availability|week_color }}"
+                                         class="pastille pastille-2xl font-bold flex gap-1">
+                                        {{ upcoming_events.availability }}
+                                        <span class="font-normal">jours</span>
                                     </div>
-                                </td>
-                            {% endfor %}
-                        </tr>
-                        <tr class="bg-gray-50">
-                            <th class="font-bold bg-gray-100 left-0 sticky z-50 text-center"></th>
-                            {% for week, event in events.items %}
-                                <td>
+                                </div>
+                            </td>
+                        {% endfor %}
+                    </tr>
+                    <tr class="bg-gray-50">
+                        <th class="font-bold bg-gray-100 left-0 sticky z-50 text-center"></th>
+                        {% for time_period, upcoming_events in upcoming_events_per_timeperiod.items %}
+                            <td>
+
+                                <div class="flex flex-col gap-2">
                                     <div class="flex flex-col gap-2">
                                         {% get_projects_str event.projects projects periodicity as project_events_list %}
-                                        {% for project in project_events_list %}
+
+
+
+
+                                        {% for event in upcoming_events.events %}
+
                                             <div class="flex text-xs gap-1">
-                                                <span class="font-bold truncate">{{ project.0 }}</span>
-                                                <span> {{ project.1 }}</span>
+                                                <span class="font-bold">{{ event.name }}</span>
+                                                <span>le {{ event.start_datetime }} ({{ event.duration }} heures)</span>
                                             </div>
                                         {% endfor %}
                                     </div>
-
-                                </td>
-                            {% endfor %}
-                        </tr>
-                    {% endfor %}
+                            </td>
+                        {% endfor %}
+                    </tr>
                 {% endfor %}
-            {% endwith %}
-
+            {% endfor %}
             </tbody>
         </table>
     </div>

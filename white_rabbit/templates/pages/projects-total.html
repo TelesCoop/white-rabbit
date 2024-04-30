@@ -9,34 +9,32 @@
     </h1>
     <div class="border-b border-gray-200">
         <nav class="flex space-x-1 overflow-x-auto" aria-label="Tabs" role="tablist">
-            {% for month, projects_per_ids in projects_per_month.items %}
+            {% for period in periods %}
                 <button type="button"
                         class="hs-tab-active:font-semibold hs-tab-active:border-blue-600 hs-tab-active:text-blue-600 py-4 px-1 inline-flex items-center gap-x-2 border-b-2 border-transparent text-sm whitespace-nowrap text-gray-500 hover:text-blue-600 focus:outline-none focus:text-blue-600 disabled:opacity-50 disabled:pointer-events-none active"
-                        id="tabs-with-badges-item-{{ month | slugify }}"
-                        data-hs-tab="#tabs-with-badges-{{ month | slugify }}"
-                        aria-controls="tabs-with-badges-{{ month | slugify }}"
+                        id="tabs-with-badges-item-{{ period.key | slugify }}"
+                        data-hs-tab="#tabs-with-badges-{{ period.key | slugify }}"
+                        aria-controls="tabs-with-badges-{{ period.key | slugify }}"
                         role="tab">
-                    {{ month|format_date }}
+                    {{ period.key|format_date }}
 
                 </button>
             {% endfor %}
         </nav>
     </div>
     <div class="mt-3">
-        {% for month, projects_per_ids in projects_per_month.items %}
-            <div id="tabs-with-badges-{{ month | slugify }}"
+        {% for period in periods %}
+            <div id="tabs-with-badges-{{ period.key | slugify }}"
                  role="tabpanel"
                  class="{% if forloop.counter > 1 %}hidden{% endif %}"
-                 aria-labelledby="tabs-with-badges-item-{{ month | slugify }}"
+                 aria-labelledby="tabs-with-badges-item-{{ period.key | slugify }}"
             >
-                <span class="text-xl p-4">
-                    {{ month|format_date }}
-                </span>
+                <h3 class="text-xl p-4 font-bold">{{ period.key|format_date }}</h3>
                 <table class="border border-gray-200 border-separate rounded-lg divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                     <tr class="font-bold bg-indigo-50 text-black uppercase text-xs">
-                        <th class="p-4 sticky z-50 left-0 bg-indigo-50">Nom du projet</th>
-                        <th class="p-4 sticky z-50 left-[110px] bg-indigo-50">Total (en jours)</th>
+                        <th class="p-4 sticky z-50 left-0 bg-indigo-50 w-[150px]">Nom du projet</th>
+                        <th class="p-4 sticky z-50 left-[120px] bg-indigo-50">Total (en jours)</th>
                         {% for employee_name in employees_names %}
                             <th class="p-4 text-gray-800">
                                 {{ employee_name }}
@@ -45,42 +43,49 @@
                     </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
-                    {% for project_id, project_details in projects_per_ids.items %}
-                        <tr class="text-left">
-                            <th scope="row"
-                                class="font-bold bg-gray-100 left-0 sticky z-50 p-2 uppercase text-sm">
-                                {{ project_id|find_project_name:projects_details }}
-                            </th>
-                            <td class="font-bold text-center bg-gray-100 sticky z-40 p-2 text-sm left-[110px]">
-                                {{ project_details.total_days|floatformat:2 }}
-                                jours
-                            </td>
-                            {% for employee_name in employees_names %}
-                                {% with project_details.employees_events|get_employee_events:employee_name as employee_events %}
-                                    <td class="bg-gray-50 text-center">
-                                        {% if employee_events.days_spent %}
-                                            <div tabindex="0" class="collapse ">
-                                                <div class="collapse-title font-semibold underline">
-                                                    {{ employee_events.days_spent|floatformat:2 }}
-                                                    jour{{ employee_events.days_spent|pluralize:'s' }}
-                                                </div>
-                                                <div class="collapse-content bg-gray-100 overflow-y-scroll p-2 rounded-xl">
-                                                    {% with employee_events|employee_events_to_tooltip as evnts %}
-                                                        <ul class="list-disc">
-                                                            {% for evnt in evnts %}
-                                                                <li>
-                                                                    {{ evnt }}
+                    {% for month, events_per_projects_ids in employees_events_per_month.items %}
+                        {% if month == period.key %}
+                            {% for project_id, events_per_project in events_per_projects_ids.items %}
+                                <tr>
+                                    <th scope="row"
+                                        class="font-bold bg-gray-100 left-0 sticky z-50 p-2 uppercase text-sm">
+                                        {{ project_id|find_project_name:projects_details }}
+                                    </th>
+                                    <td class="sticky left-[120px] min-w-[150px] z-50 bg-white text-center">
+                                        {{ events_per_project.days|floatformat:2 }}
+                                        jour{{ events_per_project.days|pluralize:'s' }}
+                                    </td>
+                                    {% for employee_name in employees_names %}
+                                        <td>
+                                            {% with events_per_project.events|get_employee_events:employee_name as employee_events %}
+                                                <div tabindex="0" class="collapse ">
+                                                    <div class="collapse-title">
+                                                        {% if employee_events.days_spent %}
+                                                            {{ employee_events.days_spent|floatformat:2 }}
+                                                            jour{{ employee_events.days_spent|pluralize:'s' }}
+
+                                                        {% endif %}
+
+                                                    </div>
+                                                    <div class="collapse-content bg-gray-100 min-w-[150px] p-2 rounded-xl">
+                                                        <ul>
+                                                            {% for event in employee_events.events %}
+                                                                <li class="">
+                                                                    <span>{{ event.duration|floatformat:2 }}h</span> le
+                                                                    <span>{{ event.start_datetime|date:"d/m/Y" }}</span>
                                                                 </li>
                                                             {% endfor %}
                                                         </ul>
-                                                    {% endwith %}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        {% endif %}
-                                    </td>
-                                {% endwith %}
+
+                                            {% endwith %}
+                                        </td>
+                                    {% endfor %}
+                                </tr>
                             {% endfor %}
-                        </tr>
+                        {% endif %}
+
                     {% endfor %}
                     </tbody>
                 </table>

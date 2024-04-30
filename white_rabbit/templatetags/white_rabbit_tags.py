@@ -65,7 +65,7 @@ def filter_by_project_id_and_month(events, project_id, month):
 
 @register.filter
 def get_employee_events(employees_events, employee_name):
-    return employees_events.get(employee_name, None)
+    return employees_events.get(employee_name, "")
 
 
 @register.filter
@@ -93,7 +93,7 @@ def get_projects(projects_events_by_ids, projects_details, periodicity):
         project = find_project(project_id, projects_details)
         if project is None or project.get("name") is None:
             continue
-        duration = projects_events_by_ids[project_id].days_spent
+        duration = projects_events_by_ids[project_id]["days_spent"]
 
         if duration is not None and isinstance(duration, numbers.Number):
             duration = convert_duration_based_on_periodicity(duration, periodicity)
@@ -131,3 +131,13 @@ def employee_events_to_tooltip(employee_events):
         days_spent.append(
             f"{floatformat(project['days_spent'], 2)} jour{pluralize(project['days_spent'])} le {project['start_datetime']} \n")
     return days_spent
+
+
+@register.filter
+def get_event_by_date(events, date):
+    return events.get(date, None)
+
+
+@register.filter
+def get_events_by_category(events, category):
+    return events.get(category, "")

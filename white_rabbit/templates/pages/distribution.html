@@ -4,59 +4,84 @@
 {% load static %}
 
 {% block content %}
-    <table class="table border border-gray-200 border-separate rounded-lg divide-y divide-gray-200">
-        <thead>
-
-        <tr class="font-bold bg-indigo-50 text-bold text-md">
-            <th>
-                Employé·e
-            </th>
-            {% for category in categories %}
-                <th>
-                    {{ category }}
-                </th>
+    <div class="border-b border-gray-200">
+        <nav class="flex space-x-1 overflow-x-auto" aria-label="Tabs" role="tablist">
+            {% for period in periods %}
+                <button type="button"
+                        class="hs-tab-active:font-semibold hs-tab-active:border-blue-600 hs-tab-active:text-blue-600 py-4 px-1 inline-flex items-center gap-x-2 border-b-2 border-transparent text-sm whitespace-nowrap text-gray-500 hover:text-blue-600 focus:outline-none focus:text-blue-600 disabled:opacity-50 disabled:pointer-events-none active"
+                        id="tabs-with-badges-item-{{ period.key | slugify }}"
+                        data-hs-tab="#tabs-with-badges-{{ period.key | slugify }}"
+                        aria-controls="tabs-with-badges-{{ period.key | slugify }}"
+                        role="tab">
+                    {{ period.key|format_date }}
+                </button>
             {% endfor %}
-        </tr>
-        </thead>
-        <tbody>
-        {% for employee, projects_by_categories in projects.items %}
-            <tr>
-                <th class="font-bold bg-gray-100 left-0 sticky z-50 text-center uppercase">
-                    {{ employee }}
-                </th>
-                {% for category in categories %}
-                    <td>
-                        {% for project_category, projects_events_by_category in projects_by_categories.items %}
-                            {% if project_category == category %}
+        </nav>
+    </div>
 
-                                <div tabindex="0" class="collapse ">
-                                    <div class="collapse-title font-semibold underline">
-                                        {{ projects_events_by_category.total_days|floatformat:2 }}
-                                        jours
-                                    </div>
-                                    <div class="collapse-content bg-gray-100 overflow-y-scroll p-2 rounded-xl">
+    {% for period in periods %}
 
-                                        <ul class="list-disc">
-                                            {% for project_event in projects_events_by_category.events %}
-                                                <li>
-                                                
-                                                    {{ project_event.project_id|find_project_name:projects }}
-                                                    ({{ project_event.days_spent|floatformat:2 }} j)
-                                                    le {{ project_event.start_datetime|date:"d/m/Y" }}
-                                                </li>
-                                            {% endfor %}
-                                        </ul>
+        <div id="tabs-with-badges-{{ period.key | slugify }}"
+             role="tabpanel"
+             class="{% if forloop.counter > 1 %}hidden{% endif %}"
+             aria-labelledby="tabs-with-badges-item-{{ period.key | slugify }}"
+        >
+            <h3 class="text-xl p-4 font-bold">{{ period.key|format_date }}</h3>
+            <table class="table border border-gray-200 border-separate rounded-lg divide-y divide-gray-200">
+                <thead>
 
+                <tr class="font-bold bg-indigo-50 text-bold text-md">
+                    <th>
+                        Employé·e
+                    </th>
+                    {% for category in categories %}
+                        <th>
+                            {{ category.1 }}
+                        </th>
+                    {% endfor %}
+                </tr>
+                </thead>
+                <tbody>
+                {% for employee, events_by_month_and_category in projects.items %}
+                    <tr>
+                        <th class="font-bold bg-gray-100 left-0 sticky z-50 text-center uppercase">
+                            {{ employee }}
+                        </th>
+                        {% for month, events_by_categories in  events_by_month_and_category.items %}
+                            {% for category in categories %}
+                                {% if month == period.key %}
+                                    <td class="min-w-[150px]">
+                                        {% with events_by_categories|get_events_by_category:category.0 as usr_events_by_categories %}
+                                            {% if usr_events_by_categories %}
+                                                <div tabindex="0" class="collapse ">
+                                                    <div class="collapse-title">
+                                                        {{ usr_events_by_categories.days_spent|floatformat:2 }}
+                                                        jour{{ usr_events_by_categories.days_spent|pluralize:'s' }}
+                                                    </div>
+                                                    <div class="collapse-content bg-gray-100 p-2 rounded-xl">
+                                                        <ul>
+                                                            {% for event in usr_events_by_categories.events %}
+                                                                <li class="">
+                                                                    <span>{{ event.name }},</span>
+                                                                    <span>{{ event.duration|floatformat:2 }}h</span> le
+                                                                    <span>{{ event.start_datetime|date:"d/m/Y" }}</span>
+                                                                </li>
+                                                            {% endfor %}
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </td>
 
-                                    </div>
-                                </div>
-                            {% endif %}
+                                {% endif %}
 
+                            {% endfor %}
                         {% endfor %}
-                    </td>
+                    </tr>
                 {% endfor %}
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+                </tbody>
+            </table>
+        </div>
+    {% endfor %}
 {% endblock %}

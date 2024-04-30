@@ -40,7 +40,7 @@ CACHES = {
         'LOCATION': 'unique-snowflake',  # A unique identifier for the cache
     }
 }
-DEFAULT_CACHE_DURATION = 3600
+DEFAULT_CACHE_DURATION = 600
 # Application definition
 
 INSTALLED_APPS = [

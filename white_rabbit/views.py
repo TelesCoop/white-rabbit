@@ -7,16 +7,14 @@ from django.views.generic import TemplateView
 from .events import (
     EventsPerEmployee,
     get_events_from_employees_from_cache,
-    employees_for_user, process_employees_events, EmployeeEvents
+    employees_for_user, process_employees_events
 )
-from .models import Project, Company, Employee
+from .models import Project, Employee, PROJECT_CATEGORIES_CHOICES
 from .project_name_finder import ProjectFinder
 from .state_of_day import (
     state_of_days_per_employee_for_week,
 )
-from .upcoming import UpcomingEvents
-from .utils import generate_time_periods, get_or_create_project, get_or_create_employee_event, \
-    get_or_create_project_by_employee_and_category
+from .utils import generate_time_periods
 
 
 class MyLoginView(LoginView):
@@ -73,8 +71,7 @@ class AvailabilityBaseView(TemplateView):
         display_employees = [
             employee
             for employee in employees
-            if not employee.end_time_tracking_on
-               or employee.end_time_tracking_on > today
+            if not employee.end_time_tracking_on or employee.end_time_tracking_on > today
         ]
 
         project_finder = ProjectFinder()
@@ -83,8 +80,9 @@ class AvailabilityBaseView(TemplateView):
         )
         events_per_employee = process_employees_events(events, n_periods=12)
 
-        upcoming_events = [employee_events.upcoming_events(self.time_period) for employee_name, employee_events in
-                           events_per_employee.items()]
+        upcoming_events = [
+            {employee_name: employee_events.group_by_time_period(self.time_period, timeshift_direction="future")}
+            for employee_name, employee_events in events_per_employee.items()]
         up_periods = generate_time_periods(12, self.time_period)
 
         project_details = project_finder.by_company(
@@ -93,7 +91,7 @@ class AvailabilityBaseView(TemplateView):
 
         return render(request, self.template_name, {
             "employees": json.dumps([employee.name for employee in display_employees]),
-            "events": upcoming_events,
+            "upcoming_events_by_employee_and_timeperiod": upcoming_events,
             "periods": json.dumps(up_periods, default=str),
             "projects": project_details,
             "title": self.title,
@@ -134,12 +132,22 @@ class ResumeView(TemplateView):
         events: EventsPerEmployee = get_events_from_employees_from_cache(
             [employee], project_finder, request=self.request
         )
-        up_events = EmployeeEvents(employee, events[employee], 1).upcoming_events("week")
+
+        raw_employees_events = (
+            process_employees_events(events, 2)
+        )
+        employees_events = {}
+
+        for employee_name, employee_events in raw_employees_events.items():
+            employees_events[employee_name] = {}
+            employees_events[employee_name] = employee_events.group_events_per_day()
+
         project_details = project_finder.by_company(
             employee.company
         )
         return {
-            "events": up_events,
+            "employees_events": employees_events,
+            "current_user": self.request.user,
             "projects_details": project_details
         }
 
@@ -157,38 +165,44 @@ class TotalPerProjectView(TemplateView):
             employees, project_finder, request=self.request
         )
 
-        employees_events = (
+        raw_employees_events = (
             process_employees_events(events_per_employee, 24)
         )
-
+        employees_events = {}
         projects = {}
-        total_days = {}
 
-        for employee_name, employee_events in employees_events.items():
-            total_per_projects = employee_events.total_per_projects()
+        for employee_name, employee_events in raw_employees_events.items():
+            employees_events[employee_name] = employee_events.total_project_per_time_period()
 
-            for month, project_details in total_per_projects.items():
-                for project_id, project_detail in project_details["projects"].items():
+        for employee_name, employee_events_per_month in employees_events.items():
+            for month, employee_events_per_projects_ids in employee_events_per_month.items():
+                if month not in projects:
+                    projects[month] = {}
+                for project_id, events in employee_events_per_projects_ids.items():
+                    if project_id not in projects[month]:
+                        projects[month][project_id] = {
+                            "duration": 0,
+                            "days": 0,
+                            "events": {}
+                        }
+                    projects[month][project_id]["duration"] += events["duration"]
+                    projects[month][project_id]["days"] += events["days_spent"]
+                    projects[month][project_id]["project_id"] = project_id
+                    if employee_name not in projects[month][project_id]["events"]:
+                        projects[month][project_id]["events"][employee_name] = []
+                    projects[month][project_id]["events"][employee_name] = events
 
-                    if month not in projects:
-                        projects[month] = {}
-
-                    project = get_or_create_project(projects[month], project_id, project_detail)
-                    project["employees_events"][employee_name] = get_or_create_employee_event(
-                        project["employees_events"],
-                        employee_name, project_detail)
-
-                    total_day = get_or_create_project(total_days, project_id, project_detail)
-                    total_day["employees_events"][employee_name] = get_or_create_employee_event(
-                        total_day["employees_events"],
-                        employee_name, project_detail)
-
-        projects_per_month = {**{"Total": total_days}, **projects}
+        sorted_projects = {}
+        for month, projects_in_month in projects.items():
+            sorted_projects_in_month = dict(
+                sorted(projects_in_month.items(), key=lambda item: item[1]['duration'], reverse=True))
+            sorted_projects[month] = sorted_projects_in_month
 
         return {
             "employees_events": employees_events,
             "employees_names": employees_names,
-            "projects_per_month": projects_per_month,
+            "periods": generate_time_periods(24, time_shift_direction="past"),
+            "employees_events_per_month": sorted_projects,
             "projects_details": project_finder.by_company(
                 user.employee.company
             ),
@@ -211,25 +225,17 @@ class DistributionView(TemplateView):
             employees, project_finder, request=self.request
         )
         employees_events = (
-            process_employees_events(events_per_employee, 1)
+            process_employees_events(events_per_employee, 12)
         )
         projects = {}
-        categories = set()
         for employee_name, employee_events in employees_events.items():
-            total_per_employee_and_project = employee_events.total_per_employee_and_project_category()
+            if employee_name not in projects:
+                projects[employee_name] = {}
+            projects[employee_name] = employee_events.total_per_time_period_and_project_category()
 
-            for month, project_employee_events_by_category in total_per_employee_and_project.items():
-                for employee, projects_events_by_category in project_employee_events_by_category.items():
-                    for project_category, projects_events_by_category in projects_events_by_category.items():
-                        projects = get_or_create_project_by_employee_and_category(
-                            projects,
-                            project_category,
-                            employee,
-                            projects_events_by_category
-                        )
-                        categories.add(project_category)
         return {
             "employees_names": employees_names,
             "projects": projects,
-            "categories": categories
+            "categories": PROJECT_CATEGORIES_CHOICES,
+            "periods": generate_time_periods(24, time_shift_direction="past"),
         }

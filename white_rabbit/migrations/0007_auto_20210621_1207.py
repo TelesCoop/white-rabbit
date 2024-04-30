@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('white_rabbit', '0006_company_admins'),
     ]
@@ -14,21 +13,27 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='company',
             name='default_day_working_hours',
-            field=models.DecimalField(decimal_places=1, default=8, help_text="Pour une journée incomplète, ce total est utilisé pour calculer la proportion d'une journée passée sur un projet", max_digits=3, verbose_name='Nb heures de travail journée standard'),
+            field=models.DecimalField(decimal_places=1, default=8,
+                                      help_text="Pour une journée incomplète, ce total est utilisé pour calculer la proportion d'une journée passée sur un projet",
+                                      max_digits=3, verbose_name='Nb heures de travail journée standard'),
         ),
         migrations.AddField(
             model_name='company',
             name='min_working_hours_for_full_day',
-            field=models.DecimalField(decimal_places=1, default=6, help_text="Nombre d'heures de travail à partir au-delà duquel on considère une journée complète", max_digits=3, verbose_name='nb heures journée complète'),
+            field=models.DecimalField(decimal_places=1, default=6,
+                                      help_text="Nombre d'heures de travail à partir au-delà duquel on considère une journée complète",
+                                      max_digits=3, verbose_name='nb heures journée complète'),
         ),
         migrations.AlterField(
             model_name='employee',
             name='calendar_ical_url',
-            field=models.CharField(help_text='appelée "Adresse publique au format iCal"', max_length=150, verbose_name='URL calendrier Google'),
+            field=models.CharField(help_text='appelée "Adresse publique au format iCal"', max_length=150,
+                                   verbose_name='URL calendrier Google'),
         ),
         migrations.AlterField(
             model_name='employee',
             name='company',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='white_rabbit.company', verbose_name='entreprise'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='white_rabbit.company',
+                                    verbose_name='entreprise'),
         ),
     ]

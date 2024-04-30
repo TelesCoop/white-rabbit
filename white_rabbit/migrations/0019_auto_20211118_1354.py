@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('white_rabbit', '0018_auto_20211117_0859'),
     ]
@@ -20,8 +19,5 @@ class Migration(migrations.Migration):
             name='lowercase_name',
             field=models.CharField(max_length=32, verbose_name='nom en minuscule'),
         ),
-        migrations.AlterUniqueTogether(
-            name='project',
-            unique_together={('lowercase_name', 'company')},
-        ),
+
     ]

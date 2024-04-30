@@ -5,6 +5,8 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
+from white_rabbit.constants import DEFAULT_NB_WORKING_HOURS
+
 
 class TimeStampedModel(models.Model):
     """
@@ -40,21 +42,25 @@ class ProjectCategories(Enum):
     INTERNAL = "INTERNAL"
     ROLE = "ROLE"
     OTHER = "OTHER"
+    OFF_WORK = "OFF_WORK"
 
 
 PROJECT_CATEGORIES_CHOICES = (
-    (ProjectCategories.PRO_BONO, "Pro-bono"),
-    (ProjectCategories.CLIENT, "Client"),
-    (ProjectCategories.INTERNAL, "Interne"),
-    (ProjectCategories.ROLE, "Rôle"),
-    (ProjectCategories.OTHER, "Autre"),
+    (ProjectCategories.PRO_BONO.value, "Pro-bono"),
+    (ProjectCategories.CLIENT.value, "Client"),
+    (ProjectCategories.INTERNAL.value, "Interne"),
+    (ProjectCategories.ROLE.value, "Rôle"),
+    (ProjectCategories.OTHER.value, "Autre"),
+    (ProjectCategories.OFF_WORK.value, "Congé"),
+    ("", "Non défini"),
+
 )
 
 
 class Project(models.Model):
     class Meta:
         verbose_name = "projet"
-        unique_together = ("lowercase_name", "company", "start_datetime")
+        unique_together = ('lowercase_name', 'name', 'company', 'category', "start_datetime", "end_datetime")
 
     company = models.ForeignKey(
         Company,
@@ -122,7 +128,7 @@ class Employee(TimeStampedModel):
     )
     default_day_working_hours = models.IntegerField(
         verbose_name="heures travaillées par jour",
-        default=8,
+        default=DEFAULT_NB_WORKING_HOURS,
         validators=[MinValueValidator(0), MaxValueValidator(24)],
         help_text="Pour une journée incomplète, ce total est utilisé pour calculer la proportion d'une journée passée sur un projet",
     )

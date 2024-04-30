@@ -3,40 +3,74 @@
 
 {% block content %}
     <div class="container" id="app">
-        <div class="flex flex-col rounded-xl border border-gray-200">
-            <div class="bg-indigo-50 p-4 rounded-t-xl">
-                <h2 class="text-lg font-bold">
-                    Cette semaine
-                </h2>
-            </div>
-            {% with events as userEvents %}
-                {% for employee_name, events in userEvents.items %}
-                    {% for week, event in events.items %}
-                        {% for project_id, project in event.projects.items %}
-                            {% for project_detail in project.events %}
-                                <div class="p-4 flex justify-between">
-                                    <h3 class="font-semibold">{{ project_id|find_project_name:projects_details }}</h3>
-                                    <div class="flex">
-                                        <div class="badge p-4 bg-red-200">{{ project_detail.days_spent }} jour(s)</div>
-                                        <div>
-                                            {{ project_detail.start_datetime|format_datetime_to_hour }}
-                                        </div>
-                                        <div class="flex items-center gap-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                 stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                      d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
-                                            </svg>
-                                            {{ project_detail.start_datetime }}
-                                        </div>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        {% endfor %}
-                    {% endfor %}
-                {% endfor %}
-            {% endwith %}
-        </div>
+        {#        <div class="flex flex-col ">#}
+        {##}
+        {#            {% for employee, events in employees_events.items %}#}
+        {#                {{ employee }}#}
+        {#                {{ events.keys }}#}
+        {#                {{ events }}#}
+        {#                <div class="stat">#}
+        {##}
+        {#                    <div class="stat-title">Disponibilité cette semaine</div>#}
+        {#                    <div class="stat-value"> {{ events.availability }} jours</div>#}
+        {#                </div>#}
+        {#                <div class="flex flex-col p-4">#}
+        {#                    <h3 class="m-4 text-2xl font-bold">Semaines dernières</h3>#}
+        {#                    {% for event in events.events %}#}
+        {#                        <div class="flex justify-between m-4">#}
+        {#                            <div>#}
+        {#                                <strong>{{ event.project_id|find_project_name:projects_details }}</strong>#}
+        {#                                ({{ event.duration }}h)#}
+        {#                                du {{ event.start_datetime }} au {{ event.start_datetime }}#}
+        {##}
+        {#                            </div>#}
+        {##}
+        {#                        </div>#}
+        {#                    {% endfor %}#}
+        {#                </div>#}
+        {#                <div class="flex flex-col p-4">#}
+        {#                    <h3 class="m-4 text-2xl font-bold">Mes derniers évènements</h3>#}
+        {#                    {% for event in events.events %}#}
+        {#                        <div class="flex justify-between m-4">#}
+        {#                            <div>#}
+        {#                                <strong>{{ event.project_id|find_project_name:projects_details }}</strong>#}
+        {#                                ({{ event.duration }}h)#}
+        {#                                du {{ event.start_datetime }} au {{ event.start_datetime }}#}
+        {##}
+        {#                            </div>#}
+        {##}
+        {#                        </div>#}
+        {#                    {% endfor %}#}
+        {#                </div>#}
+        {##}
+        {##}
+        {##}
+        {##}
+        {#                {% for project_id, project in event.projects.items %}#}
+        {#                    {% for project_detail in project.events %}#}
+        {#                        <div class="p-4 flex justify-between">#}
+        {#                            <h3 class="font-semibold">{{ project_id|find_project_name:projects_details }}</h3>#}
+        {#                            <div class="flex">#}
+        {#                                <div class="badge p-4 bg-red-200">{{ project_detail.days_spent }} jour(s)</div>#}
+        {#                                <div>#}
+        {#                                    {{ project_detail.start_datetime|format_datetime_to_hour }}#}
+        {#                                </div>#}
+        {#                                <div class="flex items-center gap-2">#}
+        {#                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"#}
+        {#                                         stroke-width="1.5" stroke="currentColor" class="w-6 h-6">#}
+        {#                                        <path stroke-linecap="round" stroke-linejoin="round"#}
+        {#                                              d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>#}
+        {#                                    </svg>#}
+        {#                                    {{ project_detail.start_datetime }}#}
+        {#                                </div>#}
+        {#                            </div>#}
+        {#                        </div>#}
+        {#                    {% endfor %}#}
+        {#                {% endfor %}#}
+        {##}
+        {#            {% endfor %}#}
+        {##}
+        {#        </div>#}
     </div>
 {% endblock %}
 {% block extra_css %}
