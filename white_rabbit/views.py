@@ -1,12 +1,5 @@
 import datetime
 import json
-from functools import lru_cache
-from typing import (
-    List,
-
-)
-
-import jsonpickle
 from django.contrib.auth.views import LoginView
 from django.shortcuts import render
 from django.views.generic import TemplateView
