@@ -129,5 +129,5 @@ def employee_events_to_tooltip(employee_events):
     days_spent = []
     for project in employee_events["events"]:
         days_spent.append(
-            f"{floatformat(project["days_spent"], 2)} jour{pluralize(project["days_spent"])} le {project["start_datetime"]} \n")
+            f"{floatformat(project['days_spent'], 2)} jour{pluralize(project['days_spent'])} le {project['start_datetime']} \n")
     return days_spent
