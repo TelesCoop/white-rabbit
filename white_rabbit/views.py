@@ -17,24 +17,17 @@ from .events import (
     employees_for_user, process_employees_events, EmployeeEvents
 )
 from .models import Project, Company, Employee
-from .project_name_finder import ProjectNameFinder
+from .project_name_finder import ProjectFinder
 from .state_of_day import (
     state_of_days_per_employee_for_week,
 )
 from .upcoming import UpcomingEvents
-from .utils import generate_time_periods, get_or_create_project, get_or_create_employee_event
+from .utils import generate_time_periods, get_or_create_project, get_or_create_employee_event, \
+    get_or_create_project_by_employee_and_category
 
 
 class MyLoginView(LoginView):
     template_name = "admin/login.html"
-
-
-def client_projects_for_company(company: Company) -> List[Project]:
-    return list(Project.objects.filter(is_client_project=True, company=company))
-
-
-def pro_bono_projects_for_company(company: Company) -> List[Project]:
-    return list(Project.objects.filter(is_pro_bono_project=True, company=company))
 
 
 def add_done_and_remaining_days_to_projects(project_list_by_type, employee_monthly_details):
@@ -58,9 +51,9 @@ class HomeView(TemplateView):
         user = request.user
         employees = employees_for_user(user)
         today = datetime.date.today()
-        project_name_finder = ProjectNameFinder()
+        project_finder = ProjectFinder()
         events_per_employee: EventsPerEmployee = get_events_from_employees_from_cache(
-            employees, project_name_finder, request=self.request
+            employees, project_finder, request=self.request
         )
         return {
             "past_week_events": json.dumps(state_of_days_per_employee_for_week(
@@ -91,9 +84,9 @@ class AvailabilityBaseView(TemplateView):
                or employee.end_time_tracking_on > today
         ]
 
-        project_name_finder = ProjectNameFinder()
+        project_finder = ProjectFinder()
         events: EventsPerEmployee = get_events_from_employees_from_cache(
-            employees, project_name_finder, request=self.request
+            employees, project_finder, request=self.request
         )
         events_per_employee = process_employees_events(events, n_periods=12)
 
@@ -101,7 +94,7 @@ class AvailabilityBaseView(TemplateView):
                            events_per_employee.items()]
         up_periods = generate_time_periods(12, self.time_period)
 
-        project_details = project_name_finder.projects_for_company(
+        project_details = project_finder.by_company(
             user.employee.company
         )
 
@@ -143,13 +136,13 @@ class ResumeView(TemplateView):
     template_name = "pages/resume.html"
 
     def get_context_data(self, **kwargs):
-        project_name_finder = ProjectNameFinder()
+        project_finder = ProjectFinder()
         employee = Employee.objects.get(user=self.request.user)
         events: EventsPerEmployee = get_events_from_employees_from_cache(
-            [employee], project_name_finder, request=self.request
+            [employee], project_finder, request=self.request
         )
         up_events = EmployeeEvents(employee, events[employee], 1).upcoming_events("week")
-        project_details = project_name_finder.projects_for_company(
+        project_details = project_finder.by_company(
             employee.company
         )
         return {
@@ -166,13 +159,13 @@ class TotalPerProjectView(TemplateView):
         user = request.user
         employees = employees_for_user(user)
         employees_names = {employee.name for employee in employees}
-        project_name_finder = ProjectNameFinder()
+        project_finder = ProjectFinder()
         events_per_employee: EventsPerEmployee = get_events_from_employees_from_cache(
-            employees, project_name_finder, request=self.request
+            employees, project_finder, request=self.request
         )
 
         employees_events = (
-            process_employees_events(events_per_employee)
+            process_employees_events(events_per_employee, 24)
         )
 
         projects = {}
@@ -183,6 +176,7 @@ class TotalPerProjectView(TemplateView):
 
             for month, project_details in total_per_projects.items():
                 for project_id, project_detail in project_details["projects"].items():
+
                     if month not in projects:
                         projects[month] = {}
 
@@ -202,7 +196,47 @@ class TotalPerProjectView(TemplateView):
             "employees_events": employees_events,
             "employees_names": employees_names,
             "projects_per_month": projects_per_month,
-            "projects_details": project_name_finder.projects_for_company(
+            "projects_details": project_finder.by_company(
                 user.employee.company
             ),
+        }
+
+
+class DistributionView(TemplateView):
+    template_name = "pages/distribution.html"
+
+    def get_context_data(self, **kwargs):
+        request = self.request
+        user = request.user
+        employees = employees_for_user(user)
+        employees_names = {employee.name for employee in employees}
+
+        # For each employee, count the number of days they have worked on each category of project per month
+
+        project_finder = ProjectFinder()
+        events_per_employee: EventsPerEmployee = get_events_from_employees_from_cache(
+            employees, project_finder, request=self.request
+        )
+        employees_events = (
+            process_employees_events(events_per_employee, 1)
+        )
+        projects = {}
+        categories = set()
+        for employee_name, employee_events in employees_events.items():
+            total_per_employee_and_project = employee_events.total_per_employee_and_project_category()
+
+            for month, project_employee_events_by_category in total_per_employee_and_project.items():
+                for employee, projects_events_by_category in project_employee_events_by_category.items():
+                    for project_category, projects_events_by_category in projects_events_by_category.items():
+                        projects = get_or_create_project_by_employee_and_category(
+                            projects,
+                            project_category,
+                            employee,
+                            projects_events_by_category
+                        )
+                        categories.add(project_category)
+        return {
+            "employees_names": employees_names,
+            "projects": projects,
+            "categories": categories
         }

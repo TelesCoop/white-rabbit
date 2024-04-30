@@ -14,27 +14,14 @@ def get_key(
     return to_return
 
 
-class ProjectNameFinder:
+class ProjectFinder:
     def __init__(self):
         self.cache = {}
         self.all_projects = list(
             Project.objects.prefetch_related("company", "aliases").all()
         )
-        for project in self.all_projects:
-            key = get_key(
-                project.lowercase_name, project.company.name, project.start_datetime
-            )
-            self.cache[key] = project.pk
-        for lowercase_name, pk, company_name, start_datetime in Alias.objects.values_list(
-                "lowercase_name",
-                "project__pk",
-                "project__company__name",
-                "project__start_datetime",
-        ).all():
-            key = get_key(lowercase_name, company_name, start_datetime)
-            self.cache[key] = pk
 
-    def get_project_id(self, name: str, company: Company, date: datetime.date):
+    def get_project(self, name: str, company: Company, date: datetime.date):
         name = name.strip()
         if not is_full_uppercase(name):
             name = name.title()
@@ -55,24 +42,24 @@ class ProjectNameFinder:
                     if project.company != company:
                         continue
                     if not project.start_datetime:
-                        return project.pk
+                        return project
                     if project.end_datetime:
                         if project.start_datetime <= date <= project.end_datetime:
-                            return project.pk
+                            return project
                     else:
                         if project.start_datetime <= date:
-                            return project.pk
+                            return project
 
         # no project has been found, create a new one
         if key not in self.cache:
             project = Project.objects.create(name=name, company=company)
             self.all_projects.append(project)
-            self.cache[key] = project.pk
-            return project.pk
+            self.cache[key] = project
+            return project
 
         return self.cache[key]
 
-    def projects_for_company(self, company: Company) -> Dict[str, Any]:
+    def by_company(self, company: Company) -> Dict[str, Any]:
         to_return: Dict[str, Any] = {}
         for project in self.all_projects:
             if project.company != company:
@@ -83,6 +70,7 @@ class ProjectNameFinder:
                 "start_datetime": project.start_datetime
                                   and project.start_datetime.strftime("%b %y"),
                 "end_datetime": project.end_datetime and project.end_datetime.strftime("%b %y"),
+                "category": project.category or "Non catégorisé",
             }
 
         return to_return

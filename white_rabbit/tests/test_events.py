@@ -39,7 +39,7 @@ class TestEmployeeEvents:
         events_per_month = event_instance.filter_events_per_month(date_to_find)
         assert len(events_per_month[date_to_find]) == 3
 
-    def test_process_events_per_projects(self, event_instance):
+    def test_group_events_per_project(self, event_instance):
         events = [
             {'project_id': 1, 'name': 'Project1', 'subproject_name': None, 'day': date(2022, 1, 1), 'duration': 6.0},
             {'project_id': 1, 'name': 'Project1', 'subproject_name': None, 'day': date(2022, 1, 1), 'duration': 6.0},
@@ -49,7 +49,7 @@ class TestEmployeeEvents:
         employee = EmployeeFactory()
         event_instance = EmployeeEvents(employee, events)
 
-        events_per_day = event_instance.process_events_per_projects()
+        events_per_day = event_instance.group_events_per_project()
 
         assert len(events_per_day) == 2
 

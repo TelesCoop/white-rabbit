@@ -9,9 +9,11 @@
         <table class="table border border-gray-200 border-separate rounded-lg divide-y divide-gray-200">
             <thead>
             <tr class="font-bold bg-indigo-50 text-bold text-md">
-                <th class="font-bold text-black left-0 sticky z-50 bg-indigo-50" scope="col">Employé</th>
+                <th class="font-bold text-black left-0 sticky z-50 bg-indigo-50 flex" scope="col">
+                    Employé·e
+                </th>
                 {% for period in periods|json_loads %}
-                    <th class="min-w-32 font-bold bg-indigo-50">
+                    <th class="min-w-48 font-bold bg-indigo-50">
                         {% if period.start and period.end %}
                             <p class="text-black">{{ period.start }} - {{ period.end }}</p>
                         {% endif %}
@@ -36,8 +38,12 @@
                             {% for week, event in events.items %}
                                 <td>
                                     <div class="flex flex-col justify-center items-center">
-                                    <span style="background: {{ event.availability|week_color }}"
-                                          class="pastille pastille-xl">{{ event.availability }}</span>
+                                        <div style="background: {{ event.availability|week_color }}"
+                                             class="pastille pastille-2xl font-bold flex gap-1">
+                                            {{ event.availability }}
+                                            <span class="font-normal">jours</span>
+
+                                        </div>
 
                                     </div>
                                 </td>
@@ -50,9 +56,9 @@
                                     <div class="flex flex-col gap-2">
                                         {% get_projects_str event.projects projects periodicity as project_events_list %}
                                         {% for project in project_events_list %}
-                                            <div class="flex flex-col justify-center text-xs">
-                                                <span class="font-bold">{{ project.0 }}</span>
-                                                <span>{{ project.1 }}</span>
+                                            <div class="flex text-xs gap-1">
+                                                <span class="font-bold truncate">{{ project.0 }}</span>
+                                                <span> {{ project.1 }}</span>
                                             </div>
                                         {% endfor %}
                                     </div>

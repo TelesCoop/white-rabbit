@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load white_rabbit_tags %}
+{% load cache %}
+{% load static %}
+
+{% block content %}
+    <table class="table border border-gray-200 border-separate rounded-lg divide-y divide-gray-200">
+        <thead>
+
+        <tr class="font-bold bg-indigo-50 text-bold text-md">
+            <th>
+                Employé·e
+            </th>
+            {% for category in categories %}
+                <th>
+                    {{ category }}
+                </th>
+            {% endfor %}
+        </tr>
+        </thead>
+        <tbody>
+        {% for employee, projects_by_categories in projects.items %}
+            <tr>
+                <th class="font-bold bg-gray-100 left-0 sticky z-50 text-center uppercase">
+                    {{ employee }}
+                </th>
+                {% for category in categories %}
+                    <td>
+                        {% for project_category, projects_events_by_category in projects_by_categories.items %}
+                            {% if project_category == category %}
+
+                                <div tabindex="0" class="collapse ">
+                                    <div class="collapse-title font-semibold underline">
+                                        {{ projects_events_by_category.total_days|floatformat:2 }}
+                                        jours
+                                    </div>
+                                    <div class="collapse-content bg-gray-100 overflow-y-scroll p-2 rounded-xl">
+
+                                        <ul class="list-disc">
+                                            {% for project_event in projects_events_by_category.events %}
+                                                <li>
+                                                
+                                                    {{ project_event.project_id|find_project_name:projects }}
+                                                    ({{ project_event.days_spent|floatformat:2 }} j)
+                                                    le {{ project_event.start_datetime|date:"d/m/Y" }}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+
+
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                        {% endfor %}
+                    </td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

@@ -46,6 +46,9 @@ def format_datetime_to_hour(project_datetime):
 
 @register.filter
 def find_project_name(project_id, projects):
+    project = find_project(project_id, projects)
+    if project is None:
+        return "Inconnu"
     return find_project(project_id, projects).get("name", None)
 
 

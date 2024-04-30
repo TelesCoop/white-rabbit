@@ -22,6 +22,7 @@ urlpatterns = [
     path("availability/week", views.AvailabilityPerWeekView.as_view()),
     path("availability/month", views.AvailabilityPerMonthView.as_view()),
     path("projects/total", views.TotalPerProjectView.as_view()),
+    path("distribution", views.DistributionView.as_view()),
     path("", views.ResumeView.as_view()),
     path("alias/", views.AliasView.as_view()),
     path("__debug__/", include(debug_toolbar.urls)),

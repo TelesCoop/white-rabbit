@@ -1,4 +1,5 @@
 from datetime import datetime
+from enum import Enum
 
 from django.contrib.auth.models import User
 from django.db import models
@@ -33,6 +34,23 @@ class Company(TimeStampedModel):
         return self.admins.filter(pk=user.pk).exists()
 
 
+class ProjectCategories(Enum):
+    PRO_BONO = "PRO_BONO"
+    CLIENT = "CLIENT"
+    INTERNAL = "INTERNAL"
+    ROLE = "ROLE"
+    OTHER = "OTHER"
+
+
+PROJECT_CATEGORIES_CHOICES = (
+    (ProjectCategories.PRO_BONO, "Pro-bono"),
+    (ProjectCategories.CLIENT, "Client"),
+    (ProjectCategories.INTERNAL, "Interne"),
+    (ProjectCategories.ROLE, "Rôle"),
+    (ProjectCategories.OTHER, "Autre"),
+)
+
+
 class Project(models.Model):
     class Meta:
         verbose_name = "projet"
@@ -48,11 +66,14 @@ class Project(models.Model):
     lowercase_name = models.CharField(
         max_length=32, verbose_name="nom en minuscule", null=False
     )
-    is_client_project = models.BooleanField(verbose_name="Projet client", default=False)
-    is_pro_bono_project = models.BooleanField(verbose_name="Projet pro bono", default=False)
     start_datetime = models.DateTimeField(null=True, blank=True)
     end_datetime = models.DateTimeField(null=True, blank=True)
 
+    category = models.CharField(
+        choices=PROJECT_CATEGORIES_CHOICES,
+        blank=True,
+        max_length=12
+    )
     days_sold = models.DecimalField(
         verbose_name="Jours vendus",
         default=0,

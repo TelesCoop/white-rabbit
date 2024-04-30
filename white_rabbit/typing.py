@@ -33,6 +33,7 @@ class Event(TypedDict):
     duration: float
     start_datetime: datetime.date
     end_datetime: datetime.date
+    category: str
 
 
 AllProjectClient = List[Dict[str, float]]

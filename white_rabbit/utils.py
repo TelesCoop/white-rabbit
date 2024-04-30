@@ -2,12 +2,13 @@ import datetime
 from collections import defaultdict
 from itertools import groupby
 
-from typing import Union, Iterable, Dict, Any
+from typing import Union, Iterable, Dict, Any, Callable
 
 from dateutil.relativedelta import relativedelta
 
 from white_rabbit.constants import DEFAULT_DAY_WORKING_HOURS
 from white_rabbit.models import Employee
+from white_rabbit.project_name_finder import ProjectFinder
 from white_rabbit.typing import Event, ProjectDistribution
 
 
@@ -67,28 +68,39 @@ def calculate_period_key(period, time_period="month"):
         return period.isocalendar()[1]
 
 
+def count_number_days_spent(
+        events: Iterable[Event],
+        employee: Employee,
+        key_func: Callable[[Event], int]
+) -> Dict[int, ProjectDistribution]:
+    divider = float(employee.default_day_working_hours) if getattr(employee,
+                                                                   "default_day_working_hours") is not None else float(
+        employee.min_working_hours_for_full_day)
+
+    project_time_distribution: Dict[int, Dict] = defaultdict(
+        lambda: {"days_spent": 0.0, "duration": 0.0, "category": "", "projects": []}
+    )
+    for event in events:
+        key = key_func(event)
+        project_time_distribution[key]["days_spent"] += calculate_days_spent(event["duration"], divider)
+        project_time_distribution[key]["duration"] += event["duration"]
+        project_time_distribution[key]["projects"].append(event)
+
+    return dict(project_time_distribution)
+
+
 def count_number_days_spent_per_project(
         events: Iterable[Event],
         employee: Employee
 ) -> Dict[int, ProjectDistribution]:
-    """
-    Given all events for a day for an employee, count the number of days
-    (<= 1) spent on each project.
-    """
-    if getattr(employee, "default_day_working_hours") is None:
-        divider = float(employee.default_day_working_hours)
-    else:
-        divider = float(employee.min_working_hours_for_full_day)
+    return count_number_days_spent(events, employee, key_func=lambda event: event["project_id"])
 
-    project_time_distribution: Dict[int, ProjectDistribution] = defaultdict(
-        lambda: {"days_spent": 0.0, "subproject_name": "", "duration": 0.0}
-    )
-    for event in events:
-        project_time_distribution[event["project_id"]]["subproject_name"] = event["subproject_name"]
-        project_time_distribution[event["project_id"]]["days_spent"] += calculate_days_spent(event["duration"], divider)
-        project_time_distribution[event["project_id"]]["duration"] += event["duration"]
 
-    return dict(project_time_distribution)
+def count_number_days_spent_per_project_category(
+        events: Iterable[Event],
+        employee: Employee
+) -> Dict[int, ProjectDistribution]:
+    return count_number_days_spent(events, employee, key_func=lambda event: event["category"])
 
 
 def group_events_by_day(
@@ -115,29 +127,46 @@ def generate_time_periods(n_periods: int, time_period: str = "month"):
     return periods
 
 
-def get_or_create_project(dictionary, key, project_detail):
-    if key not in dictionary:
-        dictionary[key] = {
+def get_or_create_project(projects, project_id, project_detail):
+    if project_id not in projects:
+        projects[project_id] = {
             "total_duration": project_detail.total_duration,
             "total_days": project_detail.days_spent,
             "employees_events": {}
         }
     else:
-        dictionary[key]["total_duration"] += project_detail.total_duration
-        dictionary[key]["total_days"] += project_detail.days_spent
+        projects[project_id]["total_duration"] += project_detail.total_duration
+        projects[project_id]["total_days"] += project_detail.days_spent
 
-    return dictionary[key]
+    return projects[project_id]
 
 
-def get_or_create_employee_event(dictionary, key, project_detail):
-    if key not in dictionary:
-        dictionary[key] = {
+def get_or_create_project_by_employee_and_category(projects, category, employee, project_detail):
+    if employee not in projects:
+        projects[employee] = {}
+    if category not in projects[employee]:
+        projects[employee][category] = {
+            "total_duration": 0,
+            "total_days": 0,
+            "events": None
+        }
+
+    projects[employee][category]["total_duration"] += project_detail.total_duration
+    projects[employee][category]["total_days"] += project_detail.days_spent
+    projects[employee][category]["events"] = project_detail.events
+
+    return projects
+
+
+def get_or_create_employee_event(employees_events, employee_name, project_detail):
+    if employee_name not in employees_events:
+        employees_events[employee_name] = {
             "days_spent": project_detail.days_spent,
             "total_duration": project_detail.total_duration,
             "events": project_detail.events
         }
     else:
-        dictionary[key]["days_spent"] += project_detail.days_spent
-        dictionary[key]["total_duration"] += project_detail.total_duration
-        dictionary[key]["events"] += project_detail.events
-    return dictionary[key]
+        employees_events[employee_name]["days_spent"] += project_detail.days_spent
+        employees_events[employee_name]["total_duration"] += project_detail.total_duration
+        employees_events[employee_name]["events"] += project_detail.events
+    return employees_events[employee_name]

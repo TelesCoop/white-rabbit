@@ -57,14 +57,14 @@
                             </td>
                             {% for employee_name in employees_names %}
                                 {% with project_details.employees_events|get_employee_events:employee_name as employee_events %}
-                                    <td class="p-4 bg-gray-50 text-center">
+                                    <td class="bg-gray-50 text-center">
                                         {% if employee_events.days_spent %}
                                             <div tabindex="0" class="collapse ">
                                                 <div class="collapse-title font-semibold underline">
                                                     {{ employee_events.days_spent|floatformat:2 }}
                                                     jour{{ employee_events.days_spent|pluralize:'s' }}
                                                 </div>
-                                                <div class="collapse-content bg-gray-100 max-h-[150px] w-[200px] overflow-y-scroll p-2 rounded-xl">
+                                                <div class="collapse-content bg-gray-100 overflow-y-scroll p-2 rounded-xl">
                                                     {% with employee_events|employee_events_to_tooltip as evnts %}
                                                         <ul class="list-disc">
                                                             {% for evnt in evnts %}
@@ -74,12 +74,9 @@
                                                             {% endfor %}
                                                         </ul>
                                                     {% endwith %}
-
-
                                                 </div>
                                             </div>
                                         {% endif %}
-
                                     </td>
                                 {% endwith %}
                             {% endfor %}

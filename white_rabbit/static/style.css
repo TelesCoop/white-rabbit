@@ -42,7 +42,6 @@ h2 {
     border-radius: 50%;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
     position: relative;
 }
 
@@ -68,4 +67,9 @@ h2 {
 .pastille-xl {
     width: 4rem;
     height: 4rem;
+}
+
+.pastille-2xl {
+    width: 5rem;
+    height: 5rem;
 }
