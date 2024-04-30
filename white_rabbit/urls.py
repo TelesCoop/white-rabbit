@@ -28,5 +28,5 @@ urlpatterns = [
     path("__debug__/", include(debug_toolbar.urls)),
     # django-hijack
     path(r"hijack/", include("hijack.urls", namespace="hijack")),
-    path('silk/', include('silk.urls', namespace='silk'))
+    # path('silk/', include('silk.urls', namespace='silk'))
 ]

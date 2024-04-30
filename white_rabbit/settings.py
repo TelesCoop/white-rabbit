@@ -17,7 +17,6 @@ import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 config = getconf.ConfigGetter(
     "myproj",
     ["local_settings.conf", "/etc/telescoop/white-rabbit/backend-settings.ini"],
@@ -34,8 +33,6 @@ if IS_LOCAL_DEV:
 else:
     SECRET_KEY = config.getstr("security.secret_key")
     ALLOWED_HOSTS = config.getlist("security.allowed_hosts")
-
-
 
 CACHES = {
     'default': {
@@ -57,9 +54,8 @@ INSTALLED_APPS = [
     "debug_toolbar",
     "hijack",  # django-hijack
     "hijack_admin",
-     'silk'
+    # 'silk'
 ]
-
 
 MIDDLEWARE = [
     "debug_toolbar.middleware.DebugToolbarMiddleware",
@@ -74,7 +70,6 @@ MIDDLEWARE = [
     "white_rabbit.middleware.only_logged_in_users",
     # 'silk.middleware.SilkyMiddleware'
 ]
-
 
 ROOT_URLCONF = "white_rabbit.urls"
 
@@ -96,7 +91,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "white_rabbit.wsgi.application"
 
-
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
@@ -106,7 +100,6 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
@@ -126,9 +119,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
-
-
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
 
@@ -141,7 +131,6 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
