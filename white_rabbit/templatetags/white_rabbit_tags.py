@@ -4,7 +4,6 @@ import numbers
 
 from django.template.defaultfilters import pluralize, floatformat
 from django.template.defaulttags import register
-from white_rabbit.utils import convert_duration_to_work_hours_and_minutes
 
 
 @register.simple_tag
