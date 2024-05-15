@@ -1,6 +1,7 @@
 import datetime
 from datetime import date, timedelta
 from typing import List, Dict, Iterable, Any
+from django.core.cache import cache
 
 import requests
 from django.contrib.auth.models import User
@@ -11,6 +12,7 @@ from white_rabbit.available_time import available_time_of_employee
 from white_rabbit.constants import DEFAULT_NB_WORKING_HOURS
 from white_rabbit.models import Employee
 from white_rabbit.project_name_finder import ProjectFinder
+from white_rabbit.settings import DEFAULT_CACHE_DURATION
 from white_rabbit.typing import EventsPerEmployee, Event
 
 from white_rabbit.utils import start_of_day, count_number_days_spent_per_project, calculate_period_start, \
@@ -131,8 +133,14 @@ def create_events(employees: List[Employee], project_finder=None, request=None) 
 def get_events_from_employees_from_cache(
         employees: List[Employee], project_finder=None, request=None
 ) -> EventsPerEmployee:
-    # Todo : adds cache
-    return create_events(employees, project_finder, request)
+    events: EventsPerEmployee = {}
+    for employee in employees:
+        if cache.get(employee.id, None):
+            events[employee] = cache.get(employee.id)
+        else:
+            events[employee] = process_employee_events(employee, project_finder, request)
+            cache.set(employee.id, events[employee], DEFAULT_CACHE_DURATION)
+    return events
 
 
 def employees_for_user(user: User) -> List[Employee]:
