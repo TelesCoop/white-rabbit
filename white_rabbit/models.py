@@ -60,7 +60,7 @@ PROJECT_CATEGORIES_CHOICES = (
 class Project(models.Model):
     class Meta:
         verbose_name = "projet"
-        unique_together = ('lowercase_name', 'name', 'company', 'category', "start_datetime", "end_datetime")
+        unique_together = ('lowercase_name', 'name', 'company', 'category', "start_date", "end_date")
 
     company = models.ForeignKey(
         Company,
@@ -72,8 +72,8 @@ class Project(models.Model):
     lowercase_name = models.CharField(
         max_length=32, verbose_name="nom en minuscule", null=False
     )
-    start_datetime = models.DateTimeField(null=True, blank=True)
-    end_datetime = models.DateTimeField(null=True, blank=True)
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
 
     category = models.CharField(
         choices=PROJECT_CATEGORIES_CHOICES,

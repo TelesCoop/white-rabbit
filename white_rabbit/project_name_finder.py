@@ -1,7 +1,7 @@
 import datetime
 from typing import Union, Dict, Any
 
-from white_rabbit.models import Project, Alias, Company
+from white_rabbit.models import Project, Company
 
 
 def get_key(
@@ -41,13 +41,13 @@ class ProjectFinder:
                         continue
                     if project.company != company:
                         continue
-                    if not project.start_datetime:
+                    if not project.start_date:
                         return project
-                    if project.end_datetime:
-                        if project.start_datetime <= date <= project.end_datetime:
+                    if project.end_date:
+                        if project.start_date <= date <= project.end_date:
                             return project
                     else:
-                        if project.start_datetime <= date:
+                        if project.start_date <= date:
                             return project
 
         # no project has been found, create a new one
@@ -67,9 +67,8 @@ class ProjectFinder:
 
             to_return[project.pk] = {
                 "name": project.name,
-                "start_datetime": project.start_datetime
-                                  and project.start_datetime.strftime("%b %y"),
-                "end_datetime": project.end_datetime and project.end_datetime.strftime("%b %y"),
+                "start_date": project.start_date and project.start_date.strftime("%b %y"),
+                "end_date": project.end_date and project.end_date.strftime("%b %y"),
                 "category": project.category or "Non catégorisé",
             }
 
