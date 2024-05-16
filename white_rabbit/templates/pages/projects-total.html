@@ -38,7 +38,11 @@
                     <thead class="bg-gray-50">
                     <tr class="font-bold bg-indigo-50 text-black uppercase text-xs">
                         <th class="p-4 sticky z-50 left-0 bg-indigo-50 w-[150px]">Nom du projet</th>
-                        <th class="p-4 sticky z-50 left-[120px] bg-indigo-50">Total (en jours)</th>
+                        <th class="p-4 sticky z-50 left-[120px] bg-indigo-50">Total</th>
+                        {% if period.key == "total" %}
+                            <th class="p-4 sticky z-50 left-[270px] bg-indigo-50">Total effectuée</th>
+                            <th class="p-4 sticky z-50 left-[420px] bg-indigo-50">Total à faire</th>
+                        {% endif %}
                         {% for employee_name in employees_names %}
                             <th class="p-4 text-gray-800">
                                 {{ employee_name }}
@@ -52,13 +56,40 @@
                             {% for project_id, employees_events_per_project in events_per_projects_ids.items %}
                                 <tr>
                                     <th scope="row"
-                                        class="font-bold bg-gray-100 left-0 sticky z-50 p-2 uppercase text-sm">
+                                        class="font-bold bg-gray-100 left-0 sticky z-50 uppercase text-sm">
                                         {{ project_id|find_project_name:projects_details }}
                                     </th>
                                     <td class="sticky left-[120px] min-w-[150px] z-50 bg-white text-center">
                                         {{ employees_events_per_project.days|floatformat:2 }}
                                         jour{{ employees_events_per_project.days|pluralize:'s' }}
                                     </td>
+                                    {% if period.key == "total" %}
+                                        <td class="sticky left-[270px] min-w-[150px] z-50 bg-white text-center">
+                                            {{ employees_events_per_project.days_done.total|floatformat:2 }}
+                                            jour{{ employees_events_per_project.days_done.total|pluralize:'s' }}
+
+                                        </td>
+                                        <td class="sticky left-[420px] min-w-[150px] z-50 bg-white text-center">
+                                            {% if  employees_events_per_project.days_todo.total > 0 %}
+                                                <div tabindex="0" class="collapse text-center">
+                                                    <div class="collapse-title">
+                                                        {{ employees_events_per_project.days_todo.total|floatformat:2 }}
+                                                        jour{{ employees_events_per_project.days_todo.total|pluralize:'s' }}
+                                                    </div>
+                                                    <div class="collapse-content bg-gray-100 min-w-[150px] rounded-xl">
+                                                        <ul>
+                                                            {% for event in employees_events_per_project.days_todo.events %}
+                                                                <li>
+                                                                    <span>{{ event.duration|floatformat:2 }}h</span> le
+                                                                    <span>{{ event.start_datetime|date:"d/m/Y" }}</span>
+                                                                </li>
+                                                            {% endfor %}
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                    {% endif %}
                                     {% for employee_name in employees_names %}
                                         <td>
                                             {% with employees_events_per_project.events|get_employee_events:employee_name as employee_events %}
@@ -70,8 +101,9 @@
                                                         {% endif %}
 
                                                     </div>
-                                                    <div class="collapse-content bg-gray-100 min-w-[150px] p-2 rounded-xl">
+                                                    <div class="collapse-content bg-gray-100 min-w-[150px] rounded-xl">
                                                         <ul>
+
                                                             {% for event in employee_events.events %}
                                                                 <li>
                                                                     <span>{{ event.duration|floatformat:2 }}h</span> le

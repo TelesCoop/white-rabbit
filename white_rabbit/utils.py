@@ -19,21 +19,18 @@ def start_of_day(d) -> Union[datetime.date, datetime.datetime]:
 
 
 def convert_duration_to_work_hours_and_minutes(duration: float) -> str:
-    # Convert duration to work hours
     duration_in_work_hours = duration * DEFAULT_MIN_WORKING_HOURS
 
-    # Separate the whole hours and the fractional part (which represents the minutes)
     hours = int(duration_in_work_hours)
     minutes = (duration_in_work_hours - hours) * 60
 
-    # Round the minutes to the nearest whole number
     minutes = round(minutes)
     if minutes == 0:
         minutes = ""
     return f"({hours}h{minutes})"
 
 
-def compute_days_spent(duration, divider):
+def convert_duration_to_days_spent(duration, divider):
     if not isinstance(divider, float):
         divider = float(divider)
 
@@ -81,7 +78,7 @@ def count_number_days_spent(
     )
     for event in events:
         key = key_func(event)
-        grouped_projects[key]["days_spent"] += compute_days_spent(
+        grouped_projects[key]["days_spent"] += convert_duration_to_days_spent(
             event["duration"], min_working_hours_for_full_day
         )
         grouped_projects[key]["duration"] += event["duration"]
@@ -99,6 +96,12 @@ def count_number_days_spent_per_project(
         key_func=lambda event: event["project_id"],
         min_working_hours_for_full_day=min_working_hours_for_full_day,
     )
+
+
+def is_date_same_or_after_today(date: datetime.date) -> bool:
+    if isinstance(date, datetime.datetime):
+        date = date.date()
+    return date >= datetime.date.today()
 
 
 def events_per_day(

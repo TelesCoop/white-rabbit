@@ -1,8 +1,6 @@
 import debug_toolbar
 from django.contrib import admin
 from django.urls import path, include
-from django.views.decorators.cache import cache_page
-from django.views.decorators.vary import vary_on_cookie
 
 from . import views
 from .views import MyLoginView

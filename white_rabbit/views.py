@@ -4,6 +4,7 @@ from django.contrib.auth.views import LoginView
 from django.shortcuts import render
 from django.views.generic import TemplateView
 
+from .constants import DEFAULT_MIN_WORKING_HOURS
 from .events import (
     EventsPerEmployee,
     get_events_from_employees_from_cache,
@@ -15,7 +16,12 @@ from .project_name_finder import ProjectFinder
 from .state_of_day import (
     state_of_days_per_employee_for_week,
 )
-from .utils import generate_time_periods, generate_time_periods_with_total
+from .utils import (
+    generate_time_periods,
+    generate_time_periods_with_total,
+    is_date_same_or_after_today,
+    convert_duration_to_days_spent,
+)
 
 
 class MyLoginView(LoginView):
@@ -224,6 +230,8 @@ class TotalPerProjectView(TemplateView):
                         projects["total"][project_id] = {
                             "duration": 0,
                             "days": 0,
+                            "days_done": {"total": 0, "events": []},
+                            "days_todo": {"total": 0, "events": []},
                             "events": {},
                         }
 
@@ -242,10 +250,29 @@ class TotalPerProjectView(TemplateView):
                     projects["total"][project_id]["events"][employee_name][
                         "days_spent"
                     ] += events["days_spent"]
-
                     projects["total"][project_id]["events"][employee_name][
                         "events"
                     ].extend(events["events"])
+
+                    for event in events["events"]:
+                        if is_date_same_or_after_today(event["end_datetime"]):
+                            projects["total"][project_id]["days_todo"][
+                                "total"
+                            ] += convert_duration_to_days_spent(
+                                event["duration"], DEFAULT_MIN_WORKING_HOURS
+                            )
+                            projects["total"][project_id]["days_todo"]["events"].append(
+                                event
+                            )
+                        else:
+                            projects["total"][project_id]["days_done"][
+                                "total"
+                            ] += convert_duration_to_days_spent(
+                                event["duration"], DEFAULT_MIN_WORKING_HOURS
+                            )
+                            projects["total"][project_id]["days_done"]["events"].append(
+                                event
+                            )
 
         sorted_projects = {}
         for month, projects_in_month in projects.items():
