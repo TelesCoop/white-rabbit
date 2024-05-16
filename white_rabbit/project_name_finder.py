@@ -5,7 +5,7 @@ from white_rabbit.models import Project, Company
 
 
 def get_key(
-        name: str, company_name: str, start_datetime: Union[datetime.date, None]
+    name: str, company_name: str, start_datetime: Union[datetime.date, None]
 ) -> str:
     to_return = f"{name.lower()}__{company_name}"
     if start_datetime:
@@ -25,6 +25,9 @@ class ProjectFinder:
         name = name.strip()
         if not is_full_uppercase(name):
             name = name.title()
+
+        if isinstance(date, datetime.datetime):
+            date = date.date()
 
         # find project by date
         key = get_key(name, company.name, None)
@@ -67,7 +70,8 @@ class ProjectFinder:
 
             to_return[project.pk] = {
                 "name": project.name,
-                "start_date": project.start_date and project.start_date.strftime("%b %y"),
+                "start_date": project.start_date
+                and project.start_date.strftime("%b %y"),
                 "end_date": project.end_date and project.end_date.strftime("%b %y"),
                 "category": project.category or "Non catégorisé",
             }

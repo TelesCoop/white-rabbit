@@ -16,8 +16,11 @@
                         data-hs-tab="#tabs-with-badges-{{ period.key | slugify }}"
                         aria-controls="tabs-with-badges-{{ period.key | slugify }}"
                         role="tab">
-                    {{ period.key|format_date }}
-
+                    {% if period.key != "total" %}
+                        {{ period.key|format_date }}
+                    {% else %}
+                        {{ period.key|title }}
+                    {% endif %}
                 </button>
             {% endfor %}
         </nav>
@@ -29,7 +32,8 @@
                  class="{% if forloop.counter > 1 %}hidden{% endif %}"
                  aria-labelledby="tabs-with-badges-item-{{ period.key | slugify }}"
             >
-                <h3 class="text-xl p-4 font-bold">{{ period.key|format_date }}</h3>
+                <h3 class="text-xl p-4 font-bold">
+                    {% if period.key != "total" %}{{ period.key|format_date }}{% endif %}</h3>
                 <table class="border border-gray-200 border-separate rounded-lg divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                     <tr class="font-bold bg-indigo-50 text-black uppercase text-xs">
@@ -45,32 +49,31 @@
                     <tbody class="divide-y divide-gray-200">
                     {% for month, events_per_projects_ids in employees_events_per_month.items %}
                         {% if month == period.key %}
-                            {% for project_id, events_per_project in events_per_projects_ids.items %}
+                            {% for project_id, employees_events_per_project in events_per_projects_ids.items %}
                                 <tr>
                                     <th scope="row"
                                         class="font-bold bg-gray-100 left-0 sticky z-50 p-2 uppercase text-sm">
                                         {{ project_id|find_project_name:projects_details }}
                                     </th>
                                     <td class="sticky left-[120px] min-w-[150px] z-50 bg-white text-center">
-                                        {{ events_per_project.days|floatformat:2 }}
-                                        jour{{ events_per_project.days|pluralize:'s' }}
+                                        {{ employees_events_per_project.days|floatformat:2 }}
+                                        jour{{ employees_events_per_project.days|pluralize:'s' }}
                                     </td>
                                     {% for employee_name in employees_names %}
                                         <td>
-                                            {% with events_per_project.events|get_employee_events:employee_name as employee_events %}
-                                                <div tabindex="0" class="collapse ">
+                                            {% with employees_events_per_project.events|get_employee_events:employee_name as employee_events %}
+                                                <div tabindex="0" class="collapse text-center">
                                                     <div class="collapse-title">
                                                         {% if employee_events.days_spent %}
                                                             {{ employee_events.days_spent|floatformat:2 }}
                                                             jour{{ employee_events.days_spent|pluralize:'s' }}
-
                                                         {% endif %}
 
                                                     </div>
                                                     <div class="collapse-content bg-gray-100 min-w-[150px] p-2 rounded-xl">
                                                         <ul>
                                                             {% for event in employee_events.events %}
-                                                                <li class="">
+                                                                <li>
                                                                     <span>{{ event.duration|floatformat:2 }}h</span> le
                                                                     <span>{{ event.start_datetime|date:"d/m/Y" }}</span>
                                                                 </li>
@@ -78,7 +81,6 @@
                                                         </ul>
                                                     </div>
                                                 </div>
-
                                             {% endwith %}
                                         </td>
                                     {% endfor %}

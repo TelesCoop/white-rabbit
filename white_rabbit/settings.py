@@ -35,9 +35,9 @@ else:
     ALLOWED_HOSTS = config.getlist("security.allowed_hosts")
 
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',  # A unique identifier for the cache
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "unique-snowflake",  # A unique identifier for the cache
     }
 }
 DEFAULT_CACHE_DURATION = 600

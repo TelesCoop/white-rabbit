@@ -15,13 +15,21 @@ from white_rabbit.project_name_finder import ProjectFinder
 from white_rabbit.settings import DEFAULT_CACHE_DURATION
 from white_rabbit.typing import EventsPerEmployee, Event
 
-from white_rabbit.utils import start_of_day, count_number_days_spent_per_project, calculate_period_start, \
-    calculate_period_key, group_events_by_day, generate_time_periods, count_number_days_spent_per_project_category, \
-    group_events_per_category, filter_events_per_time_period
+from white_rabbit.utils import (
+    start_of_day,
+    count_number_days_spent_per_project,
+    calculate_period_start,
+    calculate_period_key,
+    group_events_by_day,
+    generate_time_periods,
+    count_number_days_spent_per_project_category,
+    group_events_per_category,
+    filter_events_per_time_period,
+)
 
 
 def read_events(
-        calendar_data: str, employee: Employee, project_finder=None
+    calendar_data: str, employee: Employee, project_finder=None
 ) -> Iterable[Event]:
     """Read events from an ical calendar and returns them as a list."""
     cal = Calendar().from_ical(calendar_data)
@@ -30,8 +38,11 @@ def read_events(
         project_finder = ProjectFinder()
 
     events = [
-        event for event in cal.walk()
-        if event.name == "VEVENT" and event.get("SUMMARY") and not event["SUMMARY"].startswith("!")
+        event
+        for event in cal.walk()
+        if event.name == "VEVENT"
+        and event.get("SUMMARY")
+        and not event["SUMMARY"].startswith("!")
     ]
 
     events_data: List[Event] = []
@@ -43,7 +54,11 @@ def read_events(
         except KeyError:
             end = start_datetime + datetime.timedelta(hours=1)
 
-        start_date = start_datetime.date() if isinstance(start_datetime, datetime.datetime) else start_datetime
+        start_date = (
+            start_datetime.date()
+            if isinstance(start_datetime, datetime.datetime)
+            else start_datetime
+        )
         if start_date < employee.start_time_tracking_from:
             continue
 
@@ -53,12 +68,16 @@ def read_events(
         next_day_start = start_of_day(start_datetime + datetime.timedelta(days=1))
 
         while start_datetime < end:
-            event_data = get_event_data(start_datetime, end, calendar_name, project_finder, employee)
+            event_data = get_event_data(
+                start_datetime, end, calendar_name, project_finder, employee
+            )
             events_data.append(event_data)
-            events_data = sorted(events_data,
-                                 key=lambda ev: ev["start_datetime"].date() if isinstance(ev["start_datetime"],
-                                                                                          datetime.datetime) else ev[
-                                     "start_datetime"])
+            events_data = sorted(
+                events_data,
+                key=lambda ev: ev["start_datetime"].date()
+                if isinstance(ev["start_datetime"], datetime.datetime)
+                else ev["start_datetime"],
+            )
             start_datetime = next_day_start
             next_day_start = start_of_day(start_datetime + datetime.timedelta(days=1))
 
@@ -72,16 +91,12 @@ def get_event_data(start, end, calendar_name, project_finder, employee) -> Event
     subproject_name = None
     if len(calendar_name.split(" [")) > 1:
         subproject_name = (
-            calendar_name[calendar_name.find("[") + 1: calendar_name.find("]")]
+            calendar_name[calendar_name.find("[") + 1 : calendar_name.find("]")]
             .strip()
             .lower()
         )
 
-    project = project_finder.get_project(
-        project_name,
-        employee.company,
-        start_datetime
-    )
+    project = project_finder.get_project(project_name, employee.company, start_datetime)
 
     return {
         "project_id": project.pk,
@@ -95,7 +110,7 @@ def get_event_data(start, end, calendar_name, project_finder, employee) -> Event
 
 
 def get_events_by_url(
-        url: str, employee: Employee, project_finder=None
+    url: str, employee: Employee, project_finder=None
 ) -> Iterable[Event]:
     """Read events from an ical calendar available at given URL."""
 
@@ -104,7 +119,9 @@ def get_events_by_url(
     return read_events(data, employee, project_finder=project_finder)
 
 
-def process_employee_events(employee: Employee, project_finder=None, request=None) -> Iterable[Event]:
+def process_employee_events(
+    employee: Employee, project_finder=None, request=None
+) -> Iterable[Event]:
     if employee.start_time_tracking_from > datetime.date.today():
         return []
 
@@ -123,7 +140,9 @@ def process_employee_events(employee: Employee, project_finder=None, request=Non
         return []
 
 
-def create_events(employees: List[Employee], project_finder=None, request=None) -> EventsPerEmployee:
+def create_events(
+    employees: List[Employee], project_finder=None, request=None
+) -> EventsPerEmployee:
     events: EventsPerEmployee = {}
     for employee in employees:
         events[employee] = process_employee_events(employee, project_finder, request)
@@ -131,14 +150,16 @@ def create_events(employees: List[Employee], project_finder=None, request=None) 
 
 
 def get_events_from_employees_from_cache(
-        employees: List[Employee], project_finder=None, request=None
+    employees: List[Employee], project_finder=None, request=None
 ) -> EventsPerEmployee:
     events: EventsPerEmployee = {}
     for employee in employees:
         if cache.get(employee.id, None):
             events[employee] = cache.get(employee.id)
         else:
-            events[employee] = process_employee_events(employee, project_finder, request)
+            events[employee] = process_employee_events(
+                employee, project_finder, request
+            )
             cache.set(employee.id, events[employee], DEFAULT_CACHE_DURATION)
     return events
 
@@ -150,7 +171,7 @@ def employees_for_user(user: User) -> List[Employee]:
             company.employees.filter(
                 start_time_tracking_from__isnull=False,
                 start_time_tracking_from__lte=datetime.date.today(),
-                disabled=False
+                disabled=False,
             )
         )
 
@@ -161,7 +182,7 @@ def employees_for_user(user: User) -> List[Employee]:
 
 
 def events_per_day(
-        events: Iterable[Event], start_datetime: date, end_datetime: date
+    events: Iterable[Event], start_datetime: date, end_datetime: date
 ) -> Dict[datetime.date, Iterable[Event]]:
     """
     Returns a dict day -> events for day for each day from start date to end
@@ -169,7 +190,11 @@ def events_per_day(
     Days without events are included.
     """
     delta = end_datetime - start_datetime
-    events = [event for event in events if start_datetime <= event["start_datetime"] <= end_datetime]
+    events = [
+        event
+        for event in events
+        if start_datetime <= event["start_datetime"] <= end_datetime
+    ]
     to_return = group_events_by_day(events)
 
     # also include days without events
@@ -195,7 +220,11 @@ class EmployeeEvents:
         return group_events_by_day(self.events)
 
     def filter_events_per_month(self, date: datetime):
-        events = [event for event in self.events if event["start_datetime"].month == date.month]
+        events = [
+            event
+            for event in self.events
+            if event["start_datetime"].month == date.month
+        ]
         return {date: events}
 
     @property
@@ -203,7 +232,7 @@ class EmployeeEvents:
         return {
             "employee": self.employee_name,
             "events": self.events,
-            "projects": self.projects
+            "projects": self.projects,
         }
 
     def group_events_per_project_category(self, month=None, week=None):
@@ -214,17 +243,26 @@ class EmployeeEvents:
         for _event_category, events in events_per_category.items():
             if month or week:
                 time_period = week if week else month
-                filtered_events_per_category = filter_events_per_time_period(events, time_period)
+                filtered_events_per_category = filter_events_per_time_period(
+                    events, time_period
+                )
 
             number_days_spent_per_project_category = (
-                count_number_days_spent_per_project_category(filtered_events_per_category,
-                                                             self.employee.min_working_hours_for_full_day))
+                count_number_days_spent_per_project_category(
+                    filtered_events_per_category,
+                    self.employee.min_working_hours_for_full_day,
+                )
+            )
             projects.update(number_days_spent_per_project_category)
 
         return projects
 
-    def group_by_time_period(self, time_period: str = "month", n_periods: int = None, timeshift_direction="past"):
-
+    def group_by_time_period(
+        self,
+        time_period: str = "month",
+        n_periods: int = None,
+        timeshift_direction="past",
+    ):
         events: Any = {}
 
         if n_periods is None:
@@ -234,45 +272,60 @@ class EmployeeEvents:
         for period in periods:
             events[period["key"]] = {
                 "availability": available_time_of_employee(
-                    self.employee,
-                    self.events,
-                    period["start"],
-                    period["end"]
+                    self.employee, self.events, period["start"], period["end"]
                 ),
-                "events": filter_events_per_time_period(self.events, period["start"], time_period)
+                "events": filter_events_per_time_period(
+                    self.events, period["start"], time_period
+                ),
             }
         return events
 
-    def total_per_time_period_and_project_category(self, time_period: str = "month", n_periods: int = None,
-                                                   timeshift_direction="past"):
+    def total_per_time_period_and_project_category(
+        self,
+        time_period: str = "month",
+        n_periods: int = None,
+        timeshift_direction="past",
+    ):
         if n_periods is None:
             n_periods = self.n_periods
         events: Any = {}
         for period_index in range(n_periods):
-            period_start = calculate_period_start(period_index, time_period, timeshift_direction)
+            period_start = calculate_period_start(
+                period_index, time_period, timeshift_direction
+            )
             period_key = calculate_period_key(period_start, time_period)
-            events[period_key] = self.group_events_per_project_category(**{time_period: period_start})
+            events[period_key] = self.group_events_per_project_category(
+                **{time_period: period_start}
+            )
 
         return events
 
-    def total_project_per_time_period(self, time_period: str = "month", n_periods: int = None,
-                                      timeshift_direction="past"):
+    def total_project_per_time_period(
+        self,
+        time_period: str = "month",
+        n_periods: int = None,
+        timeshift_direction="past",
+    ):
         if n_periods is None:
             n_periods = self.n_periods
 
         events: Any = {}
         periods = generate_time_periods(n_periods, time_period, timeshift_direction)
         for period in periods:
-            filtered_events = filter_events_per_time_period(self.events, period["start"], time_period)
+            filtered_events = filter_events_per_time_period(
+                self.events, period["start"], time_period
+            )
             events[period["key"]] = count_number_days_spent_per_project(filtered_events)
         return events
 
 
 def process_employees_events(  # noqa: C901
-        events_per_employee: EventsPerEmployee,
-        n_periods: int = 12,
+    events_per_employee: EventsPerEmployee,
+    n_periods: int = 12,
 ):
     employees = {}
     for employee_instance, employee_events in events_per_employee.items():
-        employees[employee_instance.name] = EmployeeEvents(employee_instance, employee_events, n_periods)
+        employees[employee_instance.name] = EmployeeEvents(
+            employee_instance, employee_events, n_periods
+        )
     return employees
