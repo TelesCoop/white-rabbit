@@ -183,6 +183,8 @@ class TotalPerProjectView(TemplateView):
     def get_context_data(self, **kwargs):
         request = self.request
         user = request.user
+        # period is a month, or one of total, total_done, total_todo
+        period = kwargs["period"]
         employees = employees_for_user(user)
         employees_names = {employee.name for employee in employees}
         project_finder = ProjectFinder()
@@ -190,18 +192,16 @@ class TotalPerProjectView(TemplateView):
             employees, project_finder, request=self.request
         )
 
+        # TODO periods
+        periods = generate_time_periods(20, "month", "past")
+
         raw_employees_events = process_employees_events(events_per_employee, 24)
         employees_events = {}
-        projects = {
-            "total": {},
-            "total_done": {},
-            "total_remaining": {},
-        }
 
         for employee_name, employee_events in raw_employees_events.items():
-            employees_events[
-                employee_name
-            ] = employee_events.total_project_per_time_period()
+            employees_events[employee_name] = employee_events.projects_for_time_period(
+                period
+            )
 
         for employee_name, employee_events_per_month in employees_events.items():
             for (

@@ -1,23 +1,21 @@
 import datetime
 from datetime import date, timedelta
 from typing import List, Dict, Iterable, Any
-from django.core.cache import cache
 
 import requests
-from django.contrib.auth.models import User
-from icalendar import Calendar
 from django.contrib import messages
+from django.contrib.auth.models import User
+from django.core.cache import cache
+from icalendar import Calendar
 
 from white_rabbit.available_time import available_time_of_employee
 from white_rabbit.constants import DEFAULT_NB_WORKING_HOURS
 from white_rabbit.models import Employee
 from white_rabbit.project_name_finder import ProjectFinder
 from white_rabbit.settings import DEFAULT_CACHE_DURATION
-from white_rabbit.typing import EventsPerEmployee, Event
-
+from white_rabbit.typing import EventsPerEmployee, Event, ProjectDistribution
 from white_rabbit.utils import (
     start_of_day,
-    count_number_days_spent_per_project,
     calculate_period_start,
     calculate_period_key,
     group_events_by_day,
@@ -25,6 +23,7 @@ from white_rabbit.utils import (
     count_number_days_spent_per_project_category,
     group_events_per_category,
     filter_events_per_time_period,
+    day_distribution,
 )
 
 
@@ -154,13 +153,15 @@ def get_events_from_employees_from_cache(
 ) -> EventsPerEmployee:
     events: EventsPerEmployee = {}
     for employee in employees:
-        if cache.get(employee.id, None):
-            events[employee] = cache.get(employee.id)
+        if employee_data := cache.get(str(employee.id), None):
+            print("got from cache", employee.pk)
+            events[employee] = employee_data
         else:
+            print("fetching from ical", employee.pk)
             events[employee] = process_employee_events(
                 employee, project_finder, request
             )
-            cache.set(employee.id, events[employee], DEFAULT_CACHE_DURATION)
+            cache.set(str(employee.id), events[employee], DEFAULT_CACHE_DURATION)
     return events
 
 
@@ -300,22 +301,53 @@ class EmployeeEvents:
 
         return events
 
-    def total_project_per_time_period(
+    def projects_for_time_period(
         self,
+        period: str,
         time_period: str = "month",
-        n_periods: int = None,
-        timeshift_direction="past",
     ):
-        if n_periods is None:
-            n_periods = self.n_periods
 
         events: Any = {}
-        periods = generate_time_periods(n_periods, time_period, timeshift_direction)
-        for period in periods:
-            filtered_events = filter_events_per_time_period(
-                self.events, period["start"], time_period
+
+        filtered_events = filter_events_per_time_period(
+            self.events, period["start"], time_period
+        )
+        for event_date, events_for_day in group_events_by_day(filtered_events).items():
+            distribution: Dict[int, ProjectDistribution] = day_distribution(
+                events_for_day, employee=self.employee
             )
-            events[period["key"]] = count_number_days_spent_per_project(filtered_events)
+
+            date_keys_to_update = ["Total", month_label]
+            if event_date <= datetime.date.today():
+                date_keys_to_update.append("Total effectué")
+            else:
+                date_keys_to_update.append("Total à venir")
+
+            for project_id, details in distribution.items():
+                # add both to total and relevant employee
+                duration = details["duration"]  # type: ignore
+                subproject_name = details["subproject_name"]  # type: ignore
+                for employee_key in ["Total", employee.name]:
+                    # add values both to total and relevant month
+                    for date_key in date_keys_to_update:
+                        to_return_1[employee_key][date_key][project_id][
+                            "duration"
+                        ] += duration
+                        if subproject_name:
+                            to_return_1[employee_key][date_key][project_id][
+                                "subprojects"
+                            ][subproject_name]["duration"] += duration
+                        to_return_1[employee_key][date_key][project_id][
+                            "events"
+                        ].append(
+                            {
+                                "employee": employee.name,
+                                "date": event_date,
+                                "duration": duration,
+                            }
+                        )
+
+        # events[period["key"]] = count_number_days_spent_per_project(filtered_events)
         return events
 
 

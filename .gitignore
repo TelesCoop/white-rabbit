@@ -10,4 +10,5 @@ html2text==2020.1.16
 *debug_toolbar
 /static/hijack*
 /static/silk*
-/static/admin*
+/static/admin*cache_file
+Pipfile*

@@ -60,12 +60,12 @@
                                         {{ project_id|find_project_name:projects_details }}
                                     </th>
                                     <td class="sticky left-[120px] min-w-[150px] z-50 bg-white text-center">
-                                        {{ employees_events_per_project.days|floatformat:2 }}
+                                        {{ employees_events_per_project.days|floatformat:1 }}
                                         jour{{ employees_events_per_project.days|pluralize:'s' }}
                                     </td>
                                     {% if period.key == "total" %}
                                         <td class="sticky left-[270px] min-w-[150px] z-50 bg-white text-center">
-                                            {{ employees_events_per_project.days_done.total|floatformat:2 }}
+                                            {{ employees_events_per_project.days_done.total|floatformat:1 }}
                                             jour{{ employees_events_per_project.days_done.total|pluralize:'s' }}
 
                                         </td>
@@ -73,14 +73,14 @@
                                             {% if  employees_events_per_project.days_todo.total > 0 %}
                                                 <div tabindex="0" class="collapse text-center">
                                                     <div class="collapse-title">
-                                                        {{ employees_events_per_project.days_todo.total|floatformat:2 }}
+                                                        {{ employees_events_per_project.days_todo.total|floatformat:1 }}
                                                         jour{{ employees_events_per_project.days_todo.total|pluralize:'s' }}
                                                     </div>
                                                     <div class="collapse-content bg-gray-100 min-w-[150px] rounded-xl">
                                                         <ul>
                                                             {% for event in employees_events_per_project.days_todo.events %}
                                                                 <li>
-                                                                    <span>{{ event.duration|floatformat:2 }}h</span> le
+                                                                    <span>{{ event.duration|floatformat:1 }}h</span> le
                                                                     <span>{{ event.start_datetime|date:"d/m/Y" }}</span>
                                                                 </li>
                                                             {% endfor %}
@@ -96,7 +96,7 @@
                                                 <div tabindex="0" class="collapse text-center">
                                                     <div class="collapse-title">
                                                         {% if employee_events.days_spent %}
-                                                            {{ employee_events.days_spent|floatformat:2 }}
+                                                            {{ employee_events.days_spent|floatformat:1 }}
                                                             jour{{ employee_events.days_spent|pluralize:'s' }}
                                                         {% endif %}
 
@@ -106,7 +106,7 @@
 
                                                             {% for event in employee_events.events %}
                                                                 <li>
-                                                                    <span>{{ event.duration|floatformat:2 }}h</span> le
+                                                                    <span>{{ event.duration|floatformat:1 }}h</span> le
                                                                     <span>{{ event.start_datetime|date:"d/m/Y" }}</span>
                                                                 </li>
                                                             {% endfor %}

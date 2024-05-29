@@ -36,8 +36,8 @@ else:
 
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        "LOCATION": "unique-snowflake",  # A unique identifier for the cache
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": BASE_DIR / "cache_file",  # A unique identifier for the cache
     }
 }
 DEFAULT_CACHE_DURATION = 600

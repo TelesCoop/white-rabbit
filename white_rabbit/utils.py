@@ -87,15 +87,43 @@ def count_number_days_spent(
     return dict(grouped_projects)
 
 
-def count_number_days_spent_per_project(
-    events: Iterable[Event],
-    min_working_hours_for_full_day: int = DEFAULT_MIN_WORKING_HOURS,
+def day_distribution(
+    events: Iterable[Event], employee
 ) -> Dict[int, ProjectDistribution]:
-    return count_number_days_spent(
-        events,
-        key_func=lambda event: event["project_id"],
-        min_working_hours_for_full_day=min_working_hours_for_full_day,
+    """
+    Given all events for a day for an employee, count the number of days
+    (<= 1) spent on each project.
+    """
+    from white_rabbit.models import Employee
+
+    employee: Employee
+    total_time = sum(event["duration"] for event in events)
+    is_full_day = total_time >= employee.min_working_hours_for_full_day
+    if is_full_day:
+        divider = total_time
+    else:
+        divider = float(employee.default_day_working_hours)
+
+    distribution: Dict[int, ProjectDistribution] = defaultdict(
+        lambda: {"duration": 0.0, "subproject_name": ""}
     )
+
+    for event in events:
+        distribution[event["project_id"]]["subproject_name"] = event["subproject_name"]
+        distribution[event["project_id"]]["duration"] += event["duration"] / divider
+
+    return dict(distribution)
+
+
+# def count_number_days_spent_per_project(
+#     events: Iterable[Event],
+#     min_working_hours_for_full_day: int = DEFAULT_MIN_WORKING_HOURS,
+# ) -> Dict[int, ProjectDistribution]:
+#     return count_number_days_spent(
+#         events,
+#         key_func=lambda event: event["project_id"],
+#         min_working_hours_for_full_day=min_working_hours_for_full_day,
+#     )
 
 
 def is_date_same_or_after_today(date: datetime.date) -> bool:

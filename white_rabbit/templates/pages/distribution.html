@@ -55,7 +55,7 @@
                                             {% if usr_events_by_categories %}
                                                 <div tabindex="0" class="collapse ">
                                                     <div class="collapse-title">
-                                                        {{ usr_events_by_categories.days_spent|floatformat:2 }}
+                                                        {{ usr_events_by_categories.days_spent|floatformat:1 }}
                                                         jour{{ usr_events_by_categories.days_spent|pluralize:'s' }}
                                                     </div>
                                                     <div class="collapse-content bg-gray-100 p-2 rounded-xl">
@@ -63,7 +63,7 @@
                                                             {% for event in usr_events_by_categories.events %}
                                                                 <li class="">
                                                                     <span>{{ event.name }},</span>
-                                                                    <span>{{ event.duration|floatformat:2 }}h</span> le
+                                                                    <span>{{ event.duration|floatformat:1 }}h</span> le
                                                                     <span>{{ event.start_datetime|date:"d/m/Y" }}</span>
                                                                 </li>
                                                             {% endfor %}
