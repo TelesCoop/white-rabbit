@@ -5,6 +5,8 @@ import numbers
 from django.template.defaultfilters import pluralize, floatformat
 from django.template.defaulttags import register
 
+from white_rabbit.utils import is_total_key
+
 
 @register.simple_tag
 def project_name(project_details, project_id):
@@ -18,13 +20,13 @@ def iterate_json(json_string):
 
 @register.filter
 def json_loads(value):
-    """ It returns variable type as a pure string name """
+    """It returns variable type as a pure string name"""
     return json.loads(value)
 
 
 @register.filter
 def get_type(value):
-    """ It returns variable type as a pure string name """
+    """It returns variable type as a pure string name"""
     return type(value).__name__
 
 
@@ -69,8 +71,13 @@ def get_employee_events(employees_events, employee_name):
 
 
 @register.filter
+def get_item(dictionary, key):
+    return dictionary.get(key)
+
+
+@register.filter
 def format_date(date):
-    if date == "Total":
+    if is_total_key(date):
         return date
     # Convert the string to a datetime object
     date_object = datetime.datetime.strptime(date, "%m-%Y")
@@ -129,7 +136,8 @@ def employee_events_to_tooltip(employee_events):
     days_spent = []
     for project in employee_events["events"]:
         days_spent.append(
-            f"{floatformat(project['days_spent'], 2)} jour{pluralize(project['days_spent'])} le {project['start_datetime']} \n")
+            f"{floatformat(project['days_spent'], 2)} jour{pluralize(project['days_spent'])} le {project['start_datetime']} \n"
+        )
     return days_spent
 
 

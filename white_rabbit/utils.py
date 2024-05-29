@@ -2,13 +2,19 @@ import datetime
 from collections import defaultdict
 from itertools import groupby
 
-from typing import Union, Iterable, Dict, Any, Callable
+from typing import Union, Iterable, Dict, Any, Callable, NamedTuple
 
 from dateutil.relativedelta import relativedelta
 
 from white_rabbit.constants import DEFAULT_MIN_WORKING_HOURS
 
 from white_rabbit.typing import Event, ProjectDistribution
+
+
+class Period(NamedTuple):
+    key: str
+    start: datetime.date
+    end: datetime.date
 
 
 def start_of_day(d) -> Union[datetime.date, datetime.datetime]:
@@ -213,10 +219,24 @@ def group_events_by_day(
         k: list(g)
         for k, g in groupby(
             events,
-            lambda event: event["start_datetime"].date()
-            if isinstance(event["start_datetime"], datetime.datetime)
-            else event["start_datetime"],
+            lambda event: (
+                event["start_datetime"].date()
+                if isinstance(event["start_datetime"], datetime.datetime)
+                else event["start_datetime"]
+            ),
         )
+    }
+
+
+def time_period_for_month(month: str) -> Period:
+    """Given a month in the format YYYY-MM, returns a dict with the start and end dates."""
+    month, year = month.split("-")
+    return {
+        "key": f"{month}-{year}",
+        "start": datetime.date(int(year), int(month), 1),
+        "end": datetime.date(int(year), int(month), 1)
+        + relativedelta(months=1)
+        - relativedelta(days=1),
     }
 
 
@@ -247,10 +267,11 @@ def generate_time_periods(
 def generate_time_periods_with_total(
     n_periods: int, time_period: str = "month", time_shift_direction: str = "future"
 ):
-    periods = generate_time_periods(n_periods, time_period, time_shift_direction)
-    periods.insert(
-        0, {"key": "total", "start": periods[0]["start"], "end": periods[-1]["end"]}
-    )
+    periods = [
+        {"key": "total", "label": "Total", "is_total": True},
+        {"key": "total_done", "label": "Total effectué", "is_total": True},
+        {"key": "total_todo", "label": "Total prévu", "is_total": True},
+    ] + generate_time_periods(n_periods, time_period, time_shift_direction)
     return periods
 
 
@@ -297,3 +318,7 @@ def get_or_create_employee_event(employees_events, employee_name, project_detail
         ] += project_detail.total_duration
         employees_events[employee_name]["events"] += project_detail.events
     return employees_events[employee_name]
+
+
+def is_total_key(key: str) -> bool:
+    return key.startswith("total")

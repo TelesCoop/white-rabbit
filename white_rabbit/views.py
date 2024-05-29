@@ -1,10 +1,12 @@
 import datetime
 import json
+from collections import Counter
+from typing import Dict
+
 from django.contrib.auth.views import LoginView
 from django.shortcuts import render
 from django.views.generic import TemplateView
 
-from .constants import DEFAULT_MIN_WORKING_HOURS
 from .events import (
     EventsPerEmployee,
     get_events_from_employees_from_cache,
@@ -16,11 +18,12 @@ from .project_name_finder import ProjectFinder
 from .state_of_day import (
     state_of_days_per_employee_for_week,
 )
+from .typing import ProjectTime
 from .utils import (
     generate_time_periods,
     generate_time_periods_with_total,
-    is_date_same_or_after_today,
-    convert_duration_to_days_spent,
+    time_period_for_month,
+    is_total_key,
 )
 
 
@@ -184,7 +187,7 @@ class TotalPerProjectView(TemplateView):
         request = self.request
         user = request.user
         # period is a month, or one of total, total_done, total_todo
-        period = kwargs["period"]
+        month = kwargs["period"]
         employees = employees_for_user(user)
         employees_names = {employee.name for employee in employees}
         project_finder = ProjectFinder()
@@ -192,98 +195,33 @@ class TotalPerProjectView(TemplateView):
             employees, project_finder, request=self.request
         )
 
-        # TODO periods
-        periods = generate_time_periods(20, "month", "past")
-
         raw_employees_events = process_employees_events(events_per_employee, 24)
-        employees_events = {}
+        employees_events: Dict[str, Dict[int, ProjectTime]] = {}
+
+        if is_total_key(month):
+            period = {
+                "key": "total",
+                "start": datetime.date(2020, 1, 1),
+                "end": datetime.date(2030, 1, 1),
+            }
+        else:
+            period = time_period_for_month(month)
 
         for employee_name, employee_events in raw_employees_events.items():
             employees_events[employee_name] = employee_events.projects_for_time_period(
-                period
+                period, "month" if not is_total_key(month) else None
             )
 
-        for employee_name, employee_events_per_month in employees_events.items():
-            for (
-                month,
-                employee_events_per_projects_ids,
-            ) in employee_events_per_month.items():
-                if month not in projects:
-                    projects[month] = {}
+        total_per_project = Counter()
+        for _, employee_events in employees_events.items():
+            for project_id, project_time in employee_events.items():
+                total_per_project[project_id] += project_time["duration"]
 
-                for project_id, events in employee_events_per_projects_ids.items():
-                    if project_id not in projects[month]:
-                        projects[month][project_id] = {
-                            "duration": 0,
-                            "days": 0,
-                            "events": {},
-                        }
-
-                    projects[month][project_id]["duration"] += events["duration"]
-                    projects[month][project_id]["days"] += events["days_spent"]
-                    projects[month][project_id]["project_id"] = project_id
-                    if employee_name not in projects[month][project_id]["events"]:
-                        projects[month][project_id]["events"][employee_name] = []
-                    projects[month][project_id]["events"][employee_name] = events
-
-                    if project_id not in projects["total"]:
-                        projects["total"][project_id] = {
-                            "duration": 0,
-                            "days": 0,
-                            "days_done": {"total": 0, "events": []},
-                            "days_todo": {"total": 0, "events": []},
-                            "events": {},
-                        }
-
-                    projects["total"][project_id]["duration"] += events["duration"]
-                    projects["total"][project_id]["days"] += events["days_spent"]
-                    projects["total"][project_id]["project_id"] = project_id
-                    if employee_name not in projects["total"][project_id]["events"]:
-                        projects["total"][project_id]["events"][employee_name] = {
-                            "duration": 0,
-                            "days_spent": 0,
-                            "events": [],
-                        }
-                    projects["total"][project_id]["events"][employee_name][
-                        "duration"
-                    ] += events["duration"]
-                    projects["total"][project_id]["events"][employee_name][
-                        "days_spent"
-                    ] += events["days_spent"]
-                    projects["total"][project_id]["events"][employee_name][
-                        "events"
-                    ].extend(events["events"])
-
-                    for event in events["events"]:
-                        if is_date_same_or_after_today(event["end_datetime"]):
-                            projects["total"][project_id]["days_todo"][
-                                "total"
-                            ] += convert_duration_to_days_spent(
-                                event["duration"], DEFAULT_MIN_WORKING_HOURS
-                            )
-                            projects["total"][project_id]["days_todo"]["events"].append(
-                                event
-                            )
-                        else:
-                            projects["total"][project_id]["days_done"][
-                                "total"
-                            ] += convert_duration_to_days_spent(
-                                event["duration"], DEFAULT_MIN_WORKING_HOURS
-                            )
-                            projects["total"][project_id]["days_done"]["events"].append(
-                                event
-                            )
-
-        sorted_projects = {}
-        for month, projects_in_month in projects.items():
-            sorted_projects_in_month = dict(
-                sorted(
-                    projects_in_month.items(),
-                    key=lambda item: item[1]["duration"],
-                    reverse=True,
-                )
-            )
-            sorted_projects[month] = sorted_projects_in_month
+        projects_order = sorted(
+            total_per_project.keys(),
+            key=lambda project_id: total_per_project[project_id],
+            reverse=True,
+        )
 
         return {
             "employees_events": employees_events,
@@ -291,7 +229,8 @@ class TotalPerProjectView(TemplateView):
             "periods": generate_time_periods_with_total(
                 24, time_shift_direction="past"
             ),
-            "employees_events_per_month": sorted_projects,
+            "projects_order": projects_order,
+            "total_per_project": total_per_project,
             "projects_details": project_finder.by_company(user.employee.company),
         }
 
@@ -316,9 +255,9 @@ class DistributionView(TemplateView):
         for employee_name, employee_events in employees_events.items():
             if employee_name not in projects:
                 projects[employee_name] = {}
-            projects[
-                employee_name
-            ] = employee_events.total_per_time_period_and_project_category()
+            projects[employee_name] = (
+                employee_events.total_per_time_period_and_project_category()
+            )
 
         return {
             "employees_names": employees_names,

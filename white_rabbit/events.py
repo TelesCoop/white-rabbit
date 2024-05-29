@@ -1,6 +1,7 @@
 import datetime
+from collections import defaultdict
 from datetime import date, timedelta
-from typing import List, Dict, Iterable, Any
+from typing import List, Dict, Iterable, Any, Union
 
 import requests
 from django.contrib import messages
@@ -13,7 +14,12 @@ from white_rabbit.constants import DEFAULT_NB_WORKING_HOURS
 from white_rabbit.models import Employee
 from white_rabbit.project_name_finder import ProjectFinder
 from white_rabbit.settings import DEFAULT_CACHE_DURATION
-from white_rabbit.typing import EventsPerEmployee, Event, ProjectDistribution
+from white_rabbit.typing import (
+    EventsPerEmployee,
+    Event,
+    ProjectDistribution,
+    ProjectTime,
+)
 from white_rabbit.utils import (
     start_of_day,
     calculate_period_start,
@@ -24,6 +30,8 @@ from white_rabbit.utils import (
     group_events_per_category,
     filter_events_per_time_period,
     day_distribution,
+    Period,
+    is_total_key,
 )
 
 
@@ -73,9 +81,11 @@ def read_events(
             events_data.append(event_data)
             events_data = sorted(
                 events_data,
-                key=lambda ev: ev["start_datetime"].date()
-                if isinstance(ev["start_datetime"], datetime.datetime)
-                else ev["start_datetime"],
+                key=lambda ev: (
+                    ev["start_datetime"].date()
+                    if isinstance(ev["start_datetime"], datetime.datetime)
+                    else ev["start_datetime"]
+                ),
             )
             start_datetime = next_day_start
             next_day_start = start_of_day(start_datetime + datetime.timedelta(days=1))
@@ -303,52 +313,42 @@ class EmployeeEvents:
 
     def projects_for_time_period(
         self,
-        period: str,
-        time_period: str = "month",
-    ):
+        period: Period,
+        time_period: Union[str, None],
+    ) -> Dict[int, ProjectTime]:
 
-        events: Any = {}
-
-        filtered_events = filter_events_per_time_period(
-            self.events, period["start"], time_period
+        total: Dict[int, ProjectTime] = defaultdict(
+            lambda: {
+                "duration": 0.0,
+                "events": [],
+                "subprojects": defaultdict(lambda: {"duration": 0.0}),
+            }
         )
+        if is_total_key(period["key"]):
+            filtered_events = self.events
+        else:
+            filtered_events = filter_events_per_time_period(
+                self.events, period["start"], time_period
+            )
         for event_date, events_for_day in group_events_by_day(filtered_events).items():
             distribution: Dict[int, ProjectDistribution] = day_distribution(
                 events_for_day, employee=self.employee
             )
+            for project_id, project_distribution in distribution.items():
+                total[project_id]["duration"] += project_distribution["duration"]
+                total[project_id]["events"].append(
+                    {
+                        "employee": self.employee.name,
+                        "date": event_date,
+                        "duration": project_distribution["duration"],
+                    }
+                )
+                if project_distribution["subproject_name"]:
+                    total[project_id]["subprojects"][
+                        project_distribution["subproject_name"]
+                    ]["duration"] += project_distribution["duration"]
 
-            date_keys_to_update = ["Total", month_label]
-            if event_date <= datetime.date.today():
-                date_keys_to_update.append("Total effectué")
-            else:
-                date_keys_to_update.append("Total à venir")
-
-            for project_id, details in distribution.items():
-                # add both to total and relevant employee
-                duration = details["duration"]  # type: ignore
-                subproject_name = details["subproject_name"]  # type: ignore
-                for employee_key in ["Total", employee.name]:
-                    # add values both to total and relevant month
-                    for date_key in date_keys_to_update:
-                        to_return_1[employee_key][date_key][project_id][
-                            "duration"
-                        ] += duration
-                        if subproject_name:
-                            to_return_1[employee_key][date_key][project_id][
-                                "subprojects"
-                            ][subproject_name]["duration"] += duration
-                        to_return_1[employee_key][date_key][project_id][
-                            "events"
-                        ].append(
-                            {
-                                "employee": employee.name,
-                                "date": event_date,
-                                "duration": duration,
-                            }
-                        )
-
-        # events[period["key"]] = count_number_days_spent_per_project(filtered_events)
-        return events
+        return total
 
 
 def process_employees_events(  # noqa: C901

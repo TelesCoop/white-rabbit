@@ -17,7 +17,7 @@ urlpatterns = [
     ),
     path("auth/", include("django.contrib.auth.urls")),
     path("/home", views.HomeView.as_view()),
-    path("projects/<period:str>", views.TotalPerProjectView.as_view()),
+    path("projects/<str:period>", views.TotalPerProjectView.as_view(), name="projects"),
     path("availability/week", views.AvailabilityPerWeekView.as_view()),
     path("availability/month", views.AvailabilityPerMonthView.as_view()),
     path("distribution", views.DistributionView.as_view()),

@@ -22,8 +22,7 @@ repos:
     rev: 24.3.0
     hooks:
       - id: black
-        exclude: tests/
-        args: [ --check ]
+        exclude: tests/|white_rabbit/migrations
   - repo: https://github.com/PyCQA/flake8
     rev: 7.0.0
     hooks:
