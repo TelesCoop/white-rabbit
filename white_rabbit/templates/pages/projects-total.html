@@ -5,17 +5,17 @@
 
 {% block content %}
   <div class="border-b border-gray-200">
-    <nav class="flex space-x-1 overflow-x-auto" aria-label="Tabs" role="tablist">
+    <nav aria-label="Tabs" role="tablist">
       {% for period in periods %}
         <a type="button"
            href="{% url 'projects' period.key %}"
-           class="tab"
+           class="tab {% if current_period_key == period.key %}text-base font-bold{% endif %}"
            id="tabs-with-badges-item-{{ period.key | slugify }}"
            data-hs-tab="#tabs-with-badges-{{ period.key | slugify }}"
            aria-controls="tabs-with-badges-{{ period.key | slugify }}"
            role="tab">
-          {% if period.is_total %}
-            {{ period.key|title }}
+          {% if period.label %}
+            {{ period.label|title }}
           {% else %}
             {{ period.key|format_date }}
           {% endif %}

@@ -40,9 +40,12 @@ CACHES = {
         "LOCATION": BASE_DIR / "cache_file",  # A unique identifier for the cache
     }
 }
-DEFAULT_CACHE_DURATION = 600
-# Application definition
+if IS_LOCAL_DEV:
+    DEFAULT_CACHE_DURATION = 600
+else:
+    DEFAULT_CACHE_DURATION = 6000
 
+# Application definition
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",

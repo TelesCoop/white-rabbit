@@ -32,6 +32,7 @@ from white_rabbit.utils import (
     day_distribution,
     Period,
     is_total_key,
+    is_before_today,
 )
 
 
@@ -325,7 +326,20 @@ class EmployeeEvents:
             }
         )
         if is_total_key(period["key"]):
-            filtered_events = self.events
+            if period["key"] == "total_done":
+                filtered_events = [
+                    event
+                    for event in self.events
+                    if is_before_today(event["end_datetime"])
+                ]
+            elif period["key"] == "total_todo":
+                filtered_events = [
+                    event
+                    for event in self.events
+                    if not is_before_today(event["end_datetime"])
+                ]
+            else:
+                filtered_events = self.events
         else:
             filtered_events = filter_events_per_time_period(
                 self.events, period["start"], time_period

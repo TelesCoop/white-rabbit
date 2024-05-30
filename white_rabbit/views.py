@@ -200,7 +200,7 @@ class TotalPerProjectView(TemplateView):
 
         if is_total_key(month):
             period = {
-                "key": "total",
+                "key": month,
                 "start": datetime.date(2020, 1, 1),
                 "end": datetime.date(2030, 1, 1),
             }
@@ -229,6 +229,7 @@ class TotalPerProjectView(TemplateView):
             "periods": generate_time_periods_with_total(
                 24, time_shift_direction="past"
             ),
+            "current_period_key": period["key"],
             "projects_order": projects_order,
             "total_per_project": total_per_project,
             "projects_details": project_finder.by_company(user.employee.company),
@@ -244,8 +245,8 @@ class DistributionView(TemplateView):
         employees = employees_for_user(user)
         employees_names = {employee.name for employee in employees}
 
-        # For each employee, count the number of days they have worked on each category of project per month
-
+        # For each employee, count the number of days they have worked on each
+        # category of project per month
         project_finder = ProjectFinder()
         events_per_employee: EventsPerEmployee = get_events_from_employees_from_cache(
             employees, project_finder, request=self.request

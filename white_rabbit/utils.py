@@ -211,6 +211,12 @@ def group_events_per_category(events):
     return {k: list(g) for k, g in groupby(events, lambda event: event["category"])}
 
 
+def is_before_today(date: Union[datetime.date, datetime.datetime]) -> bool:
+    if isinstance(date, datetime.datetime):
+        date = date.date()
+    return date < datetime.date.today()
+
+
 def group_events_by_day(
     events: Iterable[Event],
 ) -> Dict[datetime.date, Iterable[Event]]:

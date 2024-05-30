@@ -83,7 +83,7 @@ def format_date(date):
     date_object = datetime.datetime.strptime(date, "%m-%Y")
 
     # Format the datetime object into a readable date
-    readable_date = date_object.strftime("%B %Y")
+    readable_date = date_object.strftime("%b %Y")
 
     return readable_date
 
