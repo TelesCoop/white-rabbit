@@ -8,7 +8,7 @@
     <nav aria-label="Tabs" role="tablist">
       {% for period in periods %}
         <a type="button"
-           {% if group_by == 'projects' %}
+           {% if group_by == 'project' %}
             href="{% url 'projects' period.key %}"
            {% else %}
             href="{% url 'categories' period.key %}"
