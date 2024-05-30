@@ -198,7 +198,7 @@ def filter_events_per_time_period(
     timeperiod_type: str = "month",
     total=None,
 ):
-    if is_total_key(total):
+    if total and is_total_key(total):
         return filter_total_events(events, total)
     if timeperiod is None:
         return events
