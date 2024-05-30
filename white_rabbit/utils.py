@@ -94,7 +94,9 @@ def count_number_days_spent(
 
 
 def day_distribution(
-    events: Iterable[Event], employee
+    events: Iterable[Event],
+    employee,
+    group_by: str = "project",
 ) -> Dict[int, ProjectDistribution]:
     """
     Given all events for a day for an employee, count the number of days
@@ -110,13 +112,17 @@ def day_distribution(
     else:
         divider = float(employee.default_day_working_hours)
 
-    distribution: Dict[int, ProjectDistribution] = defaultdict(
+    distribution: Dict[Union[str, int], ProjectDistribution] = defaultdict(
         lambda: {"duration": 0.0, "subproject_name": ""}
     )
 
     for event in events:
-        distribution[event["project_id"]]["subproject_name"] = event["subproject_name"]
-        distribution[event["project_id"]]["duration"] += event["duration"] / divider
+        if group_by == "project":
+            distribution[event["project_id"]]["detail_name"] = event["subproject_name"]
+            distribution[event["project_id"]]["duration"] += event["duration"] / divider
+        elif group_by == "category":
+            distribution[event["category"]]["detail_name"] = event["project_id"]
+            distribution[event["category"]]["duration"] += event["duration"] / divider
 
     return dict(distribution)
 
@@ -173,9 +179,27 @@ def count_number_days_spent_per_project_category(
     )
 
 
+def filter_total_events(events, total_key: str):
+    if total_key == "total_done":
+        return [event for event in events if is_before_today(event["end_datetime"])]
+    elif total_key == "total_todo":
+        return [event for event in events if not is_before_today(event["end_datetime"])]
+    elif total_key == "total":
+        return events
+    else:
+        raise ValueError(
+            "Invalid total_key. Choose either 'total', 'total_done' or 'total_todo'."
+        )
+
+
 def filter_events_per_time_period(
-    events, timeperiod: datetime.datetime = None, timeperiod_type: str = "month"
+    events,
+    timeperiod: datetime.datetime = None,
+    timeperiod_type: str = "month",
+    total=None,
 ):
+    if is_total_key(total):
+        return filter_total_events(events, total)
     if timeperiod is None:
         return events
     if timeperiod_type == "month":

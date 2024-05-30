@@ -32,7 +32,6 @@ from white_rabbit.utils import (
     day_distribution,
     Period,
     is_total_key,
-    is_before_today,
 )
 
 
@@ -316,51 +315,40 @@ class EmployeeEvents:
         self,
         period: Period,
         time_period: Union[str, None],
-    ) -> Dict[int, ProjectTime]:
+        group_by="project",
+    ) -> Dict[Union[str, int], ProjectTime]:
 
-        total: Dict[int, ProjectTime] = defaultdict(
+        total: Dict[Union[str, int], ProjectTime] = defaultdict(
             lambda: {
                 "duration": 0.0,
                 "events": [],
                 "subprojects": defaultdict(lambda: {"duration": 0.0}),
             }
         )
-        if is_total_key(period["key"]):
-            if period["key"] == "total_done":
-                filtered_events = [
-                    event
-                    for event in self.events
-                    if is_before_today(event["end_datetime"])
-                ]
-            elif period["key"] == "total_todo":
-                filtered_events = [
-                    event
-                    for event in self.events
-                    if not is_before_today(event["end_datetime"])
-                ]
-            else:
-                filtered_events = self.events
-        else:
-            filtered_events = filter_events_per_time_period(
-                self.events, period["start"], time_period
-            )
+        filtered_events = filter_events_per_time_period(
+            self.events,
+            period["start"],
+            time_period,
+            total=is_total_key(period["key"]) and period["key"] or None,
+        )
         for event_date, events_for_day in group_events_by_day(filtered_events).items():
             distribution: Dict[int, ProjectDistribution] = day_distribution(
-                events_for_day, employee=self.employee
+                events_for_day, employee=self.employee, group_by=group_by
             )
-            for project_id, project_distribution in distribution.items():
-                total[project_id]["duration"] += project_distribution["duration"]
-                total[project_id]["events"].append(
+            # identifier is project_id for projects, category name for categories
+            for identifier, data in distribution.items():
+                total[identifier]["duration"] += data["duration"]
+                total[identifier]["events"].append(
                     {
                         "employee": self.employee.name,
                         "date": event_date,
-                        "duration": project_distribution["duration"],
+                        "duration": data["duration"],
                     }
                 )
-                if project_distribution["subproject_name"]:
-                    total[project_id]["subprojects"][
-                        project_distribution["subproject_name"]
-                    ]["duration"] += project_distribution["duration"]
+                if data["detail_name"]:
+                    total[identifier]["subprojects"][data["detail_name"]][
+                        "duration"
+                    ] += data["duration"]
 
         return total
 

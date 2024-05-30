@@ -180,10 +180,11 @@ class ResumeView(TemplateView):
         }
 
 
-class TotalPerProjectView(TemplateView):
+class AbstractTotalView(TemplateView):
     template_name = "pages/projects-total.html"
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, group_by, **kwargs):
+        assert group_by in ["category", "project"]
         request = self.request
         user = request.user
         # period is a month, or one of total, total_done, total_todo
@@ -209,19 +210,24 @@ class TotalPerProjectView(TemplateView):
 
         for employee_name, employee_events in raw_employees_events.items():
             employees_events[employee_name] = employee_events.projects_for_time_period(
-                period, "month" if not is_total_key(month) else None
+                period, "month" if not is_total_key(month) else None, group_by=group_by
             )
 
-        total_per_project = Counter()
+        total_per_identifier = Counter()
         for _, employee_events in employees_events.items():
             for project_id, project_time in employee_events.items():
-                total_per_project[project_id] += project_time["duration"]
+                total_per_identifier[project_id] += project_time["duration"]
 
-        projects_order = sorted(
-            total_per_project.keys(),
-            key=lambda project_id: total_per_project[project_id],
+        identifier_order = sorted(
+            total_per_identifier.keys(),
+            key=lambda project_id: total_per_identifier[project_id],
             reverse=True,
         )
+
+        if group_by == "category":
+            details_data = PROJECT_CATEGORIES_CHOICES
+        else:
+            details_data = project_finder.by_company(user.employee.company)
 
         return {
             "employees_events": employees_events,
@@ -230,13 +236,26 @@ class TotalPerProjectView(TemplateView):
                 24, time_shift_direction="past"
             ),
             "current_period_key": period["key"],
-            "projects_order": projects_order,
-            "total_per_project": total_per_project,
-            "projects_details": project_finder.by_company(user.employee.company),
+            "identifier_order": identifier_order,
+            "total_per_identifier": total_per_identifier,
+            "details_data": details_data,
+            "group_by": group_by,
         }
 
 
-class DistributionView(TemplateView):
+class TotalPerProjectView(AbstractTotalView):
+    template_name = "pages/projects-total.html"
+
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(group_by="project", **kwargs)
+
+
+class DistributionView(AbstractTotalView):
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(group_by="category", **kwargs)
+
+
+class DistributionOldView(AbstractTotalView):
     template_name = "pages/distribution.html"
 
     def get_context_data(self, **kwargs):

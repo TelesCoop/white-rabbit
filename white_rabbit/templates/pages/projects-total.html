@@ -8,7 +8,11 @@
     <nav aria-label="Tabs" role="tablist">
       {% for period in periods %}
         <a type="button"
-           href="{% url 'projects' period.key %}"
+           {% if group_by == 'projects' %}
+            href="{% url 'projects' period.key %}"
+           {% else %}
+            href="{% url 'categories' period.key %}"
+           {% endif %}
            class="tab {% if current_period_key == period.key %}text-base font-bold{% endif %}"
            id="tabs-with-badges-item-{{ period.key | slugify }}"
            data-hs-tab="#tabs-with-badges-{{ period.key | slugify }}"
@@ -39,19 +43,23 @@
       </thead>
 
       <tbody class="divide-y divide-gray-200">
-      {% for project_id in projects_order %}
+      {% for identifier in identifier_order %}
           <tr>
             <th scope="row"
                 class="font-bold bg-gray-100 left-0 sticky z-50 uppercase text-sm">
-              {{ project_id|find_project_name:projects_details }}
+              {% if group_by == "project" %}
+                {{ identifier|find_project_name:details_data }}
+              {% else %}
+                {{ identifier }}
+              {% endif %}
             </th>
             <td class="sticky left-[120px] min-w-[150px] z-50 bg-white text-center">
-              {{ total_per_project|get_item:project_id|floatformat:1 }}
-              jour{{ total_per_project|get_item:project_id|pluralize:'s' }}
+              {{ total_per_identifier|get_item:identifier|floatformat:1 }}
+              jour{{ total_per_identifier|get_item:identifier|pluralize:'s' }}
             </td>
             {% for employee_name in employees_names %}
               <td>
-                {% with employees_events|get_item:employee_name|get_item:project_id as data %}
+                {% with employees_events|get_item:employee_name|get_item:identifier as data %}
                   <div tabindex="0" class="collapse text-center">
                     <div class="collapse-title">
                       {% if data.duration %}
