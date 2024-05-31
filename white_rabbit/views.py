@@ -149,9 +149,10 @@ class AliasView(TemplateView):
         aliasesByProject = {}
 
         for project in Project.objects.filter(company=company).order_by("name"):
-            aliasesByProject[project.name] = [
-                alias.name for alias in project.aliases.all()
-            ]
+            if project.aliases.count():
+                aliasesByProject[project.name] = [
+                    alias.name for alias in project.aliases.all()
+                ]
         return {"aliasesByProject": aliasesByProject}
 
 
@@ -253,35 +254,3 @@ class TotalPerProjectView(AbstractTotalView):
 class DistributionView(AbstractTotalView):
     def get_context_data(self, **kwargs):
         return super().get_context_data(group_by="category", **kwargs)
-
-
-class DistributionOldView(AbstractTotalView):
-    template_name = "pages/distribution.html"
-
-    def get_context_data(self, **kwargs):
-        request = self.request
-        user = request.user
-        employees = employees_for_user(user)
-        employees_names = {employee.name for employee in employees}
-
-        # For each employee, count the number of days they have worked on each
-        # category of project per month
-        project_finder = ProjectFinder()
-        events_per_employee: EventsPerEmployee = get_events_from_employees_from_cache(
-            employees, project_finder, request=self.request
-        )
-        employees_events = process_employees_events(events_per_employee, 12)
-        projects = {}
-        for employee_name, employee_events in employees_events.items():
-            if employee_name not in projects:
-                projects[employee_name] = {}
-            projects[employee_name] = (
-                employee_events.total_per_time_period_and_project_category()
-            )
-
-        return {
-            "employees_names": employees_names,
-            "projects": projects,
-            "categories": PROJECT_CATEGORIES_CHOICES,
-            "periods": generate_time_periods(24, time_shift_direction="past"),
-        }
