@@ -53,14 +53,20 @@ PROJECT_CATEGORIES_CHOICES = (
     (ProjectCategories.OTHER.value, "Autre"),
     (ProjectCategories.OFF_WORK.value, "Congé"),
     ("", "Non défini"),
-
 )
 
 
 class Project(models.Model):
     class Meta:
         verbose_name = "projet"
-        unique_together = ('lowercase_name', 'name', 'company', 'category', "start_date", "end_date")
+        unique_together = (
+            "lowercase_name",
+            "name",
+            "company",
+            "category",
+            "start_date",
+            "end_date",
+        )
 
     company = models.ForeignKey(
         Company,
@@ -76,16 +82,14 @@ class Project(models.Model):
     end_date = models.DateField(null=True, blank=True)
 
     category = models.CharField(
-        choices=PROJECT_CATEGORIES_CHOICES,
-        blank=True,
-        max_length=12
+        choices=PROJECT_CATEGORIES_CHOICES, blank=True, max_length=12
     )
-    days_sold = models.DecimalField(
-        verbose_name="Jours vendus",
+    estimated_days_count = models.DecimalField(
+        verbose_name="Jours prévus",
         default=0,
         max_digits=4,
         decimal_places=1,
-        help_text="Il s'agit du nombre de jours vendu au client pour ce projet",
+        help_text="Nombre de jours prévus sur le projet",
     )
 
     def save(self, *args, **kwargs):

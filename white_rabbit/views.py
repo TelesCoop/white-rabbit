@@ -42,8 +42,8 @@ def add_done_and_remaining_days_to_projects(
                 ]["duration"]
             except KeyError:
                 project.done = 0
-            if project.days_sold > 0:
-                project.remaining = float(project.days_sold) - project.done
+            if project.estimated_days_count > 0:
+                project.remaining = float(project.estimated_days_count) - project.done
 
 
 class HomeView(TemplateView):
@@ -182,7 +182,7 @@ class ResumeView(TemplateView):
 
 
 class AbstractTotalView(TemplateView):
-    template_name = "pages/projects-total.html"
+    template_name = "pages/projects-or-categories-total.html"
 
     def get_context_data(self, group_by, **kwargs):
         assert group_by in ["category", "project"]
@@ -245,7 +245,7 @@ class AbstractTotalView(TemplateView):
 
 
 class TotalPerProjectView(AbstractTotalView):
-    template_name = "pages/projects-total.html"
+    template_name = "pages/projects-or-categories-total.html"
 
     def get_context_data(self, **kwargs):
         return super().get_context_data(group_by="project", **kwargs)
@@ -254,3 +254,31 @@ class TotalPerProjectView(AbstractTotalView):
 class DistributionView(AbstractTotalView):
     def get_context_data(self, **kwargs):
         return super().get_context_data(group_by="category", **kwargs)
+
+
+class EstimatedDaysCountView(AbstractTotalView):
+    template_name = "pages/estimated-days-count.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(
+            group_by="project", period="total_done", **kwargs
+        )
+        projects_with_estimated_days_count_by_id = {
+            project.pk: project
+            for project in Project.objects.filter(
+                company=self.request.user.employee.company
+            )
+        }
+        projects_data: Dict[str, Dict[str, int]] = {
+            project.name: {
+                "estimated_days_count": (estimated := project.estimated_days_count),
+                "done": (done := context["total_per_identifier"][project_id]),
+                "remaining": float(estimated) - done,
+            }
+            for project_id in context["identifier_order"]
+            if (
+                project := projects_with_estimated_days_count_by_id[project_id]
+            ).estimated_days_count
+        }
+        context["projects_data"] = projects_data
+        return context

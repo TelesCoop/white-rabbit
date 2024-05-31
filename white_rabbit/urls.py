@@ -23,8 +23,13 @@ urlpatterns = [
     ),
     path("availability/week", views.AvailabilityPerWeekView.as_view()),
     path("availability/month", views.AvailabilityPerMonthView.as_view()),
+    path(
+        "suivi-projets",
+        views.EstimatedDaysCountView.as_view(),
+        name="estimated-days-reporting",
+    ),
     path("", views.ResumeView.as_view()),
-    path("alias/", views.AliasView.as_view()),
+    path("alias/", views.AliasView.as_view(), name="alias"),
     path("__debug__/", include(debug_toolbar.urls)),
     # django-hijack
     path(r"hijack/", include("hijack.urls", namespace="hijack")),

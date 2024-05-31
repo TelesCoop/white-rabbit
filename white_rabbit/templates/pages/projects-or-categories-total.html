@@ -46,7 +46,7 @@
       {% for identifier in identifier_order %}
         <tr>
           <th scope="row"
-              class="font-bold bg-gray-100 left-0 sticky z-50 uppercase text-sm">
+              class="font-bold bg-gray-100 left-0 sticky z-50 text-sm">
             {% if group_by == "project" %}
               {{ identifier|find_project_name:details_data }}
             {% else %}

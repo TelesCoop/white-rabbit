@@ -109,6 +109,8 @@ def get_event_data(start, end, calendar_name, project_finder, employee) -> Event
 
     return {
         "project_id": project.pk,
+        "project_name": project.name,
+        "has_estimated_days_count": bool(project.estimated_days_count),
         "category": project.category,
         "name": project_name,
         "subproject_name": subproject_name,
@@ -131,7 +133,9 @@ def get_events_by_url(
 def process_employee_events(
     employee: Employee, project_finder=None, request=None
 ) -> Iterable[Event]:
-    if employee.start_time_tracking_from > datetime.date.today():
+    if not employee.start_time_tracking_from or (
+        employee.start_time_tracking_from > datetime.date.today()
+    ):
         return []
 
     try:
@@ -327,7 +331,7 @@ class EmployeeEvents:
         )
         filtered_events = filter_events_per_time_period(
             self.events,
-            period["start"],
+            period.get("start"),
             time_period,
             total=is_total_key(period["key"]) and period["key"] or None,
         )
