@@ -9,7 +9,7 @@ from django.template.loader import render_to_string
 from white_rabbit.constants import DayState
 from white_rabbit.events import get_events_by_url
 from white_rabbit.models import Employee
-from white_rabbit.project_finder import ProjectFinder
+from white_rabbit.project_name_finder import ProjectFinder
 from white_rabbit.state_of_day import state_of_days_for_week
 
 
@@ -17,8 +17,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         project_finder = ProjectFinder()
         for employee in Employee.objects.filter(
-                user__email__isnull=False,
-                start_time_tracking_from__isnull=False,
+            user__email__isnull=False,
+            start_time_tracking_from__isnull=False,
         ):
             try:
                 events = get_events_by_url(
@@ -32,9 +32,9 @@ class Command(BaseCommand):
             day = employee.start_time_tracking_from
             today = datetime.date.today()
             end_of_last_week = (
-                    today
-                    + datetime.timedelta(days=6 - today.weekday())
-                    - datetime.timedelta(days=7)
+                today
+                + datetime.timedelta(days=6 - today.weekday())
+                - datetime.timedelta(days=7)
             )
             last_day = end_of_last_week
             if employee.end_time_tracking_on:
@@ -42,7 +42,7 @@ class Command(BaseCommand):
 
             while day < last_day:
                 for day_in_week, state_of_day in state_of_days_for_week(
-                        events, employee, day=day
+                    events, employee, day=day
                 ).items():
                     if not getattr(employee, f"works_day_{day_in_week.weekday() + 1}"):
                         # employee does not work on that day, so no reminders to be sent
