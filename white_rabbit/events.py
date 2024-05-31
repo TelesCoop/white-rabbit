@@ -22,12 +22,8 @@ from white_rabbit.typing import (
 )
 from white_rabbit.utils import (
     start_of_day,
-    calculate_period_start,
-    calculate_period_key,
     group_events_by_day,
     generate_time_periods,
-    count_number_days_spent_per_project_category,
-    group_events_per_category,
     filter_events_per_time_period,
     day_distribution,
     Period,
@@ -234,14 +230,6 @@ class EmployeeEvents:
     def group_events_per_day(self):
         return group_events_by_day(self.events)
 
-    def filter_events_per_month(self, date: datetime):
-        events = [
-            event
-            for event in self.events
-            if event["start_datetime"].month == date.month
-        ]
-        return {date: events}
-
     @property
     def data(self):
         return {
@@ -249,28 +237,6 @@ class EmployeeEvents:
             "events": self.events,
             "projects": self.projects,
         }
-
-    def group_events_per_project_category(self, month=None, week=None):
-        projects = {}
-
-        events_per_category = group_events_per_category(self.events)
-
-        for _event_category, events in events_per_category.items():
-            if month or week:
-                time_period = week if week else month
-                filtered_events_per_category = filter_events_per_time_period(
-                    events, time_period
-                )
-
-            number_days_spent_per_project_category = (
-                count_number_days_spent_per_project_category(
-                    filtered_events_per_category,
-                    self.employee.min_working_hours_for_full_day,
-                )
-            )
-            projects.update(number_days_spent_per_project_category)
-
-        return projects
 
     def group_by_time_period(
         self,
@@ -293,26 +259,6 @@ class EmployeeEvents:
                     self.events, period["start"], time_period
                 ),
             }
-        return events
-
-    def total_per_time_period_and_project_category(
-        self,
-        time_period: str = "month",
-        n_periods: int = None,
-        timeshift_direction="past",
-    ):
-        if n_periods is None:
-            n_periods = self.n_periods
-        events: Any = {}
-        for period_index in range(n_periods):
-            period_start = calculate_period_start(
-                period_index, time_period, timeshift_direction
-            )
-            period_key = calculate_period_key(period_start, time_period)
-            events[period_key] = self.group_events_per_project_category(
-                **{time_period: period_start}
-            )
-
         return events
 
     def projects_for_time_period(

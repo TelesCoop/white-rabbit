@@ -127,17 +127,6 @@ def day_distribution(
     return dict(distribution)
 
 
-# def count_number_days_spent_per_project(
-#     events: Iterable[Event],
-#     min_working_hours_for_full_day: int = DEFAULT_MIN_WORKING_HOURS,
-# ) -> Dict[int, ProjectDistribution]:
-#     return count_number_days_spent(
-#         events,
-#         key_func=lambda event: event["project_id"],
-#         min_working_hours_for_full_day=min_working_hours_for_full_day,
-#     )
-
-
 def is_date_same_or_after_today(date: datetime.date) -> bool:
     if isinstance(date, datetime.datetime):
         date = date.date()
@@ -167,16 +156,6 @@ def events_per_day(
             to_return[day] = []
 
     return to_return
-
-
-def count_number_days_spent_per_project_category(
-    events: Iterable[Event], min_working_hours_for_full_day: int = None
-) -> Dict[int, ProjectDistribution]:
-    return count_number_days_spent(
-        events,
-        key_func=lambda event: event["category"],
-        min_working_hours_for_full_day=min_working_hours_for_full_day,
-    )
 
 
 def filter_total_events(events, total_key: str):
