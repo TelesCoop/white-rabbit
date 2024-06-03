@@ -21,11 +21,10 @@
 </head>
 <body>
 {% load white_rabbit_tags %}
-{% include "components/header.html" %}
 <main class="flex w-full">
     {% include "components/sidebar.html" %}
     <div class="w-10/12">
-        <div class="p-8 pt-0">
+        <div class="p-8">
             {% block content %}
             {% endblock %}
         </div>
