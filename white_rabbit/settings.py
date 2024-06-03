@@ -49,7 +49,7 @@ CACHES = {
 if IS_LOCAL_DEV:
     DEFAULT_CACHE_DURATION = 60 * 60 * 24
 else:
-    DEFAULT_CACHE_DURATION = 600  # in seconds, so 10 minutes
+    DEFAULT_CACHE_DURATION = 660  # in seconds, so 11 minutes
 
 # Application definition
 INSTALLED_APPS = [

@@ -159,11 +159,11 @@ def create_events(
 
 
 def get_events_from_employees_from_cache(
-    employees: List[Employee], project_finder=None, request=None
+    employees: List[Employee], project_finder=None, request=None, force_refresh=False
 ) -> EventsPerEmployee:
     events: EventsPerEmployee = {}
     for employee in employees:
-        if employee_data := cache.get(str(employee.id), None):
+        if (not force_refresh) and (employee_data := cache.get(str(employee.id), None)):
             print("got from cache", employee.pk)
             events[employee] = employee_data
         else:

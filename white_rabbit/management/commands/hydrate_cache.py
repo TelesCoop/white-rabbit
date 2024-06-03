@@ -9,4 +9,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         employees = Employee.objects.all()
         project_finder = ProjectFinder()
-        get_events_from_employees_from_cache(employees, project_finder)
+        get_events_from_employees_from_cache(
+            employees, project_finder, force_refresh=True
+        )
