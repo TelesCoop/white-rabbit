@@ -21,8 +21,16 @@ urlpatterns = [
     path(
         "distribution/<str:period>", views.DistributionView.as_view(), name="categories"
     ),
-    path("availability/week", views.AvailabilityPerWeekView.as_view()),
-    path("availability/month", views.AvailabilityPerMonthView.as_view()),
+    path(
+        "availability/week",
+        views.AvailabilityPerWeekView.as_view(),
+        name="week-availability",
+    ),
+    path(
+        "availability/month",
+        views.AvailabilityPerMonthView.as_view(),
+        name="month-availability",
+    ),
     path(
         "suivi-projets",
         views.EstimatedDaysCountView.as_view(),
