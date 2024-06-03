@@ -244,22 +244,25 @@ class EmployeeEvents:
         n_periods: int = None,
         timeshift_direction="past",
     ):
-        events: Any = {}
+        to_return: Any = {}
 
         if n_periods is None:
             n_periods = self.n_periods
 
         periods = generate_time_periods(n_periods, time_period, timeshift_direction)
         for period in periods:
-            events[period["key"]] = {
+            events = filter_events_per_time_period(
+                self.events, period["start"], time_period
+            )
+
+            to_return[period["key"]] = {
                 "availability": available_time_of_employee(
                     self.employee, self.events, period["start"], period["end"]
                 ),
-                "events": filter_events_per_time_period(
-                    self.events, period["start"], time_period
-                ),
+                "events": events,
+                "period": period,
             }
-        return events
+        return to_return
 
     def projects_for_time_period(
         self,

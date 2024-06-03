@@ -149,3 +149,8 @@ def get_event_by_date(events, date):
 @register.filter
 def get_events_by_category(events, category):
     return events.get(category, "")
+
+
+@register.filter
+def dict_items(dictionary):
+    return dictionary.items()

@@ -1,6 +1,6 @@
 import datetime
 import json
-from collections import Counter
+from collections import Counter, defaultdict
 from typing import Dict
 
 from django.contrib.auth.views import LoginView
@@ -77,16 +77,15 @@ class HomeView(TemplateView):
 class AvailabilityBaseView(TemplateView):
     template_name = "pages/availability.html"
 
-    def __init__(self, time_period, title, *args, **kwargs):
+    def __init__(self, time_period, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.time_period = time_period
-        self.title = title
 
     def get(self, request):
         user = request.user
         employees = employees_for_user(user)
         today = datetime.date.today()
-        display_employees = [
+        employees = [
             employee
             for employee in employees
             if not employee.end_time_tracking_on
@@ -99,46 +98,60 @@ class AvailabilityBaseView(TemplateView):
         )
         events_per_employee = process_employees_events(events, n_periods=12)
 
-        upcoming_events = [
-            {
-                employee_name: employee_events.group_by_time_period(
-                    self.time_period, timeshift_direction="future"
+        # index by employee, then by project, then by period
+        projects_per_period: Dict[str, Dict[int, Dict[str, float]]] = defaultdict(
+            lambda: defaultdict(Counter)
+        )
+        # indexed by employee then by period
+        availability: Dict[str, Dict[str, float]] = defaultdict(Counter)
+        for employee_name, employee_events in events_per_employee.items():
+            periods = employee_events.group_by_time_period(
+                self.time_period, timeshift_direction="future", n_periods=12
+            )
+            for period_key, period_data in periods.items():
+                availability[employee_name][period_key] = period_data["availability"]
+                data = employee_events.projects_for_time_period(
+                    period_data["period"], self.time_period, group_by="project"
                 )
-            }
-            for employee_name, employee_events in events_per_employee.items()
-        ]
-        up_periods = generate_time_periods(12, self.time_period)
+                for project_id, project_data in data.items():
+                    projects_per_period[employee_name][project_id][
+                        period_key
+                    ] += project_data["duration"]
 
-        project_details = project_finder.by_company(user.employee.company)
+        # for each employee, re-order projects by total upcoming time
+        for employee in projects_per_period.keys():
+            projects_per_period[employee] = dict(
+                sorted(
+                    projects_per_period[employee].items(),
+                    key=lambda item: sum(item[1].values()),
+                    reverse=True,
+                )
+            )
 
         return render(
             request,
             self.template_name,
             {
-                "employees": json.dumps(
-                    [employee.name for employee in display_employees]
-                ),
-                "upcoming_events_by_employee_and_timeperiod": upcoming_events,
-                "periods": json.dumps(up_periods, default=str),
-                "projects": project_details,
-                "title": self.title,
+                "projects_per_period": projects_per_period,
+                "availability": availability,
+                "projects": project_finder.by_company(user.employee.company),
                 "periodicity": self.time_period,
+                "periods_per_key": {
+                    period["key"]: period
+                    for period in generate_time_periods(12, self.time_period)
+                },
             },
         )
 
 
 class AvailabilityPerWeekView(AvailabilityBaseView):
     def __init__(self, *args, **kwargs):
-        super().__init__(
-            "week", "Disponibilités pour les prochaines semaines", *args, **kwargs
-        )
+        super().__init__("week", *args, **kwargs)
 
 
 class AvailabilityPerMonthView(AvailabilityBaseView):
     def __init__(self, *args, **kwargs):
-        super().__init__(
-            "month", "Disponibilités pour les prochains mois", *args, **kwargs
-        )
+        super().__init__("month", *args, **kwargs)
 
 
 class AliasView(TemplateView):
@@ -188,18 +201,9 @@ class AbstractTotalView(TemplateView):
         assert group_by in ["category", "project"]
         request = self.request
         user = request.user
+
         # period is a month, or one of total, total_done, total_todo
         month = kwargs["period"]
-        employees = employees_for_user(user)
-        employees_names = {employee.name for employee in employees}
-        project_finder = ProjectFinder()
-        events_per_employee: EventsPerEmployee = get_events_from_employees_from_cache(
-            employees, project_finder, request=self.request
-        )
-
-        raw_employees_events = process_employees_events(events_per_employee, 24)
-        employees_events: Dict[str, Dict[int, ProjectTime]] = {}
-
         if is_total_key(month):
             period = {
                 "key": month,
@@ -209,7 +213,17 @@ class AbstractTotalView(TemplateView):
         else:
             period = time_period_for_month(month)
 
-        for employee_name, employee_events in raw_employees_events.items():
+        employees = employees_for_user(user)
+        employees_names = {employee.name for employee in employees}
+        project_finder = ProjectFinder()
+
+        events_per_employee = get_events_from_employees_from_cache(
+            employees, project_finder, request=self.request
+        )
+        events_per_employee = process_employees_events(events_per_employee, 24)
+
+        employees_events: Dict[str, Dict[int, ProjectTime]] = {}
+        for employee_name, employee_events in events_per_employee.items():
             employees_events[employee_name] = employee_events.projects_for_time_period(
                 period, "month" if not is_total_key(month) else None, group_by=group_by
             )

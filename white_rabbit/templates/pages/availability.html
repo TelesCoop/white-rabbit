@@ -3,75 +3,70 @@
 {% load cache %}
 {% load static %}
 
+{% block extra_css %}
+.project-time td {
+  text-align: center;
+  padding: 0.2rem;
+}
+{% endblock %}
+
 {% block content %}
-    <h1 class="text-xl font-bold mb-4 text-left">{{ title }}</h1>
-    <div class="overflow-x-scroll w-[80vw] rounded-xl">
-        <table class="table border border-gray-200 border-separate rounded-lg divide-y divide-gray-200">
-            <thead>
-            <tr class="font-bold bg-indigo-50 text-bold text-md">
-                <th class="font-bold text-black left-0 sticky z-50 bg-indigo-50 flex" scope="col">
-                    Employé·e
-                </th>
-                {% for period in periods|json_loads %}
-                    <th class="min-w-48 font-bold bg-indigo-50">
-                        {% if period.start and period.end %}
-                            <p class="text-black">{{ period.start }} - {{ period.end }}</p>
-                        {% endif %}
+  <div class="overflow-x-scroll w-[80vw] rounded-xl">
+    <table
+        class="table border border-gray-200 border-separate rounded-lg divide-y divide-gray-200">
+      <thead>
+      <tr class="font-bold bg-indigo-50 text-bold text-md">
+        <th class="font-bold text-black left-0 sticky z-50 bg-indigo-50 flex"
+            scope="col">
+          Employé·e
+        </th>
+        {% for period in periods_per_key.values %}
+          <th class="min-w-48 font-bold bg-indigo-50">
+            {% if period.start and period.end %}
+              <p class="text-black">{{ period.start }} - {{ period.end }}</p>
+            {% endif %}
 
-                        <span class="uppercase text-gray-500 font-bold">
-                            {% if periodicity == "week" %}
-                                Semaine n°
-                            {% endif %}
-                            {{ period.key }}
-                        </span>
-                    </th>
-                {% endfor %}
-            </tr>
-            </thead>
-            <tbody>
+            <span class="uppercase text-gray-500 font-bold">
+              {% if periodicity == "week" %}
+                Semaine n°
+              {% endif %}
+              {{ period.key }}
+            </span>
+          </th>
+        {% endfor %}
+      </tr>
+      </thead>
 
-            {% for employees_upcoming_events_per_timeperiod in upcoming_events_by_employee_and_timeperiod %}
-                {% for employee_name, upcoming_events_per_timeperiod  in employees_upcoming_events_per_timeperiod.items %}
-                    <tr class="bg-gray-50">
-                        <th class="font-bold bg-gray-100 left-0 sticky z-50 text-center uppercase">{{ employee_name }}</th>
-                        {% for time_period, upcoming_events in upcoming_events_per_timeperiod.items %}
-                            <td>
-                                <div class="flex flex-col justify-center items-center">
-                                    <div style="background: {{ upcoming_events.availability|week_color }}"
-                                         class="pastille pastille-2xl font-bold flex gap-1">
-                                        {{ upcoming_events.availability }}
-                                        <span class="font-normal">jours</span>
-                                    </div>
-                                </div>
-                            </td>
-                        {% endfor %}
-                    </tr>
-                    <tr class="bg-gray-50">
-                        <th class="font-bold bg-gray-100 left-0 sticky z-50 text-center"></th>
-                        {% for time_period, upcoming_events in upcoming_events_per_timeperiod.items %}
-                            <td>
-
-                                <div class="flex flex-col gap-2">
-                                    <div class="flex flex-col gap-2">
-                                        {% get_projects_str event.projects projects periodicity as project_events_list %}
-
-
-
-
-                                        {% for event in upcoming_events.events %}
-
-                                            <div class="flex text-xs gap-1">
-                                                <span class="font-bold">{{ event.name }}</span>
-                                                <span>le {{ event.start_datetime }} ({{ event.duration }} heures)</span>
-                                            </div>
-                                        {% endfor %}
-                                    </div>
-                            </td>
-                        {% endfor %}
-                    </tr>
-                {% endfor %}
+      <tbody>
+      {% for employee_name, employee_data  in projects_per_period|dict_items %}
+        <tr class="bg-gray-50">
+          <th class="font-bold bg-gray-100 left-0 sticky z-50 text-center uppercase">{{ employee_name }}</th>
+          <th>dispos</th>
+          {% for period_key, availability in availability|get_item:employee_name|dict_items %}
+            <td>
+              <div class="flex flex-col justify-center items-center">
+                <div style="background: {{ availability|week_color }}"
+                     class="pastille pastille-2xl font-bold flex gap-1">
+                  {{ availability }}
+                  <span class="font-normal">jours</span>
+                </div>
+              </div>
+            </td>
+          {% endfor %}
+        </tr>
+        <tr>
+        </tr>
+        {% for project_id, project_data in employee_data|dict_items %}
+          <tr class="bg-gray-50 project-time">
+            <td></td>
+            <td>{{ project_id|find_project_name:projects }}</td>
+            {% for period_key in periods_per_key %}
+                <td>{{ project_data|get_item:period_key|floatformat:1 }}</td>
             {% endfor %}
-            </tbody>
-        </table>
-    </div>
+          </tr>
+        {% endfor %}
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
 {% endblock %}

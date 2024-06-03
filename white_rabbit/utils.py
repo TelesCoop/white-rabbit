@@ -118,12 +118,13 @@ def day_distribution(
 
     for event in events:
         if group_by == "project":
+            # TODO if multiple events for the same day have different subproject,
+            #  this will count everything as the last one
             distribution[event["project_id"]]["detail_name"] = event["subproject_name"]
             distribution[event["project_id"]]["duration"] += event["duration"] / divider
         elif group_by == "category":
             distribution[event["category"]]["detail_name"] = event["project_id"]
             distribution[event["category"]]["duration"] += event["duration"] / divider
-
     return dict(distribution)
 
 
