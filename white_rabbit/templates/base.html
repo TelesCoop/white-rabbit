@@ -23,7 +23,7 @@
 {% load white_rabbit_tags %}
 <main class="flex w-full">
     {% include "components/sidebar.html" %}
-    <div class="w-10/12">
+    <div class="w-10/12" style="overflow-y: auto; max-height: 100vh">
         <div class="p-8">
             {% block content %}
             {% endblock %}
