@@ -9,12 +9,6 @@ h2 {
 }
 
 
-.fixed-first-row {
-    position: sticky;
-    top: 0;
-    background: white;
-}
-
 .aliases-container {
     column-count: 4;
     column-gap: 2rem;

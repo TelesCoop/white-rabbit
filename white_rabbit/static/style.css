@@ -73,3 +73,9 @@ h2 {
     width: 5rem;
     height: 5rem;
 }
+
+.sticky-first-row th {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
