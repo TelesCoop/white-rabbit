@@ -11,17 +11,17 @@
 {% endblock %}
 
 {% block content %}
-  <div class="overflow-x-scroll w-[80vw] rounded-xl">
+  <div class="w-[80vw] rounded-xl">
     <table
         class="table border border-gray-200 border-separate rounded-lg divide-y divide-gray-200">
       <thead>
-      <tr class="sticky-first-row font-bold bg-indigo-50 text-bold text-md">
-        <th class="font-bold text-black left-0 sticky z-50 bg-indigo-50 flex"
+      <tr class="font-bold bg-indigo-50 text-bold text-md">
+        <th class="font-bold text-black left-0 top-0 sticky z-150 bg-indigo-50 flex"
             scope="col">
           Employé·e
         </th>
         {% for period in periods_per_key.values %}
-          <th class="min-w-48 font-bold bg-indigo-50">
+          <th class="min-w-48 font-bold bg-indigo-50 top-0 sticky z-10">
             {% if period.start and period.end %}
               <p class="text-black">{{ period.start }} - {{ period.end }}</p>
             {% endif %}

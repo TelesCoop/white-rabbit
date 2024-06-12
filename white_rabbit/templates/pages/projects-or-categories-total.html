@@ -31,11 +31,11 @@
     <table
         class="border border-gray-200 border-separate rounded-lg divide-y divide-gray-200">
       <thead class="bg-gray-50">
-      <tr class="sticky-first-row font-bold text-black uppercase text-xs">
-        <th class="p-4 sticky z-50 left-0 bg-indigo-50 w-[150px]">Nom du projet</th>
-        <th class="p-4 sticky z-50 left-[120px] bg-indigo-50">Total</th>
+      <tr class="font-bold text-black uppercase text-xs">
+        <th class="p-4 sticky z-150 left-0 top-0 bg-indigo-50 w-[150px]">Nom du projet</th>
+        <th class="p-4 sticky z-150 top-0 left-[120px] bg-indigo-50">Total</th>
         {% for employee_name in employees_names %}
-          <th class="p-4 bg-indigo-50 text-gray-800">
+          <th class="p-4 bg-indigo-50 sticky top-0 z-150 text-gray-800">
             {{ employee_name }}
           </th>
         {% endfor %}
