@@ -63,3 +63,8 @@ h2 {
     height: 4rem;
 }
 
+.sticky-first-row th {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
