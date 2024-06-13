@@ -1,0 +1,77 @@
+<aside id="default-sidebar"
+       class="relative left-0 z-40 w-2/12 h-screen transition-transform -translate-x-full sm:translate-x-0 overflow-hidden"
+       aria-label="Sidebar">
+  <div class="h-full px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-800">
+    <ul class="space-y-2 font-medium">
+      <li>
+        <a class="btn btn-ghost text-xl" target="_self">Lapin Blanc 🐰</a>
+      </li>
+      <li>
+        <span
+            class="flex items-center w-full p-2 text-base text-gray-900 rounded-lg group"
+            aria-controls="dropdown-example"
+            data-collapse-toggle="dropdown-example">
+            {% include "svgs/graph.svg" %}
+          <span
+              class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap">Temps total</span>
+        </span>
+        <ul id="dropdown-project" class="py-2 space-y-2">
+          <li>
+            <a href="{% url 'projects' 'total' %}"
+               class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 ">
+              Par mois</a>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <span
+            class="flex items-center w-full p-2 text-base text-gray-900 group"
+            aria-controls="dropdown-example"
+            data-collapse-toggle="dropdown-example">
+            {% include "svgs/calendar.svg" %}
+          <span class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap">
+            Disponibilité
+          </span>
+        </span>
+        <ul id="dropdown-example" class="py-2 space-y-2">
+          <li>
+            <a href="{% url 'week-availability' %}"
+               class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 ">Semaines</a>
+          </li>
+          <li>
+            <a href="{% url 'month-availability' %}"
+               class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 ">Mois</a>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <a href="{% url 'categories' 'total' %}"
+           class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100  group">
+          {% include "svgs/pie-chart.svg" %}
+          <span class="flex-1 ms-3 whitespace-nowrap">Proportion</span>
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'estimated-days-reporting' %}"
+           class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100  group">
+          {% include "svgs/graph.svg" %}
+          <span class="flex-1 ms-3 whitespace-nowrap">Suivi du temps</span>
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'alias' %}"
+           class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100  group">
+          {% include "svgs/shop.svg" %}
+          <span class="flex-1 ms-3 whitespace-nowrap">Liste des alias</span>
+        </a>
+      </li>
+      <li>
+        <a href="/auth/logout"
+           class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100  group">
+          {% include "svgs/logout.svg" %}
+          <span class="flex-1 ms-3 whitespace-nowrap">Se déconnecter</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+</aside>

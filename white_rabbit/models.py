@@ -1,8 +1,11 @@
 from datetime import datetime
+from enum import Enum
 
 from django.contrib.auth.models import User
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+
+from white_rabbit.constants import DEFAULT_NB_WORKING_HOURS
 
 
 class TimeStampedModel(models.Model):
@@ -33,10 +36,37 @@ class Company(TimeStampedModel):
         return self.admins.filter(pk=user.pk).exists()
 
 
+class ProjectCategories(Enum):
+    PRO_BONO = "PRO_BONO"
+    CLIENT = "CLIENT"
+    INTERNAL = "INTERNAL"
+    ROLE = "ROLE"
+    OTHER = "OTHER"
+    OFF_WORK = "OFF_WORK"
+
+
+PROJECT_CATEGORIES_CHOICES = (
+    (ProjectCategories.PRO_BONO.value, "Pro-bono"),
+    (ProjectCategories.CLIENT.value, "Client"),
+    (ProjectCategories.INTERNAL.value, "Interne"),
+    (ProjectCategories.ROLE.value, "Rôle"),
+    (ProjectCategories.OTHER.value, "Autre"),
+    (ProjectCategories.OFF_WORK.value, "Congé"),
+    ("", "Non défini"),
+)
+
+
 class Project(models.Model):
     class Meta:
         verbose_name = "projet"
-        unique_together = ("lowercase_name", "company", "start_date")
+        unique_together = (
+            "lowercase_name",
+            "name",
+            "company",
+            "category",
+            "start_date",
+            "end_date",
+        )
 
     company = models.ForeignKey(
         Company,
@@ -48,17 +78,18 @@ class Project(models.Model):
     lowercase_name = models.CharField(
         max_length=32, verbose_name="nom en minuscule", null=False
     )
-    is_client_project = models.BooleanField(verbose_name="Projet client", default=False)
-    is_pro_bono_project = models.BooleanField(verbose_name="Projet pro bono", default=False)
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
 
-    days_sold = models.DecimalField(
-        verbose_name="Jours vendus",
+    category = models.CharField(
+        choices=PROJECT_CATEGORIES_CHOICES, blank=True, max_length=12
+    )
+    estimated_days_count = models.DecimalField(
+        verbose_name="Jours prévus",
         default=0,
         max_digits=4,
         decimal_places=1,
-        help_text="Il s'agit du nombre de jours vendu au client pour ce projet",
+        help_text="Nombre de jours prévus sur le projet",
     )
 
     def save(self, *args, **kwargs):
@@ -101,7 +132,7 @@ class Employee(TimeStampedModel):
     )
     default_day_working_hours = models.IntegerField(
         verbose_name="heures travaillées par jour",
-        default=8,
+        default=DEFAULT_NB_WORKING_HOURS,
         validators=[MinValueValidator(0), MaxValueValidator(24)],
         help_text="Pour une journée incomplète, ce total est utilisé pour calculer la proportion d'une journée passée sur un projet",
     )
@@ -144,6 +175,9 @@ class Employee(TimeStampedModel):
     works_day_6 = models.BooleanField(verbose_name="travaille le samedi", default=False)
     works_day_7 = models.BooleanField(
         verbose_name="travaille le dimanche", default=False
+    )
+    disabled = models.BooleanField(
+        verbose_name="désactivé", default=False, help_text="Salarié désactivé"
     )
 
     def __str__(self):

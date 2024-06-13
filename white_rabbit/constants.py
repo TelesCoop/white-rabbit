@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
-DEFAULT_DAY_WORKING_HOURS = 8
-MIN_WORKING_HOURS_FOR_FULL_DAY = 6
+DEFAULT_NB_WORKING_HOURS = 8
+DEFAULT_MIN_WORKING_HOURS = 6
 
 
 @dataclass

@@ -1,34 +1,33 @@
 {% load static %}
+{% load tailwind_tags %}
+{% load i18n %}
 
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Lapin Blanc</title>
-    <link rel="stylesheet" href="{% static 'bulma.min.css' %}">
-    <link rel="stylesheet" href="{% static 'buefy.min.css' %}">
-    <link rel="stylesheet" href="{% static 'style.css' %}">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@5.8.55/css/materialdesignicons.min.css">
-    <style>
-      {% block extra_css %}
-      {% endblock %}
-    </style>
+  <meta charset="UTF-8">
+  <title>Lapin Blanc</title>
+  <link rel="stylesheet" href="{% static 'style.css' %}">
+  <link href="{% static 'daisyui.full.min.css' %}" rel="stylesheet" type="text/css"/>
+
+  <style>
+    {% block extra_css %}
+    {% endblock %}
+  </style>
+  <script src="{% static 'preline.min.js' %}"></script>
+
+  {% tailwind_css %}
 </head>
 <body>
-    <nav role="navigation" class="navbar container mb-4 is-align-items-center" aria-label="navigation principale">
-        <div class="navbar-brand">
-            <a href="/" target="_self">
-                <h1 class="title is-1">Lapin Blanc 🐰</h1>
-            </a>
-        </div>
-        <div class="navbar-end">
-            <a class="nav-item" href="/alias/" target="_self">
-                Liste des alias
-            </a>
-        </div>
-    </nav>
-
-    {% block content %}
-    {% endblock %}
+{% load white_rabbit_tags %}
+<main class="flex w-full">
+  {% include "components/sidebar.html" %}
+  <div class="w-10/12" style="overflow-y: auto; max-height: 100vh">
+    <div class="p-8">
+      {% block content %}
+      {% endblock %}
+    </div>
+  </div>
+</main>
 </body>
 </html>

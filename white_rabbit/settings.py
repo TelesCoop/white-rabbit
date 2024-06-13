@@ -18,25 +18,40 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+IS_LOCAL_DEV = bool(os.environ.get("TELESCOOP_DEV"))
+
+if IS_LOCAL_DEV:
+    config_paths = ["local_settings.conf"]
+else:
+    config_paths = [os.environ["CONFIG_PATH"]]
 config = getconf.ConfigGetter(
     "myproj",
-    ["local_settings.conf", "/etc/telescoop/white-rabbit/backend-settings.ini"],
+    config_paths,
 )
 
-IS_LOCAL_DEV = bool(os.environ.get("TELESCOOP_DEV"))
 DEBUG = IS_LOCAL_DEV
 
 if IS_LOCAL_DEV:
     # SECURITY WARNING: keep the secret key used in production secret!
     SECRET_KEY = "9cang=0bgw9jfnroblq6rv%7kk$s-6*%^7t^(e08nrqj-dj@#6"
     ALLOWED_HOSTS = []
+    # SILKY_PYTHON_PROFILER=True
 else:
     SECRET_KEY = config.getstr("security.secret_key")
     ALLOWED_HOSTS = config.getlist("security.allowed_hosts")
 
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": BASE_DIR / "cache_file",  # A unique identifier for the cache
+    }
+}
+if IS_LOCAL_DEV:
+    DEFAULT_CACHE_DURATION = 60 * 60 * 24
+else:
+    DEFAULT_CACHE_DURATION = 660  # in seconds, so 11 minutes
 
 # Application definition
-
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -47,7 +62,10 @@ INSTALLED_APPS = [
     "white_rabbit",
     "debug_toolbar",
     "hijack",  # django-hijack
-    "hijack_admin",
+    "hijack.contrib.admin",
+    # 'silk'
+    "tailwind",
+    "tailwind_theme",
 ]
 
 MIDDLEWARE = [
@@ -61,6 +79,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "rollbar.contrib.django.middleware.RollbarNotifierMiddleware",
     "white_rabbit.middleware.only_logged_in_users",
+    # 'silk.middleware.SilkyMiddleware'
 ]
 
 ROOT_URLCONF = "white_rabbit.urls"
@@ -83,7 +102,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "white_rabbit.wsgi.application"
 
-
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
@@ -93,7 +111,6 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
@@ -113,7 +130,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
 
@@ -126,7 +142,6 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
@@ -143,7 +158,11 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 if not IS_LOCAL_DEV:
     ROLLBAR = {
         "access_token": config.getstr("bugs.rollbar_access_token"),
-        "environment": "development" if DEBUG else "production",
+        "environment": (
+            "development"
+            if DEBUG
+            else config.getstr("environment.environment", "production")
+        ),
         "root": BASE_DIR,
     }
     import rollbar
@@ -169,3 +188,5 @@ INTERNAL_IPS = ["127.0.0.1"]
 # djang-hijack
 HIJACK_ALLOW_GET_REQUESTS = True
 HIJACK_DISPLAY_ADMIN_BUTTON = False
+
+TAILWIND_APP_NAME = "tailwind_theme"

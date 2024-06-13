@@ -35,7 +35,7 @@ class AliasInline(admin.StackedInline):
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
-    list_display = ("name", "company", "start_date", "is_client_project", "days_sold", "is_pro_bono_project")
+    list_display = ("name", "company", "start_date", "estimated_days_count")
     exclude = ("lowercase_name",)
     inlines = (AliasInline,)
     search_fields = ["aliases__name", "name"]

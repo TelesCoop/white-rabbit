@@ -9,20 +9,20 @@ from django.template.loader import render_to_string
 from white_rabbit.constants import DayState
 from white_rabbit.events import get_events_by_url
 from white_rabbit.models import Employee
-from white_rabbit.project_name_finder import ProjectNameFinder
+from white_rabbit.project_name_finder import ProjectFinder
 from white_rabbit.state_of_day import state_of_days_for_week
 
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        project_name_finder = ProjectNameFinder()
+        project_finder = ProjectFinder()
         for employee in Employee.objects.filter(
             user__email__isnull=False,
             start_time_tracking_from__isnull=False,
         ):
             try:
                 events = get_events_by_url(
-                    employee.calendar_ical_url, employee, project_name_finder
+                    employee.calendar_ical_url, employee, project_finder
                 )
             except ValueError:
                 print(f"could not get events for {employee.user.email}")

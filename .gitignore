@@ -7,3 +7,9 @@ __pycache__
 .ipynb_checkpoints
 html2text==2020.1.16
 .vscode/
+*debug_toolbar
+/static/hijack*
+/static/silk*
+/static/admin*cache_file
+Pipfile*
+cache_file
