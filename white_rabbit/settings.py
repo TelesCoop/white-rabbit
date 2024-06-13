@@ -62,8 +62,10 @@ INSTALLED_APPS = [
     "white_rabbit",
     "debug_toolbar",
     "hijack",  # django-hijack
-    "hijack_admin",
+    "hijack.contrib.admin",
     # 'silk'
+    "tailwind",
+    "tailwind_theme",
 ]
 
 MIDDLEWARE = [
@@ -186,3 +188,5 @@ INTERNAL_IPS = ["127.0.0.1"]
 # djang-hijack
 HIJACK_ALLOW_GET_REQUESTS = True
 HIJACK_DISPLAY_ADMIN_BUTTON = False
+
+TAILWIND_APP_NAME = "tailwind_theme"

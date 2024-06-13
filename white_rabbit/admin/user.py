@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
-from hijack_admin.admin import HijackUserAdminMixin
+from hijack.contrib.admin import HijackUserAdminMixin
 
 from white_rabbit.models import Employee, Company
 
@@ -54,7 +54,7 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin):
         ),
     )
     inlines = (EmployeeInline,)
-    list_display = BaseUserAdmin.list_display + ("hijack_field",)
+    list_display = BaseUserAdmin.list_display
 
     def has_permission(self, request):
         if request.user.is_anonymous:
