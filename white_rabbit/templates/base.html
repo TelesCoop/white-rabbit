@@ -20,6 +20,13 @@
 </head>
 <body>
 {% load white_rabbit_tags %}
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <li{% if message.tags %} class="bg-red-200 p-2 {{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
 <main class="flex w-full">
   {% include "components/sidebar.html" %}
   <div class="w-10/12" style="overflow-y: auto; max-height: 100vh">

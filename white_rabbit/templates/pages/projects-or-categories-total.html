@@ -49,6 +49,7 @@
               class="font-bold bg-gray-100 left-0 sticky z-50 text-sm">
             {% if group_by == "project" %}
               {{ identifier|find_project_name:details_data }}
+              <a href="{% url 'admin:white_rabbit_project_change' identifier %}" class="text-xs" target="_blank">🖍</a>
             {% else %}
               {{ identifier }}
             {% endif %}

@@ -288,6 +288,7 @@ class EstimatedDaysCountView(AbstractTotalView):
                 "estimated_days_count": (estimated := project.estimated_days_count),
                 "done": (done := context["total_per_identifier"][project_id]),
                 "remaining": float(estimated) - done,
+                "id": project_id,
             }
             for project_id in context["identifier_order"]
             if (

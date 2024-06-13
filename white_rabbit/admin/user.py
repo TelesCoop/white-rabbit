@@ -42,7 +42,7 @@ class EmployeeInline(admin.StackedInline):
         return obj.employee.company.admins.filter(pk=request.user.pk).exists()
 
 
-class UserAdmin(BaseUserAdmin, HijackUserAdminMixin):
+class UserAdmin(HijackUserAdminMixin, BaseUserAdmin):
     fieldsets = (
         (None, {"fields": ("username", "password")}),
         (_("Personal info"), {"fields": ("first_name", "last_name", "email")}),
@@ -54,7 +54,6 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin):
         ),
     )
     inlines = (EmployeeInline,)
-    list_display = BaseUserAdmin.list_display
 
     def has_permission(self, request):
         if request.user.is_anonymous:

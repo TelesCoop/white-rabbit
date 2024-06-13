@@ -79,6 +79,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "rollbar.contrib.django.middleware.RollbarNotifierMiddleware",
     "white_rabbit.middleware.only_logged_in_users",
+    "hijack.middleware.HijackUserMiddleware",
     # 'silk.middleware.SilkyMiddleware'
 ]
 

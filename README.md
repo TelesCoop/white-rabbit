@@ -1,5 +1,13 @@
 # Lapin Blanc
 
+## Dev
+
+Le projet utilise Tailwind. Si on risque de changer les classes, il faut lancer en plus
+de `python manage.py runserver`, `python manage.py tailwind start`.
+
+Une fois que le développement lié à tailwind est terminé, lancer
+`python manage.py tailwind build`.
+
 ## Ajouter des salariés
 
 La configuration se faire sur l'interface d'administration, accessible à

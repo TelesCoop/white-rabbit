@@ -19,7 +19,10 @@
       <tbody class="divide-y divide-gray-200">
       {% for project_name, project_data in projects_data.items %}
         <tr>
-          <td class="p-4">{{ project_name }}</td>
+          <td class="p-4">
+            {{ project_name }}
+            <a href="{% url 'admin:white_rabbit_project_change' project_data.id %}" class="text-xs" target="_blank">🖍</a>
+          </td>
           <td class="p-4">{{ project_data.done|floatformat:1 }}</td>
           <td class="p-4">{{ project_data.estimated_days_count|floatformat:1 }}</td>
           <td class="p-4">{{ project_data.remaining|floatformat:1 }}</td>
