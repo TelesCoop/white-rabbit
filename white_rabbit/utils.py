@@ -189,6 +189,10 @@ def filter_events_per_time_period(
             if event["start_datetime"].month == timeperiod.month
             and event["start_datetime"].year == timeperiod.year
         ]
+    if timeperiod_type == "year":
+        return [
+            event for event in events if event["start_datetime"].year == timeperiod.year
+        ]
     elif timeperiod_type == "week":
         return [
             event
@@ -277,11 +281,19 @@ def generate_time_periods(
 def generate_time_periods_with_total(
     n_periods: int, time_period: str = "month", time_shift_direction: str = "future"
 ):
-    periods = [
-        {"key": "total", "label": "Total", "is_total": True},
-        {"key": "total_done", "label": "Total effectué", "is_total": True},
-        {"key": "total_todo", "label": "Total prévu", "is_total": True},
-    ] + generate_time_periods(n_periods, time_period, time_shift_direction)
+    year_periods = [
+        {"key": f"total-{year}", "label": f"Total {year}", "is_total": True}
+        for year in range(datetime.date.today().year, 2020, -1)
+    ]
+    periods = (
+        [
+            {"key": "total", "label": "Total", "is_total": True},
+            {"key": "total_done", "label": "Total effectué", "is_total": True},
+            {"key": "total_todo", "label": "Total prévu", "is_total": True},
+        ]
+        + year_periods
+        + generate_time_periods(n_periods, time_period, time_shift_direction)
+    )
     return periods
 
 
@@ -332,3 +344,7 @@ def get_or_create_employee_event(employees_events, employee_name, project_detail
 
 def is_total_key(key: str) -> bool:
     return key.startswith("total")
+
+
+def is_year_key(key: str) -> bool:
+    return key.startswith("total-")

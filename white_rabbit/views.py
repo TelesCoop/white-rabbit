@@ -24,6 +24,7 @@ from .utils import (
     generate_time_periods_with_total,
     time_period_for_month,
     is_total_key,
+    is_year_key,
 )
 
 
@@ -205,12 +206,22 @@ class AbstractTotalView(TemplateView):
         # period is a month, or one of total, total_done, total_todo
         month = kwargs["period"]
         if is_total_key(month):
+            if is_year_key(month):
+                year = int(month.split("-")[1])
+                start = datetime.date(year, 1, 1)
+                end = datetime.date(year + 1, 1, 1)
+                time_period_type = "year"
+            else:
+                start = datetime.date(2020, 1, 1)
+                end = datetime.date(2030, 1, 1)
+                time_period_type = None
             period = {
                 "key": month,
-                "start": datetime.date(2020, 1, 1),
-                "end": datetime.date(2030, 1, 1),
+                "start": start,
+                "end": end,
             }
         else:
+            time_period_type = "month"
             period = time_period_for_month(month)
 
         employees = employees_for_user(user)
@@ -225,7 +236,7 @@ class AbstractTotalView(TemplateView):
         employees_events: Dict[str, Dict[int, ProjectTime]] = {}
         for employee_name, employee_events in events_per_employee.items():
             employees_events[employee_name] = employee_events.projects_for_time_period(
-                period, "month" if not is_total_key(month) else None, group_by=group_by
+                period, time_period_type, group_by=group_by
             )
 
         total_per_identifier = Counter()
