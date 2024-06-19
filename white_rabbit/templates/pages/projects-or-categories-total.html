@@ -58,7 +58,6 @@
           </th>
           <td class="sticky left-[120px] min-w-[150px] z-50 bg-white text-center">
             {{ total_per_identifier|get_item:identifier|floatformat:1 }}
-            jour{{ total_per_identifier|get_item:identifier|pluralize:'s' }}
           </td>
           {% for employee_name in employees_names %}
             <td>
@@ -67,9 +66,7 @@
                   <div class="collapse-title">
                     {% if data.duration %}
                       {{ data.duration|floatformat:1 }}
-                      jour{{ data.duration|pluralize:'s' }}
                     {% endif %}
-
                   </div>
                   {% if data.events %}
                     <div
@@ -90,7 +87,6 @@
             </td>
           {% endfor %}
         </tr>
-
       {% endfor %}
       </tbody>
     </table>
