@@ -5,11 +5,11 @@
     <div class="container" id="app">
         <div class="previous-week">
             <h2 class="text-lg">Semaine dernière</h2>
-            {% include "components/full-calendar.html" with items=past_week_events %}
+            {% include "components/state-of-days-in-week.html" with items=past_week_events %}
         </div>
         <div class="previous-week">
             <h2 class="text-lg">Cette semaine</h2>
-            {% include "components/full-calendar.html" with items=current_week_event %}
+            {% include "components/state-of-days-in-week.html" with items=current_week_event %}
         </div>
     </div>
 {% endblock %}

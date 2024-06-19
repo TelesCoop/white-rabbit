@@ -1,5 +1,4 @@
 import datetime
-import json
 from collections import Counter, defaultdict
 from typing import Dict
 
@@ -60,17 +59,12 @@ class HomeView(TemplateView):
             employees, project_finder, request=self.request
         )
         return {
-            "past_week_events": json.dumps(
-                state_of_days_per_employee_for_week(
-                    events_per_employee, today - datetime.timedelta(days=7)
-                ),
-                default=str,
+            "employees": employees,
+            "past_week_events": state_of_days_per_employee_for_week(
+                events_per_employee, today - datetime.timedelta(days=7)
             ),
-            "current_week_event": json.dumps(
-                state_of_days_per_employee_for_week(
-                    events_per_employee, today, employees
-                ),
-                default=str,
+            "current_week_event": state_of_days_per_employee_for_week(
+                events_per_employee, today, employees
             ),
         }
 

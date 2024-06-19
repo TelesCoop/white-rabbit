@@ -11,10 +11,10 @@ from white_rabbit.utils import events_per_day
 
 
 def state_of_days_per_employee(
-        events_per_employee: EventsPerEmployee,
-        start_datetime: date,
-        end_datetime: date,
-        employees: Iterable[Employee] = None,
+    events_per_employee: EventsPerEmployee,
+    start_datetime: date,
+    end_datetime: date,
+    employees: Iterable[Employee] = None,
 ) -> Dict[datetime.date, Dict[Employee, Dict[str, Any]]]:
     """
     Returns a dict date -> (employee -> state of day) for each
@@ -42,7 +42,10 @@ def state_of_days_per_employee(
 
 
 def state_of_days(
-        employee: Employee, events: Iterable[Event], start_datetime: date, end_datetime: date
+    employee: Employee,
+    events: Iterable[Event],
+    start_datetime: date,
+    end_datetime: date,
 ) -> Dict[datetime.date, Dict[str, Any]]:
     """
     Returns a dict date -> (employee -> state of day) for each
@@ -64,21 +67,25 @@ def state_of_days(
 
 
 def state_of_days_per_employee_for_week(
-        events_per_employee: EventsPerEmployee,
-        day: datetime.date = None,
-        employees: Iterable[Employee] = None,
+    events_per_employee: EventsPerEmployee,
+    day: datetime.date = None,
+    employees: Iterable[Employee] = None,
 ) -> Dict[datetime.date, Dict[Employee, Dict[str, Any]]]:
     if day is None:
         day = datetime.date.today()
     start_of_week = day - datetime.timedelta(days=day.weekday())
     end_of_week = start_of_week + datetime.timedelta(days=4)
-    return state_of_days_per_employee(
+    to_return = state_of_days_per_employee(
         events_per_employee, start_of_week, end_of_week, employees
     )
+    # to_return is a dict, whose keys are dates and values are dicts
+    # we re-order date keys
+    to_return = dict(sorted(to_return.items()))
+    return to_return
 
 
 def state_of_days_for_week(
-        events: Iterable[Event], employee: Employee, day: datetime.date = None
+    events: Iterable[Event], employee: Employee, day: datetime.date = None
 ) -> Dict[datetime.date, Dict[str, Any]]:
     if day is None:
         day = datetime.date.today()

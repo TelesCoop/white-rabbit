@@ -134,6 +134,22 @@ def is_date_same_or_after_today(date: datetime.date) -> bool:
     return date >= datetime.date.today()
 
 
+def convert_to_datetime_if_date(date: Union[datetime.date, datetime.datetime]):
+    if isinstance(date, datetime.date):
+        return datetime.datetime(date.year, date.month, date.day)
+    return date
+
+
+def is_event_between_dates(event_datetime, start_datetime, end_datetime):
+    if isinstance(start_datetime, datetime.date):
+        start_datetime = convert_to_datetime_if_date(start_datetime)
+    if isinstance(end_datetime, datetime.date):
+        end_datetime = convert_to_datetime_if_date(end_datetime)
+    if isinstance(event_datetime, datetime.date):
+        event_datetime = convert_to_datetime_if_date(event_datetime)
+    return start_datetime <= event_datetime <= end_datetime
+
+
 def events_per_day(
     events: Iterable[Event], start_datetime: datetime.date, end_datetime: datetime.date
 ) -> Dict[datetime.date, Iterable[Event]]:
@@ -146,7 +162,7 @@ def events_per_day(
     events = [
         event
         for event in events
-        if start_datetime <= event["start_datetime"] <= end_datetime
+        if is_event_between_dates(event["start_datetime"], start_datetime, end_datetime)
     ]
     to_return = group_events_by_day(events)
 

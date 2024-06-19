@@ -16,7 +16,7 @@ urlpatterns = [
         ),
     ),
     path("auth/", include("django.contrib.auth.urls")),
-    path("home", views.HomeView.as_view()),
+    path("", views.HomeView.as_view()),
     path("projects/<str:period>", views.TotalPerProjectView.as_view(), name="projects"),
     path(
         "distribution/<str:period>", views.DistributionView.as_view(), name="categories"
@@ -36,7 +36,7 @@ urlpatterns = [
         views.EstimatedDaysCountView.as_view(),
         name="estimated-days-reporting",
     ),
-    path("", views.ResumeView.as_view()),
+    path("resume", views.ResumeView.as_view()),
     path("alias/", views.AliasView.as_view(), name="alias"),
     path("__debug__/", include(debug_toolbar.urls)),
     # django-hijack

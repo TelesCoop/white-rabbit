@@ -1,0 +1,42 @@
+{% load white_rabbit_tags %}
+
+<table class="table">
+  <tr>
+    <th>Date</th>
+    {% for employee in employees %}
+      <th>{{ employee.name }}</th>
+    {% endfor %}
+  </tr>
+  {% for date, data in items.items %}
+    <tr>
+      <td>{{ date }}</td>
+      {% for employee in employees %}
+        {% with data|get_item:employee.name as employee_data %}
+          <td>
+            <div tabindex="0" class="collapse">
+              <div class="collapse-title">
+                {% if employee_data.state == 'complete' %}
+                  ✅
+                {% elif employee_data.state == 'incomplete' %}
+                  〰️
+                {% else %}
+                  ❌
+                {% endif %}
+              </div>
+              <div class="collapse-content">
+                <ul>
+                  {% for event in employee_data.events %}
+                    <li>
+                      {{ event.project_name }} ({{ event.duration|floatformat:1 }}h)
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </div>
+
+          </td>
+        {% endwith %}
+      {% endfor %}
+    </tr>
+  {% endfor %}
+</table>
