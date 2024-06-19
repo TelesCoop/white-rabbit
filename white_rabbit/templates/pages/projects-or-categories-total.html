@@ -70,11 +70,11 @@
                   </div>
                   {% if data.events %}
                     <div
-                        class="collapse-content bg-gray-100 min-w-[150px] rounded-xl">
+                        class="collapse-content text-xs bg-gray-100 min-w-[150px] rounded-xl">
                       <ul>
                         {% for event in data.events %}
                           <li>
-                            <span>{{ event.duration|floatformat:1 }}h</span> le
+                            <span>{{ event.duration|floatformat:1 }}j</span> le
                             <span>{{ event.date|date:"d/m/Y" }}</span>
                           </li>
                         {% endfor %}
