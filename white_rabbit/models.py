@@ -114,7 +114,7 @@ class Alias(models.Model):
 
     def save(self, *args, **kwargs):
         self.lowercase_name = self.name.lower()
-        super().save(self, *args, **kwargs)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
