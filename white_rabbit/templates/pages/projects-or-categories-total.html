@@ -5,37 +5,40 @@
 
 {% block content %}
   <div class="border-b border-gray-200">
-    <nav aria-label="Tabs" role="tablist">
-      {% for period in periods %}
-        <a type="button"
-            {% if group_by == 'project' %}
-           href="{% url 'projects' period.key %}"
+    {% for period_list in periods.values %}
+      <nav aria-label="Tabs" role="tablist">
+        {% for period in period_list %}
+          <a type="button"
+              {% if group_by == 'project' %}
+             href="{% url 'projects' period.key %}"
+              {% else %}
+             href="{% url 'categories' period.key %}"
+              {% endif %}
+             class="tab {% if current_period_key == period.key %}text-base font-bold{% endif %}"
+             id="tabs-with-badges-item-{{ period.key | slugify }}"
+             data-hs-tab="#tabs-with-badges-{{ period.key | slugify }}"
+             aria-controls="tabs-with-badges-{{ period.key | slugify }}"
+             role="tab">
+            {% if period.label %}
+              {{ period.label|title }}
             {% else %}
-           href="{% url 'categories' period.key %}"
+              {{ period.key|format_date }}
             {% endif %}
-           class="tab {% if current_period_key == period.key %}text-base font-bold{% endif %}"
-           id="tabs-with-badges-item-{{ period.key | slugify }}"
-           data-hs-tab="#tabs-with-badges-{{ period.key | slugify }}"
-           aria-controls="tabs-with-badges-{{ period.key | slugify }}"
-           role="tab">
-          {% if period.label %}
-            {{ period.label|title }}
-          {% else %}
-            {{ period.key|format_date }}
-          {% endif %}
-        </a>
-      {% endfor %}
-    </nav>
+          </a>
+        {% endfor %}
+      </nav>
+    {% endfor %}
   </div>
   <div class="mt-3">
     <table
-        class="border border-gray-200 border-separate rounded-lg divide-y divide-gray-200">
+        class="border border-gray-200 divide-y divide-gray-200">
       <thead class="bg-gray-50">
       <tr class="font-bold text-black uppercase text-xs">
-        <th class="p-4 sticky z-150 left-0 top-0 bg-indigo-50 w-[150px]">Nom du projet</th>
-        <th class="p-4 sticky z-150 top-0 left-[120px] bg-indigo-50">Total</th>
+        <th class="p-2 min-w-48 sticky z-150 left-0 top-0 bg-indigo-50 w-[150px]">Nom du projet
+        </th>
+        <th class="p-2 sticky z-150 top-0 left-[120px] bg-indigo-50">Total</th>
         {% for employee_name in employees_names %}
-          <th class="p-4 bg-indigo-50 sticky top-0 z-150 text-gray-800">
+          <th class="p-2 bg-indigo-50 sticky top-0 z-150 text-gray-800">
             {{ employee_name }}
           </th>
         {% endfor %}
@@ -46,11 +49,12 @@
       {% for identifier in identifier_order %}
         <tr>
           <th scope="row"
-              class="font-bold bg-gray-100 left-0 sticky z-50 text-sm">
+              class="font-bold bg-gray-100 left-0 sticky z-50 text-sm h-8">
             {% if group_by == "project" %}
               {{ identifier|find_project_name:details_data }}
               {% if user_is_staff %}
-                <a href="{% url 'admin:white_rabbit_project_change' identifier %}" class="text-xs" target="_blank">🖍</a>
+                <a href="{% url 'admin:white_rabbit_project_change' identifier %}"
+                   class="text-xs" target="_blank">🖍</a>
               {% endif %}
             {% else %}
               {{ identifier }}
@@ -63,7 +67,7 @@
             <td>
               {% with employees_events|get_item:employee_name|get_item:identifier as data %}
                 <div tabindex="0" class="collapse text-center">
-                  <div class="collapse-title">
+                  <div class="collapse-title p-0" style="min-height: 0">
                     {% if data.duration %}
                       {{ data.duration|floatformat:1 }}
                     {% endif %}

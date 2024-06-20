@@ -277,7 +277,7 @@ def generate_time_periods(
             period_index, time_period, time_shift_direction
         )
         if time_period == "month":
-            period_key = f"{period_start.month}-{period_start.year}"
+            period_key = period_start.strftime("%m-%Y")
             end_of_period = (
                 period_start
                 + relativedelta(**{f"{time_period}s": 1})  # type: ignore
@@ -299,28 +299,29 @@ def generate_time_periods_with_total(
     year_periods = [
         {
             "key": f"total-{current_year}-todo",
-            "label": f"{current_year} prévu",
+            "label": f"Prévu {current_year}",
             "is_total": True,
         },
         {
             "key": f"total-{current_year}-done",
-            "label": f"{current_year} effectué",
+            "label": f"Effectué {current_year}",
             "is_total": True,
         },
     ] + [
         {"key": f"total-{year}", "label": f"Total {year}", "is_total": True}
         for year in range(current_year, 2020, -1)
     ]
-    periods = (
-        [
-            {"key": "total", "label": "Total", "is_total": True},
-            {"key": "total_done", "label": "Total effectué", "is_total": True},
-            {"key": "total_todo", "label": "Total prévu", "is_total": True},
-        ]
-        + year_periods
-        + generate_time_periods(n_periods, time_period, time_shift_direction)
-    )
-    return periods
+    total_periods = [
+        {"key": "total", "label": "Total", "is_total": True},
+        {"key": "total_done", "label": "Total effectué", "is_total": True},
+        {"key": "total_todo", "label": "Total prévu", "is_total": True},
+    ]
+    time_periods = generate_time_periods(n_periods, time_period, time_shift_direction)
+
+    return {
+        "total_periods": total_periods + year_periods,
+        "time_periods": time_periods,
+    }
 
 
 def get_or_create_project(projects, project_id, project_detail):
