@@ -176,6 +176,8 @@ def events_per_day(
 
 
 def filter_todo_or_done(events, key: str):
+    if not key:
+        return events
     if key.endswith("todo"):
         return [event for event in events if not is_before_today(event["end_datetime"])]
     elif key.endswith("done"):
