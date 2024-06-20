@@ -175,27 +175,23 @@ def events_per_day(
     return to_return
 
 
-def filter_total_events(events, total_key: str):
-    if total_key == "total_done":
-        return [event for event in events if is_before_today(event["end_datetime"])]
-    elif total_key == "total_todo":
+def filter_todo_or_done(events, key: str):
+    if key.endswith("todo"):
         return [event for event in events if not is_before_today(event["end_datetime"])]
-    elif total_key == "total":
-        return events
-    else:
-        raise ValueError(
-            "Invalid total_key. Choose either 'total', 'total_done' or 'total_todo'."
-        )
+    elif key.endswith("done"):
+        return [event for event in events if is_before_today(event["end_datetime"])]
+    return events
 
 
 def filter_events_per_time_period(
     events,
     timeperiod: datetime.datetime = None,
     timeperiod_type: str = "month",
-    total=None,
+    period_key=None,
 ):
-    if total and is_total_key(total):
-        return filter_total_events(events, total)
+    events = filter_todo_or_done(events, period_key)
+    if period_key and is_total_key(period_key):
+        return events
     if timeperiod is None:
         return events
     if timeperiod_type == "month":
@@ -297,9 +293,21 @@ def generate_time_periods(
 def generate_time_periods_with_total(
     n_periods: int, time_period: str = "month", time_shift_direction: str = "future"
 ):
+    current_year = datetime.date.today().year
     year_periods = [
+        {
+            "key": f"total-{current_year}-todo",
+            "label": f"{current_year} prévu",
+            "is_total": True,
+        },
+        {
+            "key": f"total-{current_year}-done",
+            "label": f"{current_year} effectué",
+            "is_total": True,
+        },
+    ] + [
         {"key": f"total-{year}", "label": f"Total {year}", "is_total": True}
-        for year in range(datetime.date.today().year, 2020, -1)
+        for year in range(current_year, 2020, -1)
     ]
     periods = (
         [

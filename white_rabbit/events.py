@@ -27,8 +27,6 @@ from white_rabbit.utils import (
     filter_events_per_time_period,
     day_distribution,
     Period,
-    is_total_key,
-    is_year_key,
 )
 
 
@@ -283,10 +281,7 @@ class EmployeeEvents:
             self.events,
             period.get("start"),
             time_period,
-            total=is_total_key(period["key"])
-            and not is_year_key(period["key"])
-            and period["key"]
-            or None,
+            period_key=period["key"],
         )
         for event_date, events_for_day in group_events_by_day(filtered_events).items():
             distribution: Dict[int, ProjectDistribution] = day_distribution(

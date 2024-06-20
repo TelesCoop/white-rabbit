@@ -197,11 +197,11 @@ class AbstractTotalView(TemplateView):
         request = self.request
         user = request.user
 
-        # period is a month, or one of total, total_done, total_todo
-        month = kwargs["period"]
-        if is_total_key(month):
-            if is_year_key(month):
-                year = int(month.split("-")[1])
+        # period is a month, a year, or one of total, total_done, total_todo
+        period_name = kwargs["period"]
+        if is_total_key(period_name):
+            if is_year_key(period_name):
+                year = int(period_name.split("-")[1])
                 start = datetime.date(year, 1, 1)
                 end = datetime.date(year + 1, 1, 1)
                 time_period_type = "year"
@@ -210,13 +210,13 @@ class AbstractTotalView(TemplateView):
                 end = datetime.date(2030, 1, 1)
                 time_period_type = None
             period = {
-                "key": month,
+                "key": period_name,
                 "start": start,
                 "end": end,
             }
         else:
             time_period_type = "month"
-            period = time_period_for_month(month)
+            period = time_period_for_month(period_name)
 
         employees = employees_for_user(user)
         employees_names = {employee.name for employee in employees}
