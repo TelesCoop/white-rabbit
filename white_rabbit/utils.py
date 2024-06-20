@@ -192,6 +192,10 @@ def filter_events_per_time_period(
     period_key=None,
 ):
     events = filter_todo_or_done(events, period_key)
+    if timeperiod_type == "year":
+        return [
+            event for event in events if event["start_datetime"].year == timeperiod.year
+        ]
     if period_key and is_total_key(period_key):
         return events
     if timeperiod is None:
@@ -203,18 +207,14 @@ def filter_events_per_time_period(
             if event["start_datetime"].month == timeperiod.month
             and event["start_datetime"].year == timeperiod.year
         ]
-    if timeperiod_type == "year":
-        return [
-            event for event in events if event["start_datetime"].year == timeperiod.year
-        ]
-    elif timeperiod_type == "week":
+    if timeperiod_type == "week":
         return [
             event
             for event in events
             if event["start_datetime"].isocalendar()[1] == timeperiod.isocalendar()[1]
             and event["start_datetime"].year == timeperiod.year
         ]
-    elif timeperiod_type == "day":
+    if timeperiod_type == "day":
         events = []
         for event in events:
             is_datetime = isinstance(event["start_datetime"], datetime.datetime)
@@ -224,8 +224,8 @@ def filter_events_per_time_period(
             if event_date == timeperiod:
                 events.append(event)
         return events
-    else:
-        raise ValueError("Invalid timeperiod_type. Choose either 'month' or 'week'.")
+
+    raise ValueError("Invalid timeperiod_type. Choose 'month', 'week' or 'year'")
 
 
 def group_events_per_category(events):
