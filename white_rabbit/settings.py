@@ -39,6 +39,7 @@ if IS_LOCAL_DEV:
 else:
     SECRET_KEY = config.getstr("security.secret_key")
     ALLOWED_HOSTS = config.getlist("security.allowed_hosts")
+    CSRF_TRUSTED_ORIGINS = [f"https://{host}" for host in ALLOWED_HOSTS]
 
 CACHES = {
     "default": {
@@ -96,7 +97,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "white_rabbit.context_processors.user_is_staff",
+                "white_rabbit.context_processors.user_is_staff  ",
             ],
         },
     },
