@@ -18,7 +18,7 @@
 
       <tbody class="divide-y divide-gray-200">
       {% for project_name, project_data in projects_data.items %}
-        <tr>
+        <tr class="odd:bg-white even:bg-slate-50">
           <td class="p-4">
             {{ project_name }}
             {% if user_is_staff %}

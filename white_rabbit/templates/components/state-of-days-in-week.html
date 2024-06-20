@@ -8,13 +8,13 @@
     {% endfor %}
   </tr>
   {% for date, data in items.items %}
-    <tr>
+    <tr class="odd:bg-white even:bg-slate-50">
       <td>{{ date }}</td>
       {% for employee in employees %}
         {% with data|get_item:employee.name as employee_data %}
           <td>
             <div tabindex="0" class="collapse">
-              <div class="collapse-title">
+              <div class="collapse-title p-0 min-h-0">
                 {% if employee_data.state == 'complete' %}
                   ✅
                 {% elif employee_data.state == 'incomplete' %}
@@ -33,7 +33,6 @@
                 </ul>
               </div>
             </div>
-
           </td>
         {% endwith %}
       {% endfor %}
