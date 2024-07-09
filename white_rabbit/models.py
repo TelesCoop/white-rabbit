@@ -55,6 +55,16 @@ PROJECT_CATEGORIES_CHOICES = (
     ("", "Non défini"),
 )
 
+PROJECT_CATEGORY_TO_DISPLAY_NAME = {
+    ProjectCategories.PRO_BONO.value: "Pro-bono",
+    ProjectCategories.CLIENT.value: "Client",
+    ProjectCategories.INTERNAL.value: "Interne",
+    ProjectCategories.ROLE.value: "Rôle",
+    ProjectCategories.OTHER.value: "Autre",
+    ProjectCategories.OFF_WORK.value: "Congé",
+    "": "Non défini",
+}
+
 
 class Project(models.Model):
     class Meta:

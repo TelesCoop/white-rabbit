@@ -5,6 +5,7 @@ import numbers
 from django.template.defaultfilters import pluralize, floatformat
 from django.template.defaulttags import register
 
+from white_rabbit.models import PROJECT_CATEGORY_TO_DISPLAY_NAME
 from white_rabbit.utils import is_total_key
 
 
@@ -32,10 +33,7 @@ def get_type(value):
 
 @register.filter
 def find_project(project_id, projects):
-    project = projects.get(project_id, None)
-    if project is None:
-        return None
-    return project
+    return projects.get(project_id, None)
 
 
 @register.filter
@@ -50,7 +48,20 @@ def find_project_name(project_id, projects):
     project = find_project(project_id, projects)
     if project is None:
         return "Inconnu"
-    return find_project(project_id, projects).get("name", None)
+    return project.get("name", None)
+
+
+@register.filter
+def find_project_category(project_id, projects):
+    project = find_project(project_id, projects)
+    if project is None:
+        return ""
+    return project.get("category", "")
+
+
+@register.filter
+def get_category_display_name(category: str):
+    return PROJECT_CATEGORY_TO_DISPLAY_NAME.get(category, "Non défini")
 
 
 @register.simple_tag

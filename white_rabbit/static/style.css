@@ -73,3 +73,6 @@ h2 {
     width: 5rem;
     height: 5rem;
 }
+.text-2xs {
+    font-size: 0.6rem;
+}

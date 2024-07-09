@@ -62,3 +62,6 @@ h2 {
     top: 0;
     z-index: 100;
 }
+.text-2xs {
+    font-size: 0.6rem;
+}
