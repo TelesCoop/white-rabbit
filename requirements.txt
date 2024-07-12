@@ -12,3 +12,4 @@ jours-feries-france==0.7.0
 python-dateutil==2.8.1
 rollbar==0.15.2
 django-tailwind==3.8.0
+factory-boy==3.3.0
