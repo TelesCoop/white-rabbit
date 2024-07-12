@@ -45,9 +45,9 @@
       </tr>
       </thead>
 
-      <tbody class="divide-y divide-gray-200">
+      <tbody class="divide-y {% if not show_details %}divide-gray-200{% endif %}">
       {% for identifier in identifier_order %}
-        <tr class="odd:bg-white even:bg-slate-50">
+        <tr class="odd:bg-white even:bg-slate-50 {% if show_details %}border-t border-gray-400 border-solid{% endif %}">
           <th scope="row"
               class="font-bold bg-gray-100 left-0 sticky z-50 text-sm h-8">
             {% if group_by == "project" %}
@@ -92,6 +92,20 @@
             </td>
           {% endfor %}
         </tr>
+        {% if show_details %}
+          {% for data in subtotal_per_identifier|get_item:identifier %}
+            <tr class="odd:bg-white even:bg-slate-50">
+              <td class="font-bold bg-gray-50 text-xs h-8 text-right">{{ data }}</td>
+              <td class="text-center">{{ subtotal_per_identifier|get_item:identifier|get_item:data|floatformat:1 }}</td>
+              {% for employee_name in employees_names %}
+                <td>
+                  {% subproject_total employees_events employee_name identifier data %}
+                </td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+
+        {% endif %}
       {% endfor %}
       </tbody>
     </table>

@@ -196,6 +196,7 @@ class AbstractTotalView(TemplateView):
         assert group_by in ["category", "project"]
         request = self.request
         user = request.user
+        details = self.request.GET.get("details", False)
 
         # period is a month, a year, or one of total, total_done, total_todo
         period_name = kwargs["period"]
@@ -234,21 +235,35 @@ class AbstractTotalView(TemplateView):
             )
 
         total_per_identifier = Counter()
+        subtotal_per_identifier: Dict[int, Dict[str, float]] = defaultdict(Counter)
         for _, employee_events in employees_events.items():
             for project_id, project_time in employee_events.items():
                 total_per_identifier[project_id] += project_time["duration"]
-
+                for sub_project_name, data in project_time["subprojects"].items():
+                    subtotal_per_identifier[project_id][sub_project_name] += data[
+                        "duration"
+                    ]
         identifier_order = sorted(
             total_per_identifier.keys(),
             key=lambda project_id: total_per_identifier[project_id],
             reverse=True,
         )
 
+        if details:
+            # re-order subtotal_per_identifier
+            for project_id in subtotal_per_identifier.keys():
+                subtotal_per_identifier[project_id] = dict(
+                    sorted(
+                        subtotal_per_identifier[project_id].items(),
+                        key=lambda item: item[1],
+                        reverse=True,
+                    )
+                )
+
         if group_by == "category":
             details_data = PROJECT_CATEGORIES_CHOICES
         else:
             details_data = project_finder.by_company(user.employee.company)
-
         return {
             "employees_events": employees_events,
             "employees_names": employees_names,
@@ -258,8 +273,10 @@ class AbstractTotalView(TemplateView):
             "current_period_key": period["key"],
             "identifier_order": identifier_order,
             "total_per_identifier": total_per_identifier,
+            "subtotal_per_identifier": subtotal_per_identifier,
             "details_data": details_data,
             "group_by": group_by,
+            "show_details": details,
         }
 
 

@@ -15,6 +15,20 @@ def project_name(project_details, project_id):
 
 
 @register.simple_tag
+def subproject_total(employee_events, employee_name, project_id, subproject_name):
+    to_return = (
+        employee_events[employee_name]
+        .get(project_id, {})
+        .get("subprojects", {})
+        .get(subproject_name, {})
+        .get("duration", "")
+    )
+    if to_return:
+        to_return = floatformat(to_return, 1)
+    return to_return
+
+
+@register.simple_tag
 def iterate_json(json_string):
     return json.loads(json_string).items()
 
