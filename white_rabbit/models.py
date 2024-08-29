@@ -45,6 +45,7 @@ class ProjectCategories(Enum):
     OFF_WORK = "OFF_WORK"
     OKLM = "OKLM"
     SALES = "SALES"
+    FORMATION = "FORMATION"
 
 
 PROJECT_CATEGORIES_CHOICES = (
@@ -56,6 +57,7 @@ PROJECT_CATEGORIES_CHOICES = (
     (ProjectCategories.OFF_WORK.value, "Congé"),
     (ProjectCategories.OKLM.value, "Oklm"),
     (ProjectCategories.SALES.value, "Commercial"),
+    (ProjectCategories.FORMATION.value, "Formation"),
     ("", "Non défini"),
 )
 
@@ -68,6 +70,7 @@ PROJECT_CATEGORY_TO_DISPLAY_NAME = {
     ProjectCategories.OFF_WORK.value: "Congé",
     ProjectCategories.OKLM.value: "Oklm",
     ProjectCategories.SALES.value: "Commercial",
+    ProjectCategories.FORMATION.value: "Formation",
     "": "Non défini",
 }
 
