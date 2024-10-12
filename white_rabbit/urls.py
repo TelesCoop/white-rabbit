@@ -40,6 +40,11 @@ urlpatterns = [
         views.EstimatedDaysCountView.as_view(),
         name="estimated-days-reporting",
     ),
+    path(
+        "suivi-monnaitaire",
+        views.MoneyTrackingView.as_view(),
+        name="money-tracking",
+    ),
     path("resume", views.ResumeView.as_view()),
     path("alias/", views.AliasView.as_view(), name="alias"),
     path("__debug__/", include(debug_toolbar.urls)),

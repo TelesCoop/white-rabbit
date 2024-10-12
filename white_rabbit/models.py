@@ -36,7 +36,7 @@ class Company(TimeStampedModel):
         decimal_places=2,
         help_text="Coût journalié moyen d'un salarié pour l'entreprise en €",
     )
-    rentability_cost = models.DecimalField(
+    break_even_point = models.DecimalField(
         verbose_name="Seuil de rentabilité",
         default=0,
         max_digits=6,

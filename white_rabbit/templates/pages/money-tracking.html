@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% load white_rabbit_tags %}
+{% load cache %}
+{% load static %}
+
+{% block content %}
+  <div>
+    <p>Seuls les projets notés comme terminé sont affichés ici</p>
+    <table
+        class="border mt-3">
+      <thead class="bg-gray-50">
+      <tr class="font-bold bg-indigo-50 text-black uppercase text-xs">
+        <th class="p-4 sticky z-50 top-0 left-0 bg-indigo-50 w-[150px]">Nom du projet</th>
+        <th class="p-4 sticky z-50 top-0 left-[120px] bg-indigo-50">Prix vendu</th>
+        <th class="p-4 sticky z-50 top-0 left-[120px] bg-indigo-50">Jours vendu</th>
+        <th class="p-4 sticky z-50 top-0 left-[120px] bg-indigo-50">Jours faits</th>
+        <th class="p-4 sticky z-50 top-0 left-[120px] bg-indigo-50">Coût réel*</th>
+        <th class="p-4 sticky z-50 top-0 left-[120px] bg-indigo-50">Seuil de rentabilité**</th>
+        <th class="p-4 sticky z-50 top-0 left-[120px] bg-indigo-50">Coût d'opportunité***</th>
+      </tr>
+      </thead>
+
+      <tbody class="divide-y divide-gray-200">
+      {% for project_name, project_data in projects_data.items %}
+       {% if project_data.total_sold < project_data.real_cost %}
+        <tr class="bg-orange-100">
+       {% elif project_data.total_sold < project_data.break_even_point %}
+        <tr class="bg-blue-100">
+       {% else %}
+        <tr class="odd:bg-white even:bg-slate-50">
+       {% endif %}
+          <td class="p-4">
+            {{ project_name }}
+            {% if user_is_staff %}
+              <a href="{% url 'admin:white_rabbit_project_change' project_data.id %}" class="text-xs" target="_blank">🖍</a>
+            {% endif %} 
+          </td>
+          <td class="p-4">{{ project_data.total_sold|floatformat:1 }}</td>
+          <td class="p-4">{{ project_data.estimated_days_count|floatformat:1 }}</td>
+          <td class="p-4">{{ project_data.done|floatformat:1 }}</td>
+          <td class="p-4">{{ project_data.real_cost|floatformat:1 }}</td>
+          <td class="p-4">{{ project_data.break_even_point|floatformat:1 }}</td>
+          <td class="p-4">{{ project_data.opportunity_cost|floatformat:1 }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <p class="text-sm">
+      * Coût réel du projet = Coût réel moyen d'un employé par jour ({{ employee_real_cost }} €) * Jours faits
+      <br/>
+      ** Seuil de rentabilité = Coût journalier pour l'entreprise ({{ break_even_point }} €) * Jours faits
+      <br/>
+      *** Coût d'opportunité = Taux Journalier du marché ({{ market_cost }} €) * Jours faits
+    </p> 
+
+    <h1 class="text-2xl mt-5">Total en dessous du coût journalier</h1>
+    <table
+        class="border mt-5">
+      <thead class="bg-indigo-50">
+      <tr class="font-bold bg-orange-100 text-black uppercase text-xs">
+        <th class="p-4 sticky z-50 top-0 left-0 w-[150px]">Total vendu</th>
+        <th class="p-4 sticky z-50 top-0 left-[120px]">Total coût réel</th>
+        <th class="p-4 sticky z-50 top-0 left-[120px]">Total au seuil de rentabilité</th>
+        <th class="p-4 sticky z-50 top-0 left-[120px]">Total d'opportunité</th>
+      </tr>
+      </thead>
+
+      <tbody class="divide-y divide-gray-200">
+        <tr class="odd:bg-white even:bg-slate-50">
+          <td class="p-4">{{ total_below_real_cost.sold|floatformat:1 }}</td>
+          <td class="p-4">{{ total_below_real_cost.real_cost|floatformat:1 }}</td>
+          <td class="p-4">{{ total_below_real_cost.break_even_point|floatformat:1 }}</td>
+          <td class="p-4">{{ total_below_real_cost.opportunity_cost|floatformat:1 }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h1 class="text-2xl mt-5">Total en dessous du seuil de rentabilité</h1>
+    <table
+        class="border mt-3">
+      <thead class="bg-indigo-50">
+      <tr class="font-bold bg-blue-100 text-black uppercase text-xs">
+        <th class="p-4 sticky z-50 top-0 left-0 w-[150px]">Total vendu</th>
+        <th class="p-4 sticky z-50 top-0 left-[120px]">Total coût réel</th>
+        <th class="p-4 sticky z-50 top-0 left-[120px]">Total au seuil de rentabilité</th>
+        <th class="p-4 sticky z-50 top-0 left-[120px]">Total d'opportunité</th>
+      </tr>
+      </thead>
+
+      <tbody class="divide-y divide-gray-200">
+        <tr class="odd:bg-white even:bg-slate-50">
+          <td class="p-4">{{ total_below_break_even_point.sold|floatformat:1 }}</td>
+          <td class="p-4">{{ total_below_break_even_point.real_cost|floatformat:1 }}</td>
+          <td class="p-4">{{ total_below_break_even_point.break_even_point|floatformat:1 }}</td>
+          <td class="p-4">{{ total_below_break_even_point.opportunity_cost|floatformat:1 }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
