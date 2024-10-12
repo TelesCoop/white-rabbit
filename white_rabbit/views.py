@@ -31,21 +31,6 @@ class MyLoginView(LoginView):
     template_name = "admin/login.html"
 
 
-def add_done_and_remaining_days_to_projects(
-    project_list_by_type, employee_monthly_details
-):
-    for project_list in project_list_by_type:
-        for project in project_list:
-            try:
-                project.done = employee_monthly_details["total"]["completed"]["values"][
-                    project.pk
-                ]["duration"]
-            except KeyError:
-                project.done = 0
-            if project.estimated_days_count > 0:
-                project.remaining = float(project.estimated_days_count) - project.done
-
-
 class HomeView(TemplateView):
     template_name = "pages/home.html"
 
