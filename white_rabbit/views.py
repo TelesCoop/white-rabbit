@@ -309,6 +309,12 @@ class EstimatedDaysCountView(AbstractTotalView):
 class MoneyTrackingView(AbstractTotalView):
     template_name = "pages/money-tracking.html"
 
+    def add_to_total(self, total, project):
+        total["total_sold"] += project["total_sold"]
+        total["real_cost"] += project["real_cost"]
+        total["break_even_point"] += project["break_even_point"]
+        total["opportunity_cost"] += project["opportunity_cost"]
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(
             group_by="project", period="total_done", **kwargs
@@ -323,17 +329,12 @@ class MoneyTrackingView(AbstractTotalView):
 
         projects_data: Dict[str, Dict[str, int]] = {}
         total_below_real_cost: Dict[str, int] = {
-            "sold": 0,
+            "total_sold": 0,
             "real_cost": 0,
             "break_even_point": 0,
             "opportunity_cost": 0,
         }
-        total_below_break_even_point: Dict[str, int] = {
-            "sold": 0,
-            "real_cost": 0,
-            "break_even_point": 0,
-            "opportunity_cost": 0,
-        }
+        total_below_break_even_point = total_below_real_cost.copy()
 
         for project_id in context["identifier_order"]:
             project = projects_by_id[project_id]
@@ -349,15 +350,9 @@ class MoneyTrackingView(AbstractTotalView):
                     "id": project_id,
                 }
                 if projects_data[project_name]["total_sold"] < projects_data[project_name]["real_cost"]:
-                    total_below_real_cost["sold"] += projects_data[project_name]["total_sold"]
-                    total_below_real_cost["real_cost"] += projects_data[project_name]["real_cost"]
-                    total_below_real_cost["break_even_point"] += projects_data[project_name]["break_even_point"]
-                    total_below_real_cost["opportunity_cost"] += projects_data[project_name]["opportunity_cost"]
+                    self.add_to_total(total_below_real_cost, projects_data[project_name])
                 elif projects_data[project_name]["total_sold"] < projects_data[project_name]["break_even_point"]:
-                    total_below_break_even_point["sold"] += projects_data[project_name]["total_sold"]
-                    total_below_break_even_point["real_cost"] += projects_data[project_name]["real_cost"]
-                    total_below_break_even_point["break_even_point"] += projects_data[project_name]["break_even_point"]
-                    total_below_break_even_point["opportunity_cost"] += projects_data[project_name]["opportunity_cost"]
+                    self.add_to_total(total_below_break_even_point, projects_data[project_name])
 
         context["projects_data"] = projects_data
         context["employee_real_cost"] = int(project.company.employee_real_cost)

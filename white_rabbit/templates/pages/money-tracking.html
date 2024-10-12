@@ -67,7 +67,7 @@
 
       <tbody class="divide-y divide-gray-200">
         <tr class="odd:bg-white even:bg-slate-50">
-          <td class="p-4">{{ total_below_real_cost.sold|floatformat:1 }}</td>
+          <td class="p-4">{{ total_below_real_cost.total_sold|floatformat:1 }}</td>
           <td class="p-4">{{ total_below_real_cost.real_cost|floatformat:1 }}</td>
           <td class="p-4">{{ total_below_real_cost.break_even_point|floatformat:1 }}</td>
           <td class="p-4">{{ total_below_real_cost.opportunity_cost|floatformat:1 }}</td>
@@ -89,7 +89,7 @@
 
       <tbody class="divide-y divide-gray-200">
         <tr class="odd:bg-white even:bg-slate-50">
-          <td class="p-4">{{ total_below_break_even_point.sold|floatformat:1 }}</td>
+          <td class="p-4">{{ total_below_break_even_point.total_sold|floatformat:1 }}</td>
           <td class="p-4">{{ total_below_break_even_point.real_cost|floatformat:1 }}</td>
           <td class="p-4">{{ total_below_break_even_point.break_even_point|floatformat:1 }}</td>
           <td class="p-4">{{ total_below_break_even_point.opportunity_cost|floatformat:1 }}</td>
