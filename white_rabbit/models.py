@@ -41,7 +41,7 @@ class Company(TimeStampedModel):
         default=0,
         max_digits=6,
         decimal_places=2,
-        help_text="Seuil de rentabilité journalié pour l'entreprise en €",
+        help_text="Le seuil journalier de rentabilité, en €, prend en compte que tous les jours ne sont pas travaillés (commercial, formation) et intègre les coûts de structure (support, loyer, logiciels...)",
     )
     market_cost = models.DecimalField(
         verbose_name="Prix du marché",
