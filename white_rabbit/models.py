@@ -48,7 +48,7 @@ class Company(TimeStampedModel):
         default=0,
         max_digits=6,
         decimal_places=2,
-        help_text="TJM moyen exercé sur le marché en €",
+        help_text="Tarif journalier moyen exercé sur le marché en €",
     )
 
     def __str__(self):
