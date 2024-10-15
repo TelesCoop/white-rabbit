@@ -12,7 +12,7 @@ from .events import (
     employees_for_user,
     process_employees_events,
 )
-from .models import Project, Employee, PROJECT_CATEGORIES_CHOICES
+from .models import Project, Employee, PROJECT_CATEGORIES_CHOICES, ProjectCategories
 from .project_name_finder import ProjectFinder
 from .state_of_day import (
     state_of_days_per_employee_for_week,
@@ -29,21 +29,6 @@ from .utils import (
 
 class MyLoginView(LoginView):
     template_name = "admin/login.html"
-
-
-def add_done_and_remaining_days_to_projects(
-    project_list_by_type, employee_monthly_details
-):
-    for project_list in project_list_by_type:
-        for project in project_list:
-            try:
-                project.done = employee_monthly_details["total"]["completed"]["values"][
-                    project.pk
-                ]["duration"]
-            except KeyError:
-                project.done = 0
-            if project.estimated_days_count > 0:
-                project.remaining = float(project.estimated_days_count) - project.done
 
 
 class HomeView(TemplateView):
@@ -299,7 +284,7 @@ class EstimatedDaysCountView(AbstractTotalView):
         context = super().get_context_data(
             group_by="project", period="total_done", **kwargs
         )
-        projects_with_estimated_days_count_by_id = {
+        projects_by_id = {
             project.pk: project
             for project in Project.objects.filter(
                 company=self.request.user.employee.company
@@ -314,8 +299,66 @@ class EstimatedDaysCountView(AbstractTotalView):
             }
             for project_id in context["identifier_order"]
             if (
-                project := projects_with_estimated_days_count_by_id[project_id]
+                project := projects_by_id[project_id]
             ).estimated_days_count
         }
         context["projects_data"] = projects_data
+        return context
+
+
+class MoneyTrackingView(AbstractTotalView):
+    template_name = "pages/money-tracking.html"
+
+    def add_to_total(self, total, project):
+        total["total_sold"] += project["total_sold"]
+        total["real_cost"] += project["real_cost"]
+        total["break_even_point"] += project["break_even_point"]
+        total["opportunity_cost"] += project["opportunity_cost"]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(
+            group_by="project", period="total_done", **kwargs
+        )
+
+        projects_by_id = {
+            project.pk: project
+            for project in Project.objects.filter(
+                company=self.request.user.employee.company
+            )
+        }
+
+        projects_data: Dict[str, Dict[str, int]] = {}
+        total_below_real_cost: Dict[str, int] = {
+            "total_sold": 0,
+            "real_cost": 0,
+            "break_even_point": 0,
+            "opportunity_cost": 0,
+        }
+        total_below_break_even_point = total_below_real_cost.copy()
+
+        for project_id in context["identifier_order"]:
+            project = projects_by_id[project_id]
+            if project.end_date and project.category == ProjectCategories.CLIENT.value:
+                project_name = f"{project.name} ({project.end_date.strftime('%m-%y')})"
+                projects_data[project_name] = {
+                    "total_sold": project.total_sold,
+                    "estimated_days_count": project.estimated_days_count,
+                    "done": (done := context["total_per_identifier"][project_id]),
+                    "real_cost": done * float(project.company.employee_real_cost),
+                    "break_even_point": done * float(project.company.break_even_point),
+                    "opportunity_cost": done * float(project.company.market_cost),
+                    "id": project_id,
+                }
+                if projects_data[project_name]["total_sold"] < projects_data[project_name]["real_cost"]:
+                    self.add_to_total(total_below_real_cost, projects_data[project_name])
+                elif projects_data[project_name]["total_sold"] < projects_data[project_name]["break_even_point"]:
+                    self.add_to_total(total_below_break_even_point, projects_data[project_name])
+
+        context["projects_data"] = projects_data
+        context["employee_real_cost"] = int(project.company.employee_real_cost)
+        context["break_even_point"] = int(project.company.break_even_point)
+        context["market_cost"] = int(project.company.market_cost)
+        context["total_below_real_cost"] = total_below_real_cost
+        context["total_below_break_even_point"] = total_below_break_even_point
+        
         return context
