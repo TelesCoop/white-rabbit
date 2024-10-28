@@ -69,4 +69,3 @@ def test_calculate_monetary_figures():
 			"opportunity_cost": 9600,
 		},
 	}
-
