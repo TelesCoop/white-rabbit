@@ -1,12 +1,13 @@
 import datetime
 import json
 import numbers
+import locale
 
 from django.template.defaultfilters import pluralize, floatformat
 from django.template.defaulttags import register
 
 from white_rabbit.models import PROJECT_CATEGORY_TO_DISPLAY_NAME
-from white_rabbit.utils import is_total_key
+from white_rabbit.utils.utils import is_total_key
 
 
 @register.simple_tag
@@ -98,6 +99,14 @@ def get_employee_events(employees_events, employee_name):
 @register.filter
 def get_item(dictionary, key):
     return dictionary.get(key)
+
+
+@register.filter
+def currency(value):
+    locale.setlocale(locale.LC_MONETARY, 'fr_FR.UTF-8')
+    # Remove cents from the monetary values
+    locale._override_localeconv = {'frac_digits':0}
+    return locale.currency(value, symbol=True, grouping=True)
 
 
 @register.filter

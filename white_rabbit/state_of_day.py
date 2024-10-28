@@ -7,7 +7,7 @@ from white_rabbit.constants import DayState, DayStateDisplay
 
 from white_rabbit.models import Employee
 from white_rabbit.typing import EventsPerEmployee, Event
-from white_rabbit.utils import events_per_day
+from white_rabbit.utils.utils import events_per_day
 
 
 def state_of_days_per_employee(

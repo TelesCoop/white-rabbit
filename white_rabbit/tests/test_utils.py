@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from white_rabbit.models import ProjectCategories, Employee
-from white_rabbit.utils import filter_events_per_time_period, group_events_per_category, count_number_days_spent, \
+from white_rabbit.utils.utils import filter_events_per_time_period, group_events_per_category, count_number_days_spent, \
     group_events_by_day
 
 

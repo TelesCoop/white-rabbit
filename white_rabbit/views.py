@@ -18,7 +18,8 @@ from .state_of_day import (
     state_of_days_per_employee_for_week,
 )
 from .typing import ProjectTime
-from .utils import (
+from .utils.monetary_tracking import add_monetary_figures_to_context
+from .utils.utils import (
     generate_time_periods,
     generate_time_periods_with_total,
     time_period_for_month,
@@ -291,11 +292,14 @@ class EstimatedDaysCountView(AbstractTotalView):
             )
         }
         projects_data: Dict[str, Dict[str, int]] = {
-            project.name: {
+            project.id: {
                 "estimated_days_count": (estimated := project.estimated_days_count),
                 "done": (done := context["total_per_identifier"][project_id]),
                 "remaining": float(estimated) - done,
                 "id": project_id,
+                "name": project.name,
+                "start_date": project.start_date.strftime('%m/%y') if project.start_date else "",
+                "end_date": project.end_date.strftime('%m/%y') if project.end_date else "",
             }
             for project_id in context["identifier_order"]
             if (
@@ -309,56 +313,11 @@ class EstimatedDaysCountView(AbstractTotalView):
 class MonetaryTrackingView(AbstractTotalView):
     template_name = "pages/monetary-tracking.html"
 
-    def add_to_total(self, total, project):
-        total["total_sold"] += project["total_sold"]
-        total["real_cost"] += project["real_cost"]
-        total["profitability_threshold"] += project["profitability_threshold"]
-        total["opportunity_cost"] += project["opportunity_cost"]
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(
             group_by="project", period="total_done", **kwargs
         )
 
-        projects_by_id = {
-            project.pk: project
-            for project in Project.objects.filter(
-                company=self.request.user.employee.company
-            )
-        }
-
-        projects_data: Dict[str, Dict[str, int]] = {}
-        total_below_real_cost: Dict[str, int] = {
-            "total_sold": 0,
-            "real_cost": 0,
-            "profitability_threshold": 0,
-            "opportunity_cost": 0,
-        }
-        total_below_profitability_threshold = total_below_real_cost.copy()
-
-        for project_id in context["identifier_order"]:
-            project = projects_by_id[project_id]
-            if project.end_date and project.category == ProjectCategories.CLIENT.value:
-                project_name = f"{project.name} ({project.end_date.strftime('%m-%y')})"
-                projects_data[project_name] = {
-                    "total_sold": project.total_sold,
-                    "estimated_days_count": project.estimated_days_count,
-                    "done": (done := context["total_per_identifier"][project_id]),
-                    "real_cost": done * float(project.company.daily_employee_cost),
-                    "profitability_threshold": done * float(project.company.profitability_threshold),
-                    "opportunity_cost": done * float(project.company.daily_market_price),
-                    "id": project_id,
-                }
-                if projects_data[project_name]["total_sold"] < projects_data[project_name]["real_cost"]:
-                    self.add_to_total(total_below_real_cost, projects_data[project_name])
-                elif projects_data[project_name]["total_sold"] < projects_data[project_name]["profitability_threshold"]:
-                    self.add_to_total(total_below_profitability_threshold, projects_data[project_name])
-
-        context["projects_data"] = projects_data
-        context["daily_employee_cost"] = int(project.company.daily_employee_cost)
-        context["profitability_threshold"] = int(project.company.profitability_threshold)
-        context["daily_market_price"] = int(project.company.daily_market_price)
-        context["total_below_real_cost"] = total_below_real_cost
-        context["total_below_profitability_threshold"] = total_below_profitability_threshold
+        context = add_monetary_figures_to_context(context, self.request.user.employee.company)
         
         return context

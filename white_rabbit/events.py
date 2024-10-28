@@ -20,7 +20,7 @@ from white_rabbit.typing import (
     ProjectDistribution,
     ProjectTime,
 )
-from white_rabbit.utils import (
+from white_rabbit.utils.utils import (
     start_of_day,
     group_events_by_day,
     generate_time_periods,
