@@ -41,9 +41,9 @@ urlpatterns = [
         name="estimated-days-reporting",
     ),
     path(
-        "suivi-monnaitaire",
-        views.MoneyTrackingView.as_view(),
-        name="money-tracking",
+        "suivi-monétaire",
+        views.MonetaryTrackingView.as_view(),
+        name="monetary-tracking",
     ),
     path("resume", views.ResumeView.as_view()),
     path("alias/", views.AliasView.as_view(), name="alias"),

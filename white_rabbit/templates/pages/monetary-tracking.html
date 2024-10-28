@@ -24,7 +24,7 @@
       {% for project_name, project_data in projects_data.items %}
        {% if project_data.total_sold < project_data.real_cost %}
         <tr class="bg-orange-100">
-       {% elif project_data.total_sold < project_data.break_even_point %}
+       {% elif project_data.total_sold < project_data.profitability_threshold %}
         <tr class="bg-blue-100">
        {% else %}
         <tr class="odd:bg-white even:bg-slate-50">
@@ -39,18 +39,18 @@
           <td class="p-4">{{ project_data.estimated_days_count|floatformat:1 }}</td>
           <td class="p-4">{{ project_data.done|floatformat:1 }}</td>
           <td class="p-4">{{ project_data.real_cost|floatformat:1 }}</td>
-          <td class="p-4">{{ project_data.break_even_point|floatformat:1 }}</td>
+          <td class="p-4">{{ project_data.profitability_threshold|floatformat:1 }}</td>
           <td class="p-4">{{ project_data.opportunity_cost|floatformat:1 }}</td>
         </tr>
       {% endfor %}
       </tbody>
     </table>
     <p class="text-sm">
-      * Coût réel du projet = Coût réel moyen d'un employé par jour ({{ employee_real_cost }} €) * Jours faits
+      * Coût réel du projet = Coût salarié journalier moyen ({{ daily_employee_cost }} €) * Jours faits
       <br/>
-      ** Seuil de rentabilité = Coût journalier pour l'entreprise ({{ break_even_point }} €) * Jours faits
+      ** Seuil de rentabilité = Coût journalier pour l'entreprise ({{ profitability_threshold }} €) * Jours faits
       <br/>
-      *** Coût d'opportunité = Taux Journalier du marché ({{ market_cost }} €) * Jours faits
+      *** Coût d'opportunité = Taux Journalier du marché ({{ daily_market_price }} €) * Jours faits
     </p> 
 
     <h1 class="text-2xl mt-5">Total en dessous du coût journalier</h1>
@@ -69,7 +69,7 @@
         <tr class="odd:bg-white even:bg-slate-50">
           <td class="p-4">{{ total_below_real_cost.total_sold|floatformat:1 }}</td>
           <td class="p-4">{{ total_below_real_cost.real_cost|floatformat:1 }}</td>
-          <td class="p-4">{{ total_below_real_cost.break_even_point|floatformat:1 }}</td>
+          <td class="p-4">{{ total_below_real_cost.profitability_threshold|floatformat:1 }}</td>
           <td class="p-4">{{ total_below_real_cost.opportunity_cost|floatformat:1 }}</td>
         </tr>
       </tbody>
@@ -89,10 +89,10 @@
 
       <tbody class="divide-y divide-gray-200">
         <tr class="odd:bg-white even:bg-slate-50">
-          <td class="p-4">{{ total_below_break_even_point.total_sold|floatformat:1 }}</td>
-          <td class="p-4">{{ total_below_break_even_point.real_cost|floatformat:1 }}</td>
-          <td class="p-4">{{ total_below_break_even_point.break_even_point|floatformat:1 }}</td>
-          <td class="p-4">{{ total_below_break_even_point.opportunity_cost|floatformat:1 }}</td>
+          <td class="p-4">{{ total_below_profitability_threshold.total_sold|floatformat:1 }}</td>
+          <td class="p-4">{{ total_below_profitability_threshold.real_cost|floatformat:1 }}</td>
+          <td class="p-4">{{ total_below_profitability_threshold.profitability_threshold|floatformat:1 }}</td>
+          <td class="p-4">{{ total_below_profitability_threshold.opportunity_cost|floatformat:1 }}</td>
         </tr>
       </tbody>
     </table>

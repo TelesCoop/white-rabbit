@@ -29,21 +29,21 @@ class Company(TimeStampedModel):
     name = models.CharField(max_length=20)
     admins = models.ManyToManyField(User, related_name="companies")
 
-    employee_real_cost = models.DecimalField(
-        verbose_name="Coût salarié moyen",
+    daily_employee_cost = models.DecimalField(
+        verbose_name="Coût salarié journalier moyen",
         default=0,
         max_digits=6,
         decimal_places=2,
-        help_text="Coût journalié moyen d'un salarié pour l'entreprise en €",
+        help_text="Coût journalier moyen d'un salarié pour l'entreprise en € (salaire moyen brut chargé / nb jours travaillés)",
     )
-    break_even_point = models.DecimalField(
+    profitability_threshold = models.DecimalField(
         verbose_name="Seuil de rentabilité",
         default=0,
         max_digits=6,
         decimal_places=2,
         help_text="Le seuil journalier de rentabilité, en €, prend en compte que tous les jours ne sont pas travaillés (commercial, formation) et intègre les coûts de structure (support, loyer, logiciels...)",
     )
-    market_cost = models.DecimalField(
+    daily_market_price = models.DecimalField(
         verbose_name="Prix du marché",
         default=0,
         max_digits=6,
@@ -134,7 +134,7 @@ class Project(models.Model):
         default=0,
         max_digits=10,
         decimal_places=2,
-        help_text="Montant total vendu pour le projet en € (hors prestation)",
+        help_text="Montant total vendu pour le projet en € (hors coûts refacturés)",
     )
 
     def save(self, *args, **kwargs):

@@ -306,13 +306,13 @@ class EstimatedDaysCountView(AbstractTotalView):
         return context
 
 
-class MoneyTrackingView(AbstractTotalView):
-    template_name = "pages/money-tracking.html"
+class MonetaryTrackingView(AbstractTotalView):
+    template_name = "pages/monetary-tracking.html"
 
     def add_to_total(self, total, project):
         total["total_sold"] += project["total_sold"]
         total["real_cost"] += project["real_cost"]
-        total["break_even_point"] += project["break_even_point"]
+        total["profitability_threshold"] += project["profitability_threshold"]
         total["opportunity_cost"] += project["opportunity_cost"]
 
     def get_context_data(self, **kwargs):
@@ -331,10 +331,10 @@ class MoneyTrackingView(AbstractTotalView):
         total_below_real_cost: Dict[str, int] = {
             "total_sold": 0,
             "real_cost": 0,
-            "break_even_point": 0,
+            "profitability_threshold": 0,
             "opportunity_cost": 0,
         }
-        total_below_break_even_point = total_below_real_cost.copy()
+        total_below_profitability_threshold = total_below_real_cost.copy()
 
         for project_id in context["identifier_order"]:
             project = projects_by_id[project_id]
@@ -344,21 +344,21 @@ class MoneyTrackingView(AbstractTotalView):
                     "total_sold": project.total_sold,
                     "estimated_days_count": project.estimated_days_count,
                     "done": (done := context["total_per_identifier"][project_id]),
-                    "real_cost": done * float(project.company.employee_real_cost),
-                    "break_even_point": done * float(project.company.break_even_point),
-                    "opportunity_cost": done * float(project.company.market_cost),
+                    "real_cost": done * float(project.company.daily_employee_cost),
+                    "profitability_threshold": done * float(project.company.profitability_threshold),
+                    "opportunity_cost": done * float(project.company.daily_market_price),
                     "id": project_id,
                 }
                 if projects_data[project_name]["total_sold"] < projects_data[project_name]["real_cost"]:
                     self.add_to_total(total_below_real_cost, projects_data[project_name])
-                elif projects_data[project_name]["total_sold"] < projects_data[project_name]["break_even_point"]:
-                    self.add_to_total(total_below_break_even_point, projects_data[project_name])
+                elif projects_data[project_name]["total_sold"] < projects_data[project_name]["profitability_threshold"]:
+                    self.add_to_total(total_below_profitability_threshold, projects_data[project_name])
 
         context["projects_data"] = projects_data
-        context["employee_real_cost"] = int(project.company.employee_real_cost)
-        context["break_even_point"] = int(project.company.break_even_point)
-        context["market_cost"] = int(project.company.market_cost)
+        context["daily_employee_cost"] = int(project.company.daily_employee_cost)
+        context["profitability_threshold"] = int(project.company.profitability_threshold)
+        context["daily_market_price"] = int(project.company.daily_market_price)
         context["total_below_real_cost"] = total_below_real_cost
-        context["total_below_break_even_point"] = total_below_break_even_point
+        context["total_below_profitability_threshold"] = total_below_profitability_threshold
         
         return context
