@@ -18,7 +18,7 @@ from .state_of_day import (
     state_of_days_per_employee_for_week,
 )
 from .typing import ProjectTime
-from .utils.monetary_tracking import add_monetary_figures_to_context
+from .utils.monetary_tracking import calculate_monetary_figures
 from .utils.utils import (
     generate_time_periods,
     generate_time_periods_with_total,
@@ -317,7 +317,14 @@ class MonetaryTrackingView(AbstractTotalView):
         context = super().get_context_data(
             group_by="project", period="total_done", **kwargs
         )
+        company = self.request.user.employee.company
 
-        context = add_monetary_figures_to_context(context, self.request.user.employee.company)
+        context["daily_employee_cost"] = int(company.daily_employee_cost)
+        context["profitability_threshold"] = int(company.profitability_threshold)
+        context["daily_market_price"] = int(company.daily_market_price)
+
+        monetary_figures = calculate_monetary_figures(company, context["identifier_order"], context["total_per_identifier"])
+
+        context = {**context, **monetary_figures}
         
         return context

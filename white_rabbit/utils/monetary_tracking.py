@@ -29,7 +29,7 @@ def is_pertinent_evaluate_monetarily(project):
     return project.end_date and project.category == ProjectCategories.CLIENT.value
 
 
-def add_monetary_figures_to_context(context, company):
+def calculate_monetary_figures(company, identifier_order, total_by_project_id):
     projects_by_id = {
         project.pk: project
         for project in Project.objects.filter(
@@ -43,13 +43,13 @@ def add_monetary_figures_to_context(context, company):
         "total_below_profitability_threshold": create_total(),
     }
 
-    for project_id in context["identifier_order"]:
+    for project_id in identifier_order:
         project = projects_by_id[project_id]
         if is_pertinent_evaluate_monetarily(project):
             projects_data[project_id] = {
                 "total_sold": project.total_sold,
                 "estimated_days_count": project.estimated_days_count,
-                "done": (done := context["total_per_identifier"][project_id]),
+                "done": (done := total_by_project_id[project_id]),
                 "real_cost": done * float(project.company.daily_employee_cost),
                 "profitability_threshold": done * float(project.company.profitability_threshold),
                 "opportunity_cost": done * float(project.company.daily_market_price),
@@ -60,11 +60,8 @@ def add_monetary_figures_to_context(context, company):
             }
             add_project_to_totals(projects_data[project_id], totals)
 
-    context["projects_data"] = projects_data
-    context["daily_employee_cost"] = int(company.daily_employee_cost)
-    context["profitability_threshold"] = int(company.profitability_threshold)
-    context["daily_market_price"] = int(company.daily_market_price)
-    context["total_below_real_cost"] = totals["total_below_real_cost"]
-    context["total_below_profitability_threshold"] = totals["total_below_profitability_threshold"]
-    
-    return context
+    return {
+        "projects_data": projects_data,
+        "total_below_real_cost": totals["total_below_real_cost"],
+        "total_below_profitability_threshold": totals["total_below_profitability_threshold"],
+    }
