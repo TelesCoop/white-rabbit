@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from white_rabbit.tests.factory import CompanyFactory, ProjectFactory
 from white_rabbit.utils.monetary_tracking import calculate_monetary_figures
 
@@ -32,11 +30,11 @@ def test_calculate_monetary_figures():
     )
     days_done = 8
     monetary_figures = calculate_monetary_figures(
-        company, 
-        ["1", "2", "3", "4"], 
+        company,
+        ["1", "2", "3", "4"],
         {
-			project.pk: days_done for project in [project_1, project_2, project_3, project_4]
-		}
+            project.pk: days_done for project in [project_1, project_2, project_3, project_4]
+        }
     )
     assert monetary_figures == {
         "projects_data": {
@@ -51,21 +49,21 @@ def test_calculate_monetary_figures():
                 "name": project.name,
                 "start_date": project.start_date.strftime('%m/%y'),
                 "end_date": project.end_date.strftime('%m/%y'),
-			} for project in [project_1, project_2, project_3, project_4]
-		},
+            } for project in [project_1, project_2, project_3, project_4]
+        },
         # Project 1
-        "total_below_real_cost": 
-			{
-			"total_sold": 1000,
-			"real_cost": 1600,
-			"profitability_threshold": 3200,
-			"opportunity_cost": 4800,
-		},
+        "total_below_real_cost":
+            {
+            "total_sold": 1000,
+            "real_cost": 1600,
+            "profitability_threshold": 3200,
+            "opportunity_cost": 4800,
+        },
         # Project 2 + project 3
         "total_below_profitability_threshold": {
-			"total_sold": 4500,
-			"real_cost": 3200,
-			"profitability_threshold": 6400,
-			"opportunity_cost": 9600,
-		},
-	}
+            "total_sold": 4500,
+            "real_cost": 3200,
+            "profitability_threshold": 6400,
+            "opportunity_cost": 9600,
+        },
+    }

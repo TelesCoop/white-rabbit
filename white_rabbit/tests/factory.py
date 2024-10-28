@@ -1,5 +1,4 @@
 import factory
-import random
 from django.contrib.auth.models import User
 from white_rabbit.models import Employee, Company, Project
 from datetime import datetime
@@ -43,6 +42,7 @@ class EmployeeFactory(factory.django.DjangoModelFactory):
     works_day_6 = False
     works_day_7 = False
     disabled = False
+
 
 class ProjectFactory(factory.django.DjangoModelFactory):
     class Meta:
