@@ -5,7 +5,7 @@ from jours_feries_france import JoursFeries
 
 from white_rabbit.models import Employee
 from white_rabbit.typing import Event
-from white_rabbit.utils.utils import group_events_by_day
+from white_rabbit.utils import group_events_by_day
 
 
 def available_time_of_employee(

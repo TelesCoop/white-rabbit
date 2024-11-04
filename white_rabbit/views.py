@@ -19,7 +19,7 @@ from .state_of_day import (
 )
 from .typing import ProjectTime
 from .financial_tracking import calculate_financial_indicators
-from .utils.utils import (
+from .utils import (
     generate_time_periods,
     generate_time_periods_with_total,
     time_period_for_month,

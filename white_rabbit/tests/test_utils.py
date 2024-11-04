@@ -2,7 +2,7 @@ from datetime import date, datetime
 from django.test import TestCase
 
 from white_rabbit.models import ProjectCategories
-from white_rabbit.utils.utils import (
+from white_rabbit.utils import (
     filter_events_per_time_period,
     group_events_per_category,
     count_number_days_spent,

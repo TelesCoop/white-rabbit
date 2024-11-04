@@ -7,7 +7,7 @@ from django.template.defaultfilters import pluralize, floatformat
 from django.template.defaulttags import register
 
 from white_rabbit.models import PROJECT_CATEGORY_TO_DISPLAY_NAME
-from white_rabbit.utils.utils import is_total_key
+from white_rabbit.utils import is_total_key
 
 
 @register.simple_tag
