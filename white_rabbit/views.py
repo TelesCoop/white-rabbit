@@ -18,6 +18,7 @@ from .state_of_day import (
     state_of_days_per_employee_for_week,
 )
 from .typing import ProjectTime
+from .financial_tracking import calculate_financial_indicators
 from .utils import (
     generate_time_periods,
     generate_time_periods_with_total,
@@ -29,21 +30,6 @@ from .utils import (
 
 class MyLoginView(LoginView):
     template_name = "admin/login.html"
-
-
-def add_done_and_remaining_days_to_projects(
-    project_list_by_type, employee_monthly_details
-):
-    for project_list in project_list_by_type:
-        for project in project_list:
-            try:
-                project.done = employee_monthly_details["total"]["completed"]["values"][
-                    project.pk
-                ]["duration"]
-            except KeyError:
-                project.done = 0
-            if project.estimated_days_count > 0:
-                project.remaining = float(project.estimated_days_count) - project.done
 
 
 class HomeView(TemplateView):
@@ -299,23 +285,50 @@ class EstimatedDaysCountView(AbstractTotalView):
         context = super().get_context_data(
             group_by="project", period="total_done", **kwargs
         )
-        projects_with_estimated_days_count_by_id = {
+        projects_by_id = {
             project.pk: project
             for project in Project.objects.filter(
                 company=self.request.user.employee.company
             )
         }
         projects_data: Dict[str, Dict[str, int]] = {
-            project.name: {
+            project.id: {
                 "estimated_days_count": (estimated := project.estimated_days_count),
                 "done": (done := context["total_per_identifier"][project_id]),
                 "remaining": float(estimated) - done,
                 "id": project_id,
+                "name": project.name,
+                "start_date": (
+                    project.start_date.strftime("%m/%y") if project.start_date else ""
+                ),
+                "end_date": (
+                    project.end_date.strftime("%m/%y") if project.end_date else ""
+                ),
             }
             for project_id in context["identifier_order"]
-            if (
-                project := projects_with_estimated_days_count_by_id[project_id]
-            ).estimated_days_count
+            if (project := projects_by_id[project_id]).estimated_days_count
         }
         context["projects_data"] = projects_data
+        return context
+
+
+class FinancialTrackingView(AbstractTotalView):
+    template_name = "pages/financial-tracking.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(
+            group_by="project", period="total_done", **kwargs
+        )
+        company = self.request.user.employee.company
+
+        context["daily_employee_cost"] = int(company.daily_employee_cost)
+        context["profitability_threshold"] = int(company.profitability_threshold)
+        context["daily_market_price"] = int(company.daily_market_price)
+
+        financial_indicators = calculate_financial_indicators(
+            company, context["identifier_order"], context["total_per_identifier"]
+        )
+
+        context = {**context, **financial_indicators}
+
         return context

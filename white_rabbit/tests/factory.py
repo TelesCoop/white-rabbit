@@ -1,7 +1,7 @@
+from datetime import datetime
 import factory
 from django.contrib.auth.models import User
-from white_rabbit.models import Employee, Company
-from datetime import datetime
+from white_rabbit.models import Employee, Company, Project
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -18,6 +18,9 @@ class CompanyFactory(factory.django.DjangoModelFactory):
         model = Company
 
     name = factory.Faker('company')
+    daily_employee_cost = 200
+    profitability_threshold = 400
+    daily_market_price = 600
 
 
 class EmployeeFactory(factory.django.DjangoModelFactory):
@@ -39,3 +42,15 @@ class EmployeeFactory(factory.django.DjangoModelFactory):
     works_day_6 = False
     works_day_7 = False
     disabled = False
+
+
+class ProjectFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Project
+
+    company = factory.SubFactory(CompanyFactory)
+    name = factory.Faker('Project 1')
+    start_date = factory.LazyAttribute(lambda a: datetime(2022, 1, 1))
+    end_date = factory.LazyAttribute(lambda a: datetime.now())
+    estimated_days_count = 8
+    total_sold = 0
