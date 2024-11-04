@@ -42,8 +42,8 @@ urlpatterns = [
     ),
     path(
         "suivi-monétaire",
-        views.MonetaryTrackingView.as_view(),
-        name="monetary-tracking",
+        views.FinancialTrackingView.as_view(),
+        name="financial-tracking",
     ),
     path("resume", views.ResumeView.as_view()),
     path("alias/", views.AliasView.as_view(), name="alias"),

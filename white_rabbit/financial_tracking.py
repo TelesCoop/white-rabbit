@@ -29,7 +29,7 @@ def is_pertinent_evaluate_monetarily(project):
     return project.end_date and project.category == ProjectCategories.CLIENT.value
 
 
-def calculate_monetary_figures(company, identifier_order, total_by_project_id):
+def calculate_financial_indicators(company, identifier_order, total_by_project_id):
     projects_by_id = {
         project.pk: project for project in Project.objects.filter(company=company)
     }

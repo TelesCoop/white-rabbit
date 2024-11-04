@@ -103,9 +103,9 @@ def get_item(dictionary, key):
 
 @register.filter
 def currency(value):
-    locale.setlocale(locale.LC_MONETARY, 'fr_FR.UTF-8')
-    # Remove cents from the monetary values
-    locale._override_localeconv = {'frac_digits':0}
+    locale.setlocale(locale.LC_MONETARY, "fr_FR.UTF-8")
+    # Remove cents from the financial values
+    locale._override_localeconv = {"frac_digits": 0}
     return locale.currency(value, symbol=True, grouping=True)
 
 

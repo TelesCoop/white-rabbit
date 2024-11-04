@@ -12,13 +12,13 @@ from .events import (
     employees_for_user,
     process_employees_events,
 )
-from .models import Project, Employee, PROJECT_CATEGORIES_CHOICES, ProjectCategories
+from .models import Project, Employee, PROJECT_CATEGORIES_CHOICES
 from .project_name_finder import ProjectFinder
 from .state_of_day import (
     state_of_days_per_employee_for_week,
 )
 from .typing import ProjectTime
-from .utils.monetary_tracking import calculate_monetary_figures
+from .financial_tracking import calculate_financial_indicators
 from .utils.utils import (
     generate_time_periods,
     generate_time_periods_with_total,
@@ -298,20 +298,22 @@ class EstimatedDaysCountView(AbstractTotalView):
                 "remaining": float(estimated) - done,
                 "id": project_id,
                 "name": project.name,
-                "start_date": project.start_date.strftime('%m/%y') if project.start_date else "",
-                "end_date": project.end_date.strftime('%m/%y') if project.end_date else "",
+                "start_date": (
+                    project.start_date.strftime("%m/%y") if project.start_date else ""
+                ),
+                "end_date": (
+                    project.end_date.strftime("%m/%y") if project.end_date else ""
+                ),
             }
             for project_id in context["identifier_order"]
-            if (
-                project := projects_by_id[project_id]
-            ).estimated_days_count
+            if (project := projects_by_id[project_id]).estimated_days_count
         }
         context["projects_data"] = projects_data
         return context
 
 
-class MonetaryTrackingView(AbstractTotalView):
-    template_name = "pages/monetary-tracking.html"
+class FinancialTrackingView(AbstractTotalView):
+    template_name = "pages/financial-tracking.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(
@@ -323,8 +325,10 @@ class MonetaryTrackingView(AbstractTotalView):
         context["profitability_threshold"] = int(company.profitability_threshold)
         context["daily_market_price"] = int(company.daily_market_price)
 
-        monetary_figures = calculate_monetary_figures(company, context["identifier_order"], context["total_per_identifier"])
+        financial_indicators = calculate_financial_indicators(
+            company, context["identifier_order"], context["total_per_identifier"]
+        )
 
-        context = {**context, **monetary_figures}
-        
+        context = {**context, **financial_indicators}
+
         return context
