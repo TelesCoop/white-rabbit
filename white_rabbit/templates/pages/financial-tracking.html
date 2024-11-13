@@ -36,8 +36,8 @@
             {% endif %} 
           </td>
           <td class="p-4">{{ project_data.total_sold|currency }}</td>
-          <td class="p-4">{{ project_data.estimated_days_count|currency}}</td>
-          <td class="p-4">{{ project_data.done|currency }}</td>
+          <td class="p-4">{{ project_data.estimated_days_count|floatformat:1}}</td>
+          <td class="p-4">{{ project_data.done|floatformat:1 }}</td>
           <td class="p-4">{{ project_data.real_cost|currency }}</td>
           <td class="p-4">{{ project_data.profitability_threshold|currency }}</td>
           <td class="p-4">{{ project_data.opportunity_cost|currency }}</td>
