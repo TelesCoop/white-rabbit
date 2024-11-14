@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% load white_rabbit_tags %}
+{% load cache %}
+{% load static %}
+
+{% block content %}
+  <div>
+    <p>Seuls les projets ayant une date de fin sont affichés ici</p>
+    <table
+        class="border mt-3">
+      <thead class="bg-gray-50">
+      <tr class="font-bold bg-indigo-50 text-black uppercase text-xs">
+        <th class="p-4 sticky z-50 top-0 left-0 bg-indigo-50 w-[180px]">Nom du projet</th>
+        <th class="p-4 sticky z-50 top-0 left-[120px] bg-indigo-50">Prix vendu</th>
+        <th class="p-4 sticky z-50 top-0 left-[120px] bg-indigo-50">Jours vendu</th>
+        <th class="p-4 sticky z-50 top-0 left-[120px] bg-indigo-50">Jours faits</th>
+        <th class="p-4 sticky z-50 top-0 left-[120px] bg-indigo-50">Coût réel*</th>
+        <th class="p-4 sticky z-50 top-0 left-[120px] bg-indigo-50">Seuil de rentabilité**</th>
+        <th class="p-4 sticky z-50 top-0 left-[120px] bg-indigo-50">Coût d'opportunité***</th>
+      </tr>
+      </thead>
+
+      <tbody class="divide-y divide-gray-200">
+      {% for project_id, project_data in projects_data.items %}
+       {% if project_data.total_sold < project_data.real_cost %}
+        <tr class="bg-orange-100">
+       {% elif project_data.total_sold < project_data.profitability_threshold %}
+        <tr class="bg-blue-100">
+       {% else %}
+        <tr class="odd:bg-white even:bg-slate-50">
+       {% endif %}
+          <td class="p-4">
+            {{ project_data.name }} <span class="text-sm">({{ project_data.start_date }} -> {{ project_data.end_date }})</span>
+            {% if user_is_staff %}
+              <a href="{% url 'admin:white_rabbit_project_change' project_data.id %}" class="text-xs" target="_blank">🖍</a>
+            {% endif %} 
+          </td>
+          <td class="p-4">{{ project_data.total_sold|currency }}</td>
+          <td class="p-4">{{ project_data.estimated_days_count|floatformat:1}}</td>
+          <td class="p-4">{{ project_data.done|floatformat:1 }}</td>
+          <td class="p-4">{{ project_data.real_cost|currency }}</td>
+          <td class="p-4">{{ project_data.profitability_threshold|currency }}</td>
+          <td class="p-4">{{ project_data.opportunity_cost|currency }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <p class="text-sm">
+      * Coût réel du projet = Coût salarié journalier moyen ({{ daily_employee_cost }} €) * Jours faits
+      <br/>
+      ** Seuil de rentabilité = Coût journalier pour l'entreprise ({{ profitability_threshold }} €) * Jours faits
+      <br/>
+      *** Coût d'opportunité = Taux Journalier du marché ({{ daily_market_price }} €) * Jours faits
+    </p> 
+
+    <h1 class="text-2xl mt-5">Total en dessous du coût journalier</h1>
+    <table
+        class="border mt-5">
+      <thead class="bg-indigo-50">
+      <tr class="font-bold bg-orange-100 text-black uppercase text-xs">
+        <th class="p-4 sticky z-50 top-0 left-0 w-[120px]">Total vendu</th>
+        <th class="p-4 sticky z-50 top-0 left-[120px]">Total coût réel</th>
+        <th class="p-4 sticky z-50 top-0 left-[120px]">Total au seuil de rentabilité</th>
+        <th class="p-4 sticky z-50 top-0 left-[120px]">Total d'opportunité</th>
+      </tr>
+      </thead>
+
+      <tbody class="divide-y divide-gray-200">
+        <tr class="odd:bg-white even:bg-slate-50">
+          <td class="p-4">{{ total_below_real_cost.total_sold|currency }}</td>
+          <td class="p-4">{{ total_below_real_cost.real_cost|currency }}</td>
+          <td class="p-4">{{ total_below_real_cost.profitability_threshold|currency }}</td>
+          <td class="p-4">{{ total_below_real_cost.opportunity_cost|currency }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h1 class="text-2xl mt-5">Total en dessous du seuil de rentabilité</h1>
+    <table
+        class="border mt-3">
+      <thead class="bg-indigo-50">
+      <tr class="font-bold bg-blue-100 text-black uppercase text-xs">
+        <th class="p-4 sticky z-50 top-0 left-0 w-[120px]">Total vendu</th>
+        <th class="p-4 sticky z-50 top-0 left-[120px]">Total coût réel</th>
+        <th class="p-4 sticky z-50 top-0 left-[120px]">Total au seuil de rentabilité</th>
+        <th class="p-4 sticky z-50 top-0 left-[120px]">Total d'opportunité</th>
+      </tr>
+      </thead>
+
+      <tbody class="divide-y divide-gray-200">
+        <tr class="odd:bg-white even:bg-slate-50">
+          <td class="p-4">{{ total_below_profitability_threshold.total_sold|currency }}</td>
+          <td class="p-4">{{ total_below_profitability_threshold.real_cost|currency }}</td>
+          <td class="p-4">{{ total_below_profitability_threshold.profitability_threshold|currency }}</td>
+          <td class="p-4">{{ total_below_profitability_threshold.opportunity_cost|currency }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

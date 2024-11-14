@@ -1,6 +1,7 @@
 import datetime
 import json
 import numbers
+import locale
 
 from django.template.defaultfilters import pluralize, floatformat
 from django.template.defaulttags import register
@@ -98,6 +99,14 @@ def get_employee_events(employees_events, employee_name):
 @register.filter
 def get_item(dictionary, key):
     return dictionary.get(key)
+
+
+@register.filter
+def currency(value):
+    locale.setlocale(locale.LC_MONETARY, "fr_FR.UTF-8")
+    # Remove cents from the financial values
+    locale._override_localeconv = {"frac_digits": 0}
+    return locale.currency(value, symbol=True, grouping=True)
 
 
 @register.filter

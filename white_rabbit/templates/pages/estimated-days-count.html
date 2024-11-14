@@ -9,7 +9,7 @@
         class="border">
       <thead class="bg-gray-50">
       <tr class="font-bold bg-indigo-50 text-black uppercase text-xs">
-        <th class="p-4 sticky z-50 top-0 left-0 bg-indigo-50 w-[150px]">Nom du projet</th>
+        <th class="p-4 sticky z-50 top-0 left-0 bg-indigo-50 w-[180px]">Nom du projet</th>
         <th class="p-4 sticky z-50 top-0 left-[120px] bg-indigo-50">Temps passé</th>
         <th class="p-4 sticky z-50 top-0 left-[120px] bg-indigo-50">Temps vendu</th>
         <th class="p-4 sticky z-50 top-0 left-[120px] bg-indigo-50">Temps restant</th>
@@ -20,7 +20,7 @@
       {% for project_name, project_data in projects_data.items %}
         <tr class="odd:bg-white even:bg-slate-50">
           <td class="p-4">
-            {{ project_name }}
+            {{ project_data.name }} <span class="text-sm">({{ project_data.start_date }} -> {{ project_data.end_date }})</span>
             {% if user_is_staff %}
               <a href="{% url 'admin:white_rabbit_project_change' project_data.id %}" class="text-xs" target="_blank">🖍</a>
             {% endif %} 
