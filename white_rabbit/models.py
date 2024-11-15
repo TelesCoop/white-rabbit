@@ -116,6 +116,7 @@ class Project(models.Model):
         on_delete=models.CASCADE,
     )
     name = models.CharField(max_length=32, verbose_name="nom")
+    notes = models.TextField(verbose_name="notes", blank=True)
     lowercase_name = models.CharField(
         max_length=32, verbose_name="nom en minuscule", null=False
     )
