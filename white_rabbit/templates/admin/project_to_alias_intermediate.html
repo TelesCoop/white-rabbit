@@ -23,7 +23,16 @@
 
         <div style="display: flex; flex-direction: row; flex-wrap: wrap">
             {% for project in projects %}
-                <label style="margin: 5px;"><input style="margin-right: 2px;" type="radio" name="selected_project" value="{{ project.pk }}"/>{{ project.name }}</label>
+                <label style="margin: 5px;"><input style="margin-right: 2px;" type="radio" name="selected_project" value="{{ project.pk }}"/>
+                    {{ project.name }}
+                    {% if project.start_date %}
+                        ({{ project.start_date }}
+                        {% if project.end_date %}
+                            - {{ project.end_date }}
+                        {% endif %}
+                        )
+                    {% endif %}
+                </label>
             {% endfor %}
         </div>
 
