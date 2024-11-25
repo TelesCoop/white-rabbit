@@ -134,7 +134,7 @@ class Project(models.Model):
         help_text="Nombre de jours prévus sur le projet",
     )
     total_sold = models.DecimalField(
-        verbose_name="Total vendu",
+        verbose_name="Prix total de vente (€ HT)",
         default=0,
         max_digits=10,
         decimal_places=2,
