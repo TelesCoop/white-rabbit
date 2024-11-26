@@ -97,7 +97,24 @@ PROJECT_CATEGORY_TO_DISPLAY_NAME = {
 }
 
 
-class Project(models.Model):
+class Category(TimeStampedModel):
+    class Meta:
+        verbose_name = "Catégorie"
+        unique_together = ("name", "company")
+
+    name = models.CharField(max_length=32, verbose_name="nom")
+    company = models.ForeignKey(
+        Company,
+        verbose_name="entreprise",
+        related_name="categories",
+        on_delete=models.CASCADE,
+    )
+
+    def __str__(self):
+        return f"{self.company.name} - {self.name}"
+
+
+class Project(TimeStampedModel):
     class Meta:
         verbose_name = "projet"
         unique_together = (
@@ -123,8 +140,13 @@ class Project(models.Model):
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
 
-    category = models.CharField(
-        choices=PROJECT_CATEGORIES_CHOICES, blank=True, max_length=12
+    category = models.ForeignKey(
+        Category,
+        verbose_name="catégorie",
+        related_name="projects",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
     )
     estimated_days_count = models.DecimalField(
         verbose_name="Jours prévus",

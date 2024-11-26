@@ -5,7 +5,7 @@ from django.urls import reverse
 
 from white_rabbit.admin.company import is_user_admin
 
-from white_rabbit.models import Project, Alias
+from white_rabbit.models import Project, Alias, Category
 
 
 class AliasInline(admin.StackedInline):
@@ -131,6 +131,46 @@ class ProjectAdmin(admin.ModelAdmin):
         return self.has_permission(request)
 
     def has_change_permission(self, request, obj: Project = None):
+        if obj is None:
+            return self.has_permission(request)
+        if request.user.is_superuser:
+            return True
+        return obj.company.admins.filter(pk=request.user.pk).exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return self.has_change_permission(request, obj)
+
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ("name", "company")
+    search_fields = ["name"]
+
+    def get_queryset(self, request):
+        if request.user.is_superuser:
+            return Category.objects.all()
+        return Category.objects.filter(company__admins=request.user)
+
+    def has_permission(self, request):
+        if request.user.is_anonymous:
+            return False
+
+        if request.user.is_superuser:
+            return True
+
+        # if admin of at least one company
+        if is_user_admin(request.user):
+            return True
+
+        return False
+
+    def has_module_permission(self, request):
+        return self.has_permission(request)
+
+    def has_add_permission(self, request):
+        return self.has_permission(request)
+
+    def has_change_permission(self, request, obj: Category = None):
         if obj is None:
             return self.has_permission(request)
         if request.user.is_superuser:

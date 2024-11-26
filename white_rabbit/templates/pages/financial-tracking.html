@@ -33,7 +33,7 @@
             {{ project_data.name }} <span class="text-sm">({{ project_data.start_date }} -> {{ project_data.end_date }})</span>
             {% if user_is_staff %}
               <a href="{% url 'admin:white_rabbit_project_change' project_data.id %}" class="text-xs" target="_blank">🖍</a>
-            {% endif %} 
+            {% endif %}
           </td>
           <td class="p-4">{{ project_data.estimated_days_count|floatformat:1}}</td>
           <td class="p-4">{{ project_data.done|floatformat:1 }}</td>
