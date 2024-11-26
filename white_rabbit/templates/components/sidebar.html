@@ -69,7 +69,14 @@
         <a href="{% url 'alias' %}"
            class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100  group">
           {% include "svgs/shop.svg" %}
-          <span class="flex-1 ms-3 whitespace-nowrap">Liste des alias</span>
+          <span class="flex-1 ms-3 whitespace-nowrap">Liste des projets/alias</span>
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'refresh-cache' %}"
+           class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100  group">
+          {% include "svgs/refresh.svg" %}
+          <span class="flex-1 ms-3 whitespace-nowrap">Mise à jour du cache</span>
         </a>
       </li>
       <li>

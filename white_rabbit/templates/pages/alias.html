@@ -10,14 +10,14 @@
     <div class="aliases-container">
         {% for project, aliases in aliasesByProject.items %}
             <p><span class="font-bold">{{project}}</span> :
-                {% if aliases|length > 0 %}
+                {% if aliases|length %}
                 <ul>
                     {% for alias in aliases %}
                         <li>{{alias}}</li>
                     {% endfor %}
                 </ul>
                 {% else %}
-                <span class="sr-only">Aucun alias</span>
+                / <span class="sr-only">(Aucun alias)</span>
                 {% endif %}
             </p>
         {% endfor %}
