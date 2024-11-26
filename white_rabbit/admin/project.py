@@ -48,6 +48,21 @@ class ProjectAdmin(admin.ModelAdmin):
             return Project.objects.all()
         return Project.objects.filter(company__admins=request.user)
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """Limit the choices of the category field to the company's."""
+        if db_field.name == "category":
+            project_id = request.resolver_match.kwargs.get("object_id")
+            if project_id:
+                project = Project.objects.get(pk=project_id)
+                kwargs["queryset"] = Category.objects.filter(
+                    company=project.company
+                ).order_by("name")
+            else:
+                kwargs["queryset"] = Category.objects.filter(
+                    company__admins=request.user
+                ).order_by("name")
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
     def transform_project_to_alias(self, request, queryset):
         if "apply" in request.POST:
             selected_project_id = int(request.POST.get("selected_project"))
