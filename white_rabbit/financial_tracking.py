@@ -28,6 +28,7 @@ def add_project_to_totals(project, totals):
 def is_pertinent_evaluate_monetarily(project):
     return (
         project.end_date
+        and project.category
         and project.category.name == ProjectCategories.CLIENT.value.lower()
     )
 

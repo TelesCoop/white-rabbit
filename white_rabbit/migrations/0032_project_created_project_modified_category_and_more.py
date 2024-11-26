@@ -31,16 +31,34 @@ PROJECT_CATEGORY_TO_DISPLAY_NAME = {
     "": "Non défini",
 }
 
+PROJECT_CATEGORY_TO_COLOR = {
+    "PRO_BONO": "bg-green-100",
+    "CLIENT": "bg-blue-100",
+    "INTERNAL": "bg-purple-100",
+    "ROLE": "bg-red-100",
+    "OTHER": "bg-gray-100",
+    "OFF_WORK": "bg-orange-100",
+    "OKLM": "bg-orange-100",
+    "SALES": "bg-yellow-100",
+    "FORMATION": "bg-yellow-100",
+    "": "bg-yellow-100",
+}
+
 
 def fill_category_instance(apps, schema_editor):
     Project = apps.get_model("white_rabbit", "Project")
     Category = apps.get_model("white_rabbit", "Category")
     for project in Project.objects.all():
+        if not project.category:
+            continue
         category, _ = Category.objects.get_or_create(
             name=PROJECT_CATEGORY_TO_DISPLAY_NAME[project.category],
             company=project.company,
+            defaults={"color": PROJECT_CATEGORY_TO_COLOR.get(project.category, "bg-yellow-100")},
         )
         project.category_instance = category
+        if project.category_instance.name.lower() != 'non défini':
+            print(f"Project {project.name} has category {category.name}")
         project.save()
 
 
@@ -105,6 +123,15 @@ class Migration(migrations.Migration):
                 verbose_name="catégorie",
             ),
         ),
+        migrations.AddField(
+            model_name="category",
+            name="color",
+            field=models.CharField(
+                default="bg-yellow-100",
+                help_text="Couleur de la catégorie",
+                max_length=32,
+                verbose_name="couleur",
+            ),
+        ),
         migrations.RunPython(fill_category_instance, migrations.RunPython.noop),
-        # migrations.RemoveField(model_name="project", name="category"),
     ]

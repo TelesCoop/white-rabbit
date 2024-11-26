@@ -109,6 +109,12 @@ class Category(TimeStampedModel):
         related_name="categories",
         on_delete=models.CASCADE,
     )
+    color = models.CharField(
+        max_length=32,
+        verbose_name="couleur",
+        default="bg-yellow-100",
+        help_text="Couleur de la catégorie",
+    )
 
     def __str__(self):
         return f"{self.company.name} - {self.name}"

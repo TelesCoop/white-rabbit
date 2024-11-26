@@ -21,6 +21,25 @@ class ProjectFinder:
             Project.objects.prefetch_related("company", "aliases").all()
         )
 
+    @staticmethod
+    def project_from_name_and_dates(project, name, company, date):
+        names = [project.lowercase_name] + [
+            alias.lowercase_name for alias in project.aliases.all()
+        ]
+        for project_name in names:
+            if project_name != name.lower():
+                continue
+            if project.company != company:
+                continue
+            if not project.start_date:
+                return project
+            if project.end_date:
+                if project.start_date <= date <= project.end_date:
+                    return project
+            else:
+                if project.start_date <= date:
+                    return project
+
     def get_project(self, name: str, company: Company, date: datetime.date):
         name = name.strip()
         if not is_full_uppercase(name):
@@ -36,22 +55,7 @@ class ProjectFinder:
             return self.cache[key]
         else:
             for project in self.all_projects:
-                names = [project.lowercase_name] + [
-                    alias.lowercase_name for alias in project.aliases.all()
-                ]
-                for project_name in names:
-                    if project_name != name.lower():
-                        continue
-                    if project.company != company:
-                        continue
-                    if not project.start_date:
-                        return project
-                    if project.end_date:
-                        if project.start_date <= date <= project.end_date:
-                            return project
-                    else:
-                        if project.start_date <= date:
-                            return project
+                return self.project_from_name_and_dates(project, name, company, date)
 
         # no project has been found, create a new one
         if key not in self.cache:
@@ -73,7 +77,7 @@ class ProjectFinder:
                 "start_date": project.start_date
                 and project.start_date.strftime("%b %y"),
                 "end_date": project.end_date and project.end_date.strftime("%b %y"),
-                "category": project.category.name or "",
+                "category": project.category and project.category.name or "",
             }
 
         return to_return
