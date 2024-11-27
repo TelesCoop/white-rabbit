@@ -3,7 +3,9 @@ from collections import Counter, defaultdict
 from typing import Dict
 
 from django.contrib.auth.views import LoginView
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.views import View
 from django.views.generic import TemplateView
 
 from .events import (
@@ -143,10 +145,9 @@ class AliasView(TemplateView):
         aliasesByProject = {}
 
         for project in Project.objects.filter(company=company).order_by("name"):
-            if project.aliases.count():
-                aliasesByProject[project.name] = [
-                    alias.name for alias in project.aliases.all()
-                ]
+            aliasesByProject[project.name] = [
+                alias.name for alias in project.aliases.all()
+            ]
         return {"aliasesByProject": aliasesByProject}
 
 
@@ -332,3 +333,15 @@ class FinancialTrackingView(AbstractTotalView):
         context = {**context, **financial_indicators}
 
         return context
+
+
+class RefreshCacheView(View):
+    template_name = "pages/refresh-cache.html"
+
+    def get(self, *args, **kwargs):
+        employees = Employee.objects.all()
+        project_finder = ProjectFinder()
+        get_events_from_employees_from_cache(
+            employees, project_finder, force_refresh=True
+        )
+        return redirect(reverse("home"))
