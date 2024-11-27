@@ -2,6 +2,7 @@ import datetime
 from typing import Union, Dict, Any
 
 from white_rabbit.models import Project, Company
+from white_rabbit.text_utils import normalize_name
 
 
 class ProjectFinder:
@@ -45,8 +46,9 @@ class ProjectFinder:
         names = [project.lowercase_name] + [
             alias.lowercase_name for alias in project.aliases.all()
         ]
+        normalized_name = normalize_name(name)
         for project_name in names:
-            if project_name == name.lower():
+            if project_name == normalized_name:
                 return True
 
     def get_project(

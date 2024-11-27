@@ -14,6 +14,7 @@ from white_rabbit.constants import DEFAULT_NB_WORKING_HOURS
 from white_rabbit.models import Employee
 from white_rabbit.project_name_finder import ProjectFinder
 from white_rabbit.settings import DEFAULT_CACHE_DURATION
+from white_rabbit.text_utils import normalize_name
 from white_rabbit.typing import (
     EventsPerEmployee,
     Event,
@@ -94,10 +95,8 @@ def get_event_data(start, end, calendar_name, project_finder, employee) -> Event
     project_name = calendar_name.split(" [")[0]
     subproject_name = None
     if len(calendar_name.split(" [")) > 1:
-        subproject_name = (
+        subproject_name = normalize_name(
             calendar_name[calendar_name.find("[") + 1 : calendar_name.find("]")]
-            .strip()
-            .lower()
         )
 
     project = project_finder.get_project(project_name, employee.company, start_datetime)

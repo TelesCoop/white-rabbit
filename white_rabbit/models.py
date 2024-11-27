@@ -8,6 +8,7 @@ from django.db.models import UniqueConstraint
 from django.utils.safestring import mark_safe
 
 from white_rabbit.constants import DEFAULT_NB_WORKING_HOURS
+from white_rabbit.text_utils import normalize_name
 
 
 class TimeStampedModel(models.Model):
@@ -180,7 +181,7 @@ class Project(TimeStampedModel):
     )
 
     def save(self, *args, **kwargs):
-        self.lowercase_name = self.name.lower()
+        self.lowercase_name = normalize_name(self.name)
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -202,7 +203,7 @@ class Alias(models.Model):
     )
 
     def save(self, *args, **kwargs):
-        self.lowercase_name = self.name.lower()
+        self.lowercase_name = normalize_name(self.name)
         super().save(*args, **kwargs)
 
     def __str__(self):
