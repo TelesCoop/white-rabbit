@@ -41,6 +41,7 @@ class ProjectAdmin(admin.ModelAdmin):
         "name",
         "company",
         "category",
+        "created",
         "start_date",
         "end_date",
         "estimated_days_count",

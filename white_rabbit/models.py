@@ -18,8 +18,8 @@ class TimeStampedModel(models.Model):
 
     """
 
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateField(auto_now=True)
+    created = models.DateTimeField(auto_now_add=True, verbose_name="créé le")
+    modified = models.DateField(auto_now=True, verbose_name="modifié le")
 
     class Meta:
         abstract = True

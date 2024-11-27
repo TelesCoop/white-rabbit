@@ -87,12 +87,19 @@ class TestProjectNameFinder(TestCase):
     def test_accents(self):
         company = CompanyFactory()
         p1 = Project.objects.create(company=company, name="été")
+        p1.aliases.create(name="étés")
         p2 = Project.objects.create(company=company, name="OFFacts")
         alias = "🔎 Search-A-Licious Weekly"
         p2.aliases.create(name=alias)
+        p3 = Project.objects.create(company=company, name="Congés")
+        p3.aliases.create(name="Congé Quentin")
 
         project_finder = ProjectFinder()
         self.assertEqual(project_finder.get_project("ete", company, None), p1)
         self.assertEqual(project_finder.get_project("eté", company, None), p1)
+        self.assertEqual(project_finder.get_project("etes", company, None), p1)
+        self.assertEqual(project_finder.get_project("étés", company, None), p1)
 
         self.assertEqual(project_finder.get_project(alias, company, None), p2)
+
+        self.assertEqual(project_finder.get_project("Congé Quentin", company, None), p3)
