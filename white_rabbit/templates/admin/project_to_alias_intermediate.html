@@ -21,9 +21,10 @@
             Selectionner le project auquel ils correspondent
         </h2>
 
-        <div style="display: flex; flex-direction: row; flex-wrap: wrap">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
             {% for project in projects %}
-                <label style="margin: 5px;"><input style="margin-right: 2px;" type="radio" name="selected_project" value="{{ project.pk }}"/>
+                <label style="margin: 0px; display: block">
+                  <input style="margin-right: 2px;" type="radio" name="selected_project" value="{{ project.pk }}"/>
                     {{ project.name }}
                     {% if project.start_date %}
                         ({{ project.start_date }}
