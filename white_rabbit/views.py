@@ -308,7 +308,8 @@ class EstimatedDaysCountView(AbstractTotalView):
                 ),
             }
             for project_id in context["identifier_order"]
-            if (project := projects_by_id[project_id]).estimated_days_count
+            if project_id in projects_by_id
+            and (project := projects_by_id[project_id]).estimated_days_count
         }
         context["projects_data"] = projects_data
         return context

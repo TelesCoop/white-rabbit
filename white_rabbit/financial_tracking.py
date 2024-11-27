@@ -45,7 +45,11 @@ def calculate_financial_indicators(company, identifier_order, total_by_project_i
     }
 
     for project_id in identifier_order:
-        project = projects_by_id[project_id]
+        try:
+            project = projects_by_id[project_id]
+        except KeyError:
+            # can happen if project is missing in cache
+            continue
         if not is_pertinent_evaluate_monetarily(project):
             continue
         projects_data[project_id] = {
