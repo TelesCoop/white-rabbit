@@ -174,6 +174,8 @@ class Project(TimeStampedModel):
         super().save(*args, **kwargs)
 
     def __str__(self):
+        if self.start_date:
+            return f"{self.name} ({self.start_date}{f' - {self.end_date}' if self.end_date else ''})"
         return self.name
 
 

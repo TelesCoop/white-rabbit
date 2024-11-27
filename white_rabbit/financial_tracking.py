@@ -29,7 +29,7 @@ def is_pertinent_evaluate_monetarily(project):
     return (
         project.end_date
         and project.category
-        and project.category.name == ProjectCategories.CLIENT.value.lower()
+        and project.category.name.lower() == ProjectCategories.CLIENT.value.lower()
     )
 
 
@@ -46,23 +46,24 @@ def calculate_financial_indicators(company, identifier_order, total_by_project_i
 
     for project_id in identifier_order:
         project = projects_by_id[project_id]
-        if is_pertinent_evaluate_monetarily(project):
-            projects_data[project_id] = {
-                "total_sold": project.total_sold,
-                "estimated_days_count": project.estimated_days_count,
-                "done": (done := total_by_project_id[project_id]),
-                "real_cost": done * float(project.company.daily_employee_cost),
-                "profitability_threshold": done
-                * float(project.company.profitability_threshold),
-                "opportunity_cost": done * float(project.company.daily_market_price),
-                "id": project_id,
-                "name": project.name,
-                "start_date": (
-                    project.start_date.strftime("%m/%y") if project.start_date else ""
-                ),
-                "end_date": project.end_date.strftime("%m/%y"),
-            }
-            add_project_to_totals(projects_data[project_id], totals)
+        if not is_pertinent_evaluate_monetarily(project):
+            continue
+        projects_data[project_id] = {
+            "total_sold": project.total_sold,
+            "estimated_days_count": project.estimated_days_count,
+            "done": (done := total_by_project_id[project_id]),
+            "real_cost": done * float(project.company.daily_employee_cost),
+            "profitability_threshold": done
+            * float(project.company.profitability_threshold),
+            "opportunity_cost": done * float(project.company.daily_market_price),
+            "id": project_id,
+            "name": project.name,
+            "start_date": (
+                project.start_date.strftime("%m/%y") if project.start_date else ""
+            ),
+            "end_date": project.end_date.strftime("%m/%y"),
+        }
+        add_project_to_totals(projects_data[project_id], totals)
 
     return {
         "projects_data": projects_data,

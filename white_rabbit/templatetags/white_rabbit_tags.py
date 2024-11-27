@@ -6,7 +6,7 @@ import locale
 from django.template.defaultfilters import pluralize, floatformat
 from django.template.defaulttags import register
 
-from white_rabbit.models import PROJECT_CATEGORY_TO_DISPLAY_NAME
+from white_rabbit.models import PROJECT_CATEGORY_TO_DISPLAY_NAME, Category
 from white_rabbit.utils import is_total_key
 
 
@@ -72,6 +72,15 @@ def find_project_category(project_id, projects):
     if project is None:
         return ""
     return project.get("category", "")
+
+
+@register.filter
+def find_category_color(category_name, company):
+    try:
+        category = company.categories.get(name=category_name)
+        return category.color
+    except Category.DoesNotExist:
+        return "bg-white-100"
 
 
 @register.filter
