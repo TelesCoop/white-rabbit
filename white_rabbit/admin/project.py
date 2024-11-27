@@ -41,7 +41,7 @@ class ProjectAdmin(admin.ModelAdmin):
     exclude = ("lowercase_name",)
     inlines = (AliasInline,)
     search_fields = ["aliases__name", "name"]
-    actions = ["transform_project_to_alias"]
+    actions = ["transform_project_to_alias", "duplicate_project"]
 
     def get_queryset(self, request):
         if request.user.is_superuser:
@@ -125,6 +125,32 @@ class ProjectAdmin(admin.ModelAdmin):
     transform_project_to_alias.short_description = (  # type: ignore
         "Transformer en alias d'un autre projet"
     )
+
+    def duplicate_project(self, request, queryset):
+        if len(queryset) > 1:
+            messages.error(
+                request,
+                "Vous ne pouvez dupliquer qu'un seul projet à la fois",
+            )
+            return redirect(reverse("admin:white_rabbit_project_changelist"))
+
+        project = queryset.first()
+        new_project = Project(
+            name=f"{project.name} copie",
+            company=project.company,
+            category=project.category,
+            start_date=project.start_date,
+            estimated_days_count=project.estimated_days_count,
+            total_sold=project.total_sold,
+        )
+        new_project.save()
+        for alias in project.aliases.all():
+            Alias(name=alias.name, project=new_project).save()
+        return redirect(
+            reverse("admin:white_rabbit_project_change", args=(new_project.pk,))
+        )
+
+    duplicate_project.short_description = "Dupliquer le projet"  # type: ignore
 
     def has_permission(self, request):
         if request.user.is_anonymous:
