@@ -41,10 +41,11 @@ class ProjectAdmin(admin.ModelAdmin):
         "name",
         "company",
         "category",
-        "created",
         "start_date",
         "end_date",
         "estimated_days_count",
+        "total_sold",
+        "created",
     )
     list_filter = ("category",)
     exclude = ("lowercase_name",)
