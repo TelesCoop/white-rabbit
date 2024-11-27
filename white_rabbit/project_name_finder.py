@@ -22,23 +22,24 @@ class ProjectFinder:
         )
 
     @staticmethod
-    def project_from_name_and_dates(project, name, company, date):
+    def project_corresponds(project, name, company, date):
+        # reject if different company
+        if project.company != company:
+            return None
+
+        # reject if date does not correspond
+        if project.start_date and project.start_date > date:
+            return None
+        if project.end_date and project.end_date < date:
+            return None
+
+        # name corresponds
         names = [project.lowercase_name] + [
             alias.lowercase_name for alias in project.aliases.all()
         ]
         for project_name in names:
-            if project_name != name.lower():
-                continue
-            if project.company != company:
-                continue
-            if not project.start_date:
+            if project_name == name.lower():
                 return project
-            if project.end_date:
-                if project.start_date <= date <= project.end_date:
-                    return project
-            else:
-                if project.start_date <= date:
-                    return project
 
     def get_project(self, name: str, company: Company, date: datetime.date):
         name = name.strip()
@@ -54,17 +55,17 @@ class ProjectFinder:
             # if a project has no start date and same name, it will be found in cache
             return self.cache[key]
         else:
-            for project in self.all_projects:
-                return self.project_from_name_and_dates(project, name, company, date)
+            for project_candidate in self.all_projects:
+                if project_candidate := self.project_corresponds(
+                    project_candidate, name, company, date
+                ):
+                    return project_candidate
 
         # no project has been found, create a new one
-        if key not in self.cache:
-            project = Project.objects.create(name=name, company=company)
-            self.all_projects.append(project)
-            self.cache[key] = project
-            return project
-
-        return self.cache[key]
+        project = Project.objects.create(name=name, company=company)
+        self.all_projects.append(project)
+        self.cache[key] = project
+        return project
 
     def by_company(self, company: Company) -> Dict[str, Any]:
         to_return: Dict[str, Any] = {}

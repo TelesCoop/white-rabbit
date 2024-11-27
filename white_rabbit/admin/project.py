@@ -170,11 +170,7 @@ class CategoryAdmin(admin.ModelAdmin):
         if request.user.is_anonymous:
             return False
 
-        if request.user.is_superuser:
-            return True
-
-        # if admin of at least one company
-        if is_user_admin(request.user):
+        if request.user.is_superuser or is_user_admin(request.user):
             return True
 
         return False
