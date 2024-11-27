@@ -264,6 +264,7 @@ class AbstractTotalView(TemplateView):
             "details_data": details_data,
             "group_by": group_by,
             "show_details": details,
+            "company": user.employee.company,
         }
 
 
