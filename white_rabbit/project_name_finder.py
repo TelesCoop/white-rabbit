@@ -23,22 +23,14 @@ class ProjectFinder:
         then with projects that have only a start date,
         and finally with projects that have no dates.
         """
+
+        def filter_projects_by_company(projects, company):
+            return [project for project in projects if project.company == company]
+
         return (
-            [
-                project
-                for project in self.projects_with_dates
-                if project.company == company
-            ]
-            + [
-                project
-                for project in self.project_with_only_start_date
-                if project.company == company
-            ]
-            + [
-                project
-                for project in self.project_without_dates
-                if project.company == company
-            ]
+            filter_projects_by_company(self.projects_with_dates, company)
+            + filter_projects_by_company(self.project_with_only_start_date, company)
+            + filter_projects_by_company(self.project_without_dates, company)
         )
 
     @staticmethod
