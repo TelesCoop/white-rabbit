@@ -4,34 +4,50 @@ from typing import Union, Dict, Any
 from white_rabbit.models import Project, Company
 
 
-def get_key(
-    name: str, company_name: str, start_datetime: Union[datetime.date, None]
-) -> str:
-    to_return = f"{name.lower()}__{company_name}"
-    if start_datetime:
-        to_return += f"__{start_datetime.strftime('%Y-%m-%d')}"
-
-    return to_return
-
-
 class ProjectFinder:
     def __init__(self):
-        self.cache = {}
-        self.all_projects = list(
-            Project.objects.prefetch_related("company", "aliases").all()
+        all_projects = Project.objects.prefetch_related("company", "aliases").all()
+        self.projects_with_dates = list(
+            all_projects.filter(start_date__isnull=False, end_date__isnull=False)
+        )
+        self.project_with_only_start_date = list(
+            all_projects.filter(start_date__isnull=False, end_date__isnull=True)
+        )
+        self.project_without_dates = list(
+            all_projects.filter(start_date__isnull=True, end_date__isnull=True)
+        )
+
+    def get_projects_for_matching(self, company: Company):
+        """
+        We first want to match with projects that have both start and end dates,
+        then with projects that have only a start date,
+        and finally with projects that have no dates.
+        """
+        return (
+            [
+                project
+                for project in self.projects_with_dates
+                if project.company == company
+            ]
+            + [
+                project
+                for project in self.project_with_only_start_date
+                if project.company == company
+            ]
+            + [
+                project
+                for project in self.project_without_dates
+                if project.company == company
+            ]
         )
 
     @staticmethod
-    def project_corresponds(project, name, company, date):
-        # reject if different company
-        if project.company != company:
-            return None
-
+    def project_corresponds(project, name, date) -> bool:
         # reject if date does not correspond
         if project.start_date and project.start_date > date:
-            return None
+            return False
         if project.end_date and project.end_date < date:
-            return None
+            return False
 
         # name corresponds
         names = [project.lowercase_name] + [
@@ -39,9 +55,11 @@ class ProjectFinder:
         ]
         for project_name in names:
             if project_name == name.lower():
-                return project
+                return True
 
-    def get_project(self, name: str, company: Company, date: datetime.date):
+    def get_project(
+        self, name: str, company: Company, date: Union[datetime.date, None]
+    ):
         name = name.strip()
         if not is_full_uppercase(name):
             name = name.title()
@@ -50,29 +68,18 @@ class ProjectFinder:
             date = date.date()
 
         # find project by date
-        key = get_key(name, company.name, None)
-        if key in self.cache:
-            # if a project has no start date and same name, it will be found in cache
-            return self.cache[key]
-        else:
-            for project_candidate in self.all_projects:
-                if project_candidate := self.project_corresponds(
-                    project_candidate, name, company, date
-                ):
-                    return project_candidate
+        for project_candidate in self.get_projects_for_matching(company):
+            if self.project_corresponds(project_candidate, name, date):
+                return project_candidate
 
         # no project has been found, create a new one
         project = Project.objects.create(name=name, company=company)
-        self.all_projects.append(project)
-        self.cache[key] = project
+        self.project_without_dates.append(project)
         return project
 
     def by_company(self, company: Company) -> Dict[str, Any]:
         to_return: Dict[str, Any] = {}
-        for project in self.all_projects:
-            if project.company != company:
-                continue
-
+        for project in self.get_projects_for_matching(company):
             to_return[project.pk] = {
                 "name": project.name,
                 "start_date": project.start_date
