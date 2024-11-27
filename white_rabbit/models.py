@@ -4,6 +4,7 @@ from enum import Enum
 from django.contrib.auth.models import User
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db.models import UniqueConstraint
 
 from white_rabbit.constants import DEFAULT_NB_WORKING_HOURS
 
@@ -123,14 +124,20 @@ class Category(TimeStampedModel):
 class Project(TimeStampedModel):
     class Meta:
         verbose_name = "projet"
-        unique_together = (
-            "lowercase_name",
-            "name",
-            "company",
-            "category",
-            "start_date",
-            "end_date",
-        )
+        constraints = [
+            UniqueConstraint(
+                name="project name",
+                fields=[
+                    "lowercase_name",
+                    "name",
+                    "company",
+                    "category",
+                    "start_date",
+                    "end_date",
+                ],
+                nulls_distinct=False,
+            )
+        ]
 
     company = models.ForeignKey(
         Company,
