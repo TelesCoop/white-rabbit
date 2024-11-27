@@ -26,7 +26,11 @@ def add_project_to_totals(project, totals):
 
 
 def is_pertinent_evaluate_monetarily(project):
-    return project.end_date and project.category == ProjectCategories.CLIENT.value
+    return (
+        project.end_date
+        and project.category
+        and project.category.name == ProjectCategories.CLIENT.value.lower()
+    )
 
 
 def calculate_financial_indicators(company, identifier_order, total_by_project_id):
