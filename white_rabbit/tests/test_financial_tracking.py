@@ -49,7 +49,6 @@ class TestFinancialTracking(TestCase):
             days_done * company.profitability_threshold
         )
         one_project_opportunity_cost = days_done * company.daily_market_price
-        breakpoint()
         self.assertEqual(
             financial_indicators,
             {

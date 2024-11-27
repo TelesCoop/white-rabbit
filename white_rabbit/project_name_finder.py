@@ -85,7 +85,8 @@ class ProjectFinder:
                 "start_date": project.start_date
                 and project.start_date.strftime("%b %y"),
                 "end_date": project.end_date and project.end_date.strftime("%b %y"),
-                "category": project.category and project.category.name or "",
+                "category": project.category
+                or {"name": "inconnue", "color": "bg-white-100"},
             }
 
         return to_return
