@@ -1,4 +1,4 @@
-django==5.0.9
+django==5.0.10
 django-anymail==11.0.1
 django-debug-toolbar==3.2.1
 django-hijack==3.5.1
