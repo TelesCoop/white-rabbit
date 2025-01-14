@@ -5,7 +5,12 @@ from django.urls import reverse
 
 from white_rabbit.admin.company import is_user_admin
 
-from white_rabbit.models import Project, Alias, Category
+from white_rabbit.models import Project, Alias, Category, Invoice
+
+
+class InvoiceInline(admin.TabularInline):
+    model = Invoice
+    can_delete = True
 
 
 class AliasInline(admin.StackedInline):
@@ -49,7 +54,7 @@ class ProjectAdmin(admin.ModelAdmin):
     )
     list_filter = ("category",)
     exclude = ("lowercase_name",)
-    inlines = (AliasInline,)
+    inlines = (InvoiceInline, AliasInline)
     search_fields = ["aliases__name", "name"]
     actions = ["transform_project_to_alias", "duplicate_project"]
 
@@ -190,6 +195,13 @@ class ProjectAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return self.has_change_permission(request, obj)
+
+    def save_model(self, request, obj, form, change):
+        pass  # don't actually save the parent instance
+
+    def save_formset(self, request, form, formset, change):
+        formset.save()  # this will save the children
+        form.instance.save()  # form.instance is the parent
 
 
 @admin.register(Category)

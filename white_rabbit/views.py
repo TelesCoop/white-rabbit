@@ -3,6 +3,7 @@ from collections import Counter, defaultdict
 from typing import Dict
 
 from django.contrib.auth.views import LoginView
+from django.db.models import Q
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views import View
@@ -183,7 +184,7 @@ class AbstractTotalView(TemplateView):
         assert group_by in ["category", "project"]
         request = self.request
         user = request.user
-        details = self.request.GET.get("details", False)
+        details = bool(self.request.GET.get("details", False))
 
         # period is a month, a year, or one of total, total_done, total_todo
         period_name = kwargs["period"]
@@ -283,16 +284,19 @@ class DistributionView(AbstractTotalView):
 class EstimatedDaysCountView(AbstractTotalView):
     template_name = "pages/estimated-days-count.html"
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, is_full=False, **kwargs):
         context = super().get_context_data(
             group_by="project", period="total_done", **kwargs
         )
-        projects_by_id = {
-            project.pk: project
-            for project in Project.objects.filter(
-                company=self.request.user.employee.company
-            )
-        }
+        projects = Project.objects.filter(company=self.request.user.employee.company)
+        if not is_full:
+            today = datetime.date.today()
+            two_months_ago = today - datetime.timedelta(days=60)
+            projects = projects.filter(
+                Q(start_date__lte=today) | Q(start_date__isnull=True)
+            ).filter(Q(end_date__gte=two_months_ago) | Q(end_date__isnull=True))
+        projects_by_id = {project.pk: project for project in projects}
+
         projects_data: Dict[str, Dict[str, int]] = {
             project.id: {
                 "estimated_days_count": (estimated := project.estimated_days_count),
@@ -312,6 +316,7 @@ class EstimatedDaysCountView(AbstractTotalView):
             and (project := projects_by_id[project_id]).estimated_days_count
         }
         context["projects_data"] = projects_data
+        context["is_full"] = is_full
         return context
 
 

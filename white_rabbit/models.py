@@ -125,6 +125,40 @@ class Category(TimeStampedModel):
         return f"{self.company.name} - {self.name}"
 
 
+class Invoice(TimeStampedModel):
+    class Meta:
+        verbose_name = "facture"
+
+    number = models.CharField(
+        max_length=32, verbose_name="numéro de facture", null=True, blank=True
+    )
+    date = models.DateField(verbose_name="date")
+    project = models.ForeignKey(
+        "Project",
+        verbose_name="projet",
+        related_name="invoices",
+        on_delete=models.CASCADE,
+    )
+    amount = models.DecimalField(
+        verbose_name="montant (€ HT)",
+        max_digits=10,
+        decimal_places=2,
+        help_text="Montant de la facture en € (hors coûts refacturés)",
+    )
+    days_count = models.DecimalField(
+        verbose_name="jours",
+        max_digits=4,
+        decimal_places=1,
+        help_text="Nombre de jours facturés",
+    )
+    comment = models.CharField(
+        verbose_name="commentaire", blank=True, max_length=200, null=True
+    )
+
+    def __str__(self):
+        return f"{self.number} ({self.date})"
+
+
 class Project(TimeStampedModel):
     class Meta:
         verbose_name = "projet"
@@ -180,8 +214,14 @@ class Project(TimeStampedModel):
         help_text="Montant total vendu pour le projet en € (hors coûts refacturés)",
     )
 
+    def update_total_sold_and_days_from_invoices(self):
+        invoices = self.invoices.all()
+        self.total_sold = sum(invoice.amount for invoice in invoices)
+        self.estimated_days_count = sum(invoice.days_count for invoice in invoices)
+
     def save(self, *args, **kwargs):
         self.lowercase_name = normalize_name(self.name)
+        self.update_total_sold_and_days_from_invoices()
         super().save(*args, **kwargs)
 
     def __str__(self):

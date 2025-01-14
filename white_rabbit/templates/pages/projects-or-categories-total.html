@@ -4,6 +4,17 @@
 {% load static %}
 
 {% block content %}
+  <div class="mb-2">
+    {% if show_details %}
+      <a href="{% url 'projects' current_period_key %}" class="p-1 text-2xs rounded lowercase bg-blue-100">
+        Masquer les détails
+      </a>
+    {% else %}
+      <a href="{% url 'projects' current_period_key %}?details=1" class="p-1 text-2xs rounded lowercase bg-blue-100">
+        Afficher les détails
+      </a>
+    {% endif %}
+  </div>
   <div class="border-b border-gray-200">
     {% for period_list in periods.values %}
       <nav aria-label="Tabs" role="tablist">
