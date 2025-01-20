@@ -4,9 +4,18 @@
 {% load static %}
 
 {% block content %}
-  <div>
-    <table
-        class="border">
+  <div class="mt-4">
+    {% if is_full %}
+      <a href="{% url 'estimated-days-reporting' %}" class="p-4 rounded lowercase bg-blue-100">
+        Afficher uniquement les projets en cours
+      </a>
+    {% else %}
+      <a href="{% url 'estimated-days-reporting-full' %}" class="p-4 rounded lowercase bg-blue-100">
+        Afficher l'ensemble des projets
+      </a>
+    {% endif %}
+
+    <table class="border mt-6">
       <thead class="bg-gray-50">
       <tr class="font-bold bg-indigo-50 text-black uppercase text-xs">
         <th class="p-4 sticky z-50 top-0 left-0 bg-indigo-50 w-[180px]">Nom du projet</th>

@@ -42,6 +42,12 @@ urlpatterns = [
         name="estimated-days-reporting",
     ),
     path(
+        "suivi-projets-complet",
+        views.EstimatedDaysCountView.as_view(),
+        kwargs={"is_full": True},
+        name="estimated-days-reporting-full",
+    ),
+    path(
         "suivi-monétaire",
         views.FinancialTrackingView.as_view(),
         name="financial-tracking",
