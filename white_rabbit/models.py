@@ -224,7 +224,7 @@ class Project(TimeStampedModel):
         if not self.pk:
             super().save(*args, **kwargs)
             self.update_total_sold_and_days_from_invoices()
-            super().save(*args, **kwargs)
+            super().save()
             return
         self.update_total_sold_and_days_from_invoices()
         super().save(*args, **kwargs)
