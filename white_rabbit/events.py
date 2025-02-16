@@ -240,14 +240,14 @@ class EmployeeEvents:
         self,
         time_period: str = "month",
         n_periods: int = None,
-        timeshift_direction="past",
+        time_shift_direction="past",
     ):
         to_return: Any = {}
 
         if n_periods is None:
             n_periods = self.n_periods
 
-        periods = generate_time_periods(n_periods, time_period, timeshift_direction)
+        periods = generate_time_periods(n_periods, time_period, time_shift_direction)
         for period in periods:
             events = filter_events_per_time_period(
                 self.events, period["start"], time_period
