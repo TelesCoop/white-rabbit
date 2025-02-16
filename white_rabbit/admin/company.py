@@ -11,7 +11,7 @@ class CompanyAdmin(admin.ModelAdmin):
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         """Only show employees of that company."""
-        if db_field.name == "admins":
+        if db_field.name == "admins" and not request.user.is_superuser:
             kwargs["queryset"] = User.objects.filter(
                 employee__in=request.user.employee.company.employees.all()
             )
