@@ -192,6 +192,13 @@ def number_of_working_days_for_period_key(period_key: str):
 
 @register.filter
 def monthly_hours_color(hours, period_key):
+    """
+    Return the color corresponding to the number of hours worked in a month,
+    taking into account the number of expecte hours for that month, based on the number
+    of working days.
+    Could be improved by taking into account the number of working days / hours for each
+    employee.
+    """
     SUCCESS_COLOR = SEVERITY_COLORS[-1]
     n_days = number_of_working_days_for_period_key(period_key)
     THRESHOLDS = [12 * n_days, 10 * n_days, 8 * n_days, 7 * n_days, 6 * n_days]
