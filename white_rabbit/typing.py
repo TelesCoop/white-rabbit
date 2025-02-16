@@ -29,7 +29,6 @@ class MonthDetail(TypedDict):
 class Event(TypedDict):
     project_id: int
     project_name: str
-    has_estimated_days_count: bool
     name: str
     subproject_name: Union[str, None]
     duration: float

@@ -104,7 +104,6 @@ def get_event_data(start, end, calendar_name, project_finder, employee) -> Event
     return {
         "project_id": project.pk,
         "project_name": project.name,
-        "has_estimated_days_count": bool(project.estimated_days_count),
         "category": project.category and project.category.name,
         "name": project_name,
         "subproject_name": subproject_name,
