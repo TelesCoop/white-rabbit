@@ -127,10 +127,10 @@ class Category(TimeStampedModel):
 
 class Invoice(TimeStampedModel):
     class Meta:
-        verbose_name = "facture"
+        verbose_name = "facture/devis"
 
     number = models.CharField(
-        max_length=32, verbose_name="numéro de facture", null=True, blank=True
+        max_length=32, verbose_name="numéro de facture/devis", null=True, blank=True
     )
     date = models.DateField(verbose_name="date")
     project = models.ForeignKey(
@@ -143,7 +143,7 @@ class Invoice(TimeStampedModel):
         verbose_name="montant (€ HT)",
         max_digits=10,
         decimal_places=2,
-        help_text="Montant de la facture en € (hors coûts refacturés)",
+        help_text="Montant facture/devis en € (hors coûts refacturés)",
     )
     days_count = models.DecimalField(
         verbose_name="jours",
