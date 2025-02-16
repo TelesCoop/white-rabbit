@@ -18,7 +18,7 @@
       <tr class="font-bold bg-indigo-50 text-bold text-md">
         <th class="font-bold text-black left-0 top-0 sticky z-150 bg-indigo-50 flex"
             scope="col">
-          Employé·e
+          Salarié·e
         </th>
         {% for period in periods_per_key.values %}
           <th class="min-w-48 font-bold bg-indigo-50 top-0 sticky z-10">
@@ -44,7 +44,12 @@
           {% for period_key, availability in availability|get_item:employee_name|dict_items %}
             <td>
               <div class="flex flex-col justify-center items-center">
-                <div style="background: {{ availability|week_color }}"
+                <div
+                    {% if is_monthly_hours %}
+                      style="background: {{ availability|monthly_hours_color:period_key }}"
+                    {% else %}
+                      style="background: {{ availability|week_color }}"
+                    {% endif %}
                      class="pastille pastille-2xl font-bold flex gap-1">
                   {{ availability|floatformat:1 }}
                 </div>

@@ -7,21 +7,18 @@
         <a class="btn btn-ghost text-xl" href="/" target="_self">Lapin Blanc 🐰</a>
       </li>
       <li>
-        <span
-            class="flex items-center w-full p-2 text-base text-gray-900 rounded-lg group"
-            aria-controls="dropdown-example"
-            data-collapse-toggle="dropdown-example">
-            {% include "svgs/graph.svg" %}
-          <span
-              class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap">Temps total</span>
-        </span>
-        <ul id="dropdown-project" class="py-2 space-y-2">
-          <li>
-            <a href="{% url 'projects' current_month %}"
-               class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 ">
-              Par mois</a>
-          </li>
-        </ul>
+        <a href="{% url 'categories' 'total' %}"
+           class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100  group">
+          {% include "svgs/graph.svg" %}
+          <span class="flex-1 ms-3 whitespace-nowrap">Total par mois</span>
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'monthly-working-hours' %}"
+           class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100  group">
+          <span style="margin-right: 0.15rem">🥵</span>
+          <span class="flex-1 ms-3 whitespace-nowrap">Heures travaillées par mois</span>
+        </a>
       </li>
       <li>
         <span

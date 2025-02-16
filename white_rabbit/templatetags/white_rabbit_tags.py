@@ -6,6 +6,7 @@ import locale
 from django.template.defaultfilters import pluralize, floatformat
 from django.template.defaulttags import register
 
+from white_rabbit.constants import SEVERITY_COLORS
 from white_rabbit.models import PROJECT_CATEGORY_TO_DISPLAY_NAME, Category
 from white_rabbit.utils import is_total_key
 
@@ -161,15 +162,52 @@ def get_projects_str(projects_events_by_ids, projects_details, periodicity):
 
 @register.filter
 def week_color(value):
-    COLORS = ["#EEA6A6;", "#eec3a6;", "#eedaa6;", "#eceea6;", "#c2eea6;"]
-    SUCCESS_COLOR = COLORS[-1]
+    SUCCESS_COLOR = SEVERITY_COLORS[-1]
     WEEK_THRESHOLDS = [1, 2, 3, 4, 5]
 
     if value is None or not isinstance(value, (int, float)):
         return ""
 
-    for index, color in enumerate(COLORS):
+    for index, color in enumerate(SEVERITY_COLORS):
         if value < WEEK_THRESHOLDS[index]:
+            return color
+    return SUCCESS_COLOR
+
+
+def number_of_working_days_for_period_key(period_key: str):
+    # period_key is MM-YYYY
+    month, year = period_key.split("-")
+    month = int(month)
+    year = int(year)
+    n_days = 0
+    for day in range(1, 32):
+        try:
+            date = datetime.datetime(year, month, day)
+            if date.weekday() < 5:
+                n_days += 1
+        except ValueError:
+            continue
+    return n_days
+
+
+@register.filter
+def monthly_hours_color(hours, period_key):
+    """
+    Return the color corresponding to the number of hours worked in a month,
+    taking into account the number of expecte hours for that month, based on the number
+    of working days.
+    Could be improved by taking into account the number of working days / hours for each
+    employee.
+    """
+    SUCCESS_COLOR = SEVERITY_COLORS[-1]
+    n_days = number_of_working_days_for_period_key(period_key)
+    THRESHOLDS = [12 * n_days, 10 * n_days, 8 * n_days, 7 * n_days, 6 * n_days]
+
+    if hours is None or not isinstance(hours, (int, float)):
+        return ""
+
+    for index, color in enumerate(SEVERITY_COLORS):
+        if hours >= THRESHOLDS[index]:
             return color
     return SUCCESS_COLOR
 

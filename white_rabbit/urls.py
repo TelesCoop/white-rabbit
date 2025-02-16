@@ -27,6 +27,11 @@ urlpatterns = [
         "distribution/<str:period>", views.DistributionView.as_view(), name="categories"
     ),
     path(
+        "monthly-hours",
+        views.MonthlyWorkingHoursView.as_view(),
+        name="monthly-working-hours",
+    ),
+    path(
         "availability/week",
         views.AvailabilityPerWeekView.as_view(),
         name="week-availability",

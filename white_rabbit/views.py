@@ -90,7 +90,7 @@ class AvailabilityBaseView(TemplateView):
         availability: Dict[str, Dict[str, float]] = defaultdict(Counter)
         for employee_name, employee_events in events_per_employee.items():
             periods = employee_events.group_by_time_period(
-                self.time_period, timeshift_direction="future", n_periods=12
+                self.time_period, time_shift_direction="future", n_periods=12
             )
             for period_key, period_data in periods.items():
                 availability[employee_name][period_key] = period_data["availability"]
@@ -136,6 +136,69 @@ class AvailabilityPerWeekView(AvailabilityBaseView):
 class AvailabilityPerMonthView(AvailabilityBaseView):
     def __init__(self, *args, **kwargs):
         super().__init__("month", *args, **kwargs)
+
+
+class MonthlyWorkingHoursView(TemplateView):
+    template_name = "pages/availability.html"
+
+    def get_context_data(self, **kwargs):
+        """
+        We use the same template as the availability page because the html structure is
+        similar. In this view however, we compute for each (employee, month) the total
+        of hours worked in the month.
+        We do not take into account time spent on project whose categories are marked as
+        non-working.
+        """
+        request = self.request
+        user = request.user
+        employees = employees_for_user(user)
+        today = datetime.date.today()
+        employees = [
+            employee
+            for employee in employees
+            if not employee.end_time_tracking_on
+            or employee.end_time_tracking_on > today
+        ]
+        n_periods = 12
+        time_direction = "past"
+
+        project_finder = ProjectFinder()
+        events: EventsPerEmployee = get_events_from_employees_from_cache(
+            employees, project_finder, request=self.request
+        )
+        events_per_employee = process_employees_events(events, n_periods=n_periods)
+
+        # index by employee, then by project, then by period
+        # mostly empty for this view, but similar structure than availability view
+        projects_per_period: Dict[str, Dict[int, Dict[str, float]]] = defaultdict(
+            lambda: defaultdict(Counter)
+        )
+        # indexed by employee then by period
+        availability: Dict[str, Dict[str, float]] = defaultdict(Counter)
+        for employee_name, employee_events in events_per_employee.items():
+            projects_per_period[employee_name]  # noqa, creating key with defaultdict
+            periods = employee_events.group_by_time_period(
+                "month", time_shift_direction=time_direction, n_periods=n_periods
+            )
+            for period_key, period_data in periods.items():
+                # sum duration of all events for that period
+                availability[employee_name][period_key] = sum(
+                    event["duration"] for event in period_data["events"]
+                )
+
+        return {
+            "projects_per_period": projects_per_period,
+            "availability": availability,
+            "projects": project_finder.by_company(user.employee.company),
+            "periodicity": "month",
+            "periods_per_key": {
+                period["key"]: period
+                for period in generate_time_periods(
+                    n_periods, "month", time_shift_direction=time_direction
+                )
+            },
+            "is_monthly_hours": True,
+        }
 
 
 class AliasView(TemplateView):

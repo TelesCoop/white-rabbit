@@ -112,6 +112,11 @@ class Category(TimeStampedModel):
         related_name="categories",
         on_delete=models.CASCADE,
     )
+    is_working_time = models.BooleanField(
+        verbose_name="est du temps de travail",
+        default=True,
+        help_text="La catégorie est-elle un temps de travail ? Décocher par exemple pour les congés.",
+    )
     color = models.CharField(
         max_length=32,
         verbose_name="couleur",
