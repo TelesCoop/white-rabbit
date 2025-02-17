@@ -3,6 +3,7 @@ from collections import defaultdict
 from datetime import date, timedelta
 from typing import List, Dict, Iterable, Any, Union
 
+import recurring_ical_events
 import requests
 from django.contrib import messages
 from django.contrib.auth.models import User
@@ -40,14 +41,16 @@ def read_events(
     if project_finder is None:
         project_finder = ProjectFinder()
 
+    start_date = employee.start_time_tracking_from
+    end_date = datetime.date.today() + datetime.timedelta(days=365)
+    events = recurring_ical_events.of(cal).between(start_date, end_date)
     events = [
         event
-        for event in cal.walk()
+        for event in events
         if event.name == "VEVENT"
         and event.get("SUMMARY")
         and not event["SUMMARY"].startswith("!")
     ]
-
     events_data: List[Event] = []
     for event in events:
         start_datetime = event["DTSTART"].dt
