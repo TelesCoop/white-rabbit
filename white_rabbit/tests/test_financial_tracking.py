@@ -15,25 +15,25 @@ class TestFinancialTracking(TestCase):
             company=company,
             name="Project sous le coût réel",
             category=client_category,
-            total_sold=PROJECT_1_SOLD,
+            days_and_sold=(8, PROJECT_1_SOLD),
         )
         project_2 = ProjectFactory(
             company=company,
             name="Project sous le seuil de rentabilité",
             category=client_category,
-            total_sold=PROJECT_2_SOLD,
+            days_and_sold=(8, PROJECT_2_SOLD),
         )
         project_3 = ProjectFactory(
             company=company,
             name="Project 2 sous le seuil de rentabilité",
             category=client_category,
-            total_sold=PROJECT_3_SOLD,
+            days_and_sold=(8, PROJECT_3_SOLD),
         )
         project_4 = ProjectFactory(
             company=company,
             name="Project rentable",
             category=client_category,
-            total_sold=PROJECT_4_SOLD,
+            days_and_sold=(8, PROJECT_4_SOLD),
         )
         days_done = 8
         financial_indicators = calculate_financial_indicators(

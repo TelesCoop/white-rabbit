@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import factory
 from django.contrib.auth.models import User
-from white_rabbit.models import Employee, Company, Project
+from white_rabbit.models import Employee, Company, Project, Invoice
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -49,11 +49,29 @@ class ProjectFactory(factory.django.DjangoModelFactory):
         model = Project
 
     company = factory.SubFactory(CompanyFactory)
-    name = factory.Faker("Project 1")
+    name = factory.Faker("company")
     start_date = factory.LazyAttribute(lambda a: datetime(2022, 1, 1))
     end_date = factory.LazyAttribute(lambda a: datetime.now())
-    estimated_days_count = 8
-    total_sold = 0
+
+    @factory.post_generation
+    def days_and_sold(self: Project, create, extracted, **kwargs):
+        if not create:
+            return
+        if extracted:
+            days_count, amount = extracted
+            InvoiceFactory.create(project=self, amount=amount, days_count=days_count)
+            self.save()
+
+
+class InvoiceFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Invoice
+
+    project = factory.SubFactory(ProjectFactory)
+    number = factory.Faker("random_int")
+    amount = factory.Faker("random_int", min=1000, max=10000)
+    days_count = factory.Faker("random_int", min=1, max=20)
+    date = factory.LazyAttribute(lambda a: datetime.now())
 
 
 class EventFactory(factory.DictFactory):
