@@ -92,6 +92,8 @@ l'évènement en journée complète sur par exemple 7h de travail pour qu'il com
 - Lapin Blanc ignore ce qui commence par `!`
 - Lapin Blanc ignore ce qu'il y a après le tiret ce qui permet d'ajouter des informations
 non prises en compte, ex `nom du projet - détails`
+- pour indiquer les sous-projets, remplir `nom du projet [sous-projet]`.
+Il n'y a pas d'alias pour les sous-projets.
 - la casse (majuscule/miniscule) est ignorée, tout est converti en casse de titre
 (Majuscule Au Début Des Mots), sauf lorsqu'un nom est entièrement en majuscule
 (par exemple ANCT), auquel cas il est gardé tel quel

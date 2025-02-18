@@ -132,10 +132,10 @@ class Category(TimeStampedModel):
 
 class Invoice(TimeStampedModel):
     class Meta:
-        verbose_name = "facture"
+        verbose_name = "facture/devis"
 
     number = models.CharField(
-        max_length=32, verbose_name="numéro de facture", null=True, blank=True
+        max_length=32, verbose_name="numéro de facture/devis", null=True, blank=True
     )
     date = models.DateField(verbose_name="date")
     project = models.ForeignKey(
@@ -148,7 +148,7 @@ class Invoice(TimeStampedModel):
         verbose_name="montant (€ HT)",
         max_digits=10,
         decimal_places=2,
-        help_text="Montant de la facture en € (hors coûts refacturés)",
+        help_text="Montant facture/devis en € (hors coûts refacturés)",
     )
     days_count = models.DecimalField(
         verbose_name="jours",
@@ -274,7 +274,7 @@ class Employee(TimeStampedModel):
         verbose_name="heures travaillées par jour",
         default=DEFAULT_NB_WORKING_HOURS,
         validators=[MinValueValidator(0), MaxValueValidator(24)],
-        help_text="Pour une journée incomplète, ce total est utilisé pour calculer la proportion d'une journée passée sur un projet",
+        help_text="En forfait jour, pour une journée incomplète, ce total est utilisé pour calculer la proportion d'une journée passée sur un projet. En forfait heures, c'est le nombre d'heures travaillées par jour.",
     )
     min_working_hours_for_full_day = models.DecimalField(
         verbose_name="nb heures journée complète",
@@ -282,6 +282,11 @@ class Employee(TimeStampedModel):
         decimal_places=1,
         default=6,
         help_text="Nombre d'heures de travail à partir au-delà duquel on considère une journée complète",
+    )
+    is_paid_hourly = models.BooleanField(
+        verbose_name="forfait heure",
+        help_text="si coché, le calcul des jours est au pro-rata d'une journée de travail complète, donc un jour de travail peut être compté comme moins d'un jour, voire plusieurs jours",
+        default=False,
     )
     company = models.ForeignKey(
         Company,

@@ -1,12 +1,9 @@
 import datetime
 from collections import defaultdict
 from itertools import groupby
-
-from typing import Union, Iterable, Dict, Any, Callable, NamedTuple
+from typing import Union, Iterable, Dict, Any, NamedTuple
 
 from dateutil.relativedelta import relativedelta
-
-from white_rabbit.constants import DEFAULT_MIN_WORKING_HOURS
 
 from white_rabbit.typing import Event, ProjectDistribution
 
@@ -22,28 +19,6 @@ def start_of_day(d) -> Union[datetime.date, datetime.datetime]:
     if isinstance(d, datetime.date):
         return d
     return datetime.datetime(d.year, d.month, d.day)
-
-
-def convert_duration_to_work_hours_and_minutes(duration: float) -> str:
-    duration_in_work_hours = duration * DEFAULT_MIN_WORKING_HOURS
-
-    hours = int(duration_in_work_hours)
-    minutes = (duration_in_work_hours - hours) * 60
-
-    minutes = round(minutes)
-    if minutes == 0:
-        minutes = ""
-    return f"({hours}h{minutes})"
-
-
-def convert_duration_to_days_spent(duration, divider):
-    if not isinstance(divider, float):
-        divider = float(divider)
-
-    days_spent = duration / divider
-    if days_spent > 1:
-        days_spent = 1
-    return days_spent
 
 
 def calculate_period_start(
@@ -67,32 +42,6 @@ def calculate_period_start(
         )
 
 
-def calculate_period_key(period, time_period="month"):
-    if time_period == "month":
-        return f"{period.month}-{period.year}"
-    else:
-        return period.isocalendar()[1]
-
-
-def count_number_days_spent(
-    events: Iterable[Event],
-    key_func: Callable[[Event], int],
-    min_working_hours_for_full_day: int = DEFAULT_MIN_WORKING_HOURS,
-) -> Dict[int, ProjectDistribution]:
-    grouped_projects: Dict[int, Dict] = defaultdict(
-        lambda: {"days_spent": 0.0, "duration": 0.0, "category": "", "events": []}
-    )
-    for event in events:
-        key = key_func(event)
-        grouped_projects[key]["days_spent"] += convert_duration_to_days_spent(
-            event["duration"], min_working_hours_for_full_day
-        )
-        grouped_projects[key]["duration"] += event["duration"]
-        grouped_projects[key]["events"].append(event)
-
-    return dict(grouped_projects)
-
-
 def day_distribution(
     events: Iterable[Event],
     employee,
@@ -107,7 +56,7 @@ def day_distribution(
     employee: Employee
     total_time = sum(event["duration"] for event in events)
     is_full_day = total_time >= employee.min_working_hours_for_full_day
-    if is_full_day:
+    if is_full_day and not employee.is_paid_hourly:
         divider = total_time
     else:
         divider = float(employee.default_day_working_hours)
@@ -126,12 +75,6 @@ def day_distribution(
             distribution[event["category"]]["detail_name"] = event["project_id"]
             distribution[event["category"]]["duration"] += event["duration"] / divider
     return dict(distribution)
-
-
-def is_date_same_or_after_today(date: datetime.date) -> bool:
-    if isinstance(date, datetime.datetime):
-        date = date.date()
-    return date >= datetime.date.today()
 
 
 def convert_to_datetime_if_date(date: Union[datetime.date, datetime.datetime]):
@@ -322,51 +265,6 @@ def generate_time_periods_with_total(
         "total_periods": total_periods + year_periods,
         "time_periods": time_periods,
     }
-
-
-def get_or_create_project(projects, project_id, project_detail):
-    if project_id not in projects:
-        projects[project_id] = {
-            "total_duration": project_detail.total_duration,
-            "total_days": project_detail.days_spent,
-            "events": {},
-        }
-    else:
-        projects[project_id]["total_duration"] += project_detail.total_duration
-        projects[project_id]["total_days"] += project_detail.days_spent
-
-    return projects[project_id]
-
-
-def get_or_create_project_by_employee_and_category(
-    projects, category, employee, project_detail
-):
-    if employee not in projects:
-        projects[employee] = {}
-    if category not in projects[employee]:
-        projects[employee][category] = {"duration": 0, "days": 0, "events": []}
-
-    projects[employee][category]["duration"] += project_detail.total_duration
-    projects[employee][category]["days"] += project_detail.days_spent
-    projects[employee][category]["events"].append(*project_detail.events)
-
-    return projects
-
-
-def get_or_create_employee_event(employees_events, employee_name, project_detail):
-    if employee_name not in employees_events:
-        employees_events[employee_name] = {
-            "days_spent": project_detail.days_spent,
-            "total_duration": project_detail.total_duration,
-            "events": project_detail.events,
-        }
-    else:
-        employees_events[employee_name]["days_spent"] += project_detail.days_spent
-        employees_events[employee_name][
-            "total_duration"
-        ] += project_detail.total_duration
-        employees_events[employee_name]["events"] += project_detail.events
-    return employees_events[employee_name]
 
 
 def is_total_key(key: str) -> bool:
