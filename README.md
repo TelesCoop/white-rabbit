@@ -1,13 +1,5 @@
 # Lapin Blanc
 
-## Dev
-
-Le projet utilise Tailwind. Si on risque de changer les classes, il faut lancer en plus
-de `python manage.py runserver`, `python manage.py tailwind start`.
-
-Une fois que le développement lié à tailwind est terminé, lancer
-`python manage.py tailwind build`.
-
 ## Ajouter des salariés
 
 La configuration se faire sur l'interface d'administration, accessible à
@@ -74,11 +66,11 @@ Une autre page s'ouvre, il suffit alors de choisir le projet cible.
 ## Journée complète
 
 **Il ne faut mettre un évènement en journée complète que si c'est le seul évènement de
-la journée, ou avec d'autres évènements en journée complète de durée égale.** 
+la journée, ou avec d'autres évènements en journée complète de durée égale.**
 
 Il est possible sur un calendrier d'ajouter un évènement sur une journée complète. Lapin
 Blanc considère alors qu'il dure 24h. Si c'est le seul évènement de la journée, cela
-fonctionne bien et il comptera pour une journée. S'il y a deux évènements en journée 
+fonctionne bien et il comptera pour une journée. S'il y a deux évènements en journée
 complète également, ils compteront pour chacun une demi-journée.
 
 Mais s'il y a un évènement en journée complète et un événement qui dure une heure, celui
@@ -93,7 +85,8 @@ l'évènement en journée complète sur par exemple 7h de travail pour qu'il com
 - Lapin Blanc ignore ce qu'il y a après le tiret ce qui permet d'ajouter des informations
 non prises en compte, ex `nom du projet - détails`
 - pour indiquer les sous-projets, remplir `nom du projet [sous-projet]`.
-Il n'y a pas d'alias pour les sous-projets.
+Il n'y a pas d'alias pour les sous-projets. Les sous-projets sont visibles uniquement sur
+la page "total par mois", en cliquant sur le bouton en haut "Afficher les détails".
 - la casse (majuscule/miniscule) est ignorée, tout est converti en casse de titre
 (Majuscule Au Début Des Mots), sauf lorsqu'un nom est entièrement en majuscule
 (par exemple ANCT), auquel cas il est gardé tel quel
@@ -103,13 +96,17 @@ Il n'y a pas d'alias pour les sous-projets.
 - Lapin Blanc ne garde aucune mémoire de l'historique (hormis les noms de projet et alias).
 À chaque fois que la page d'accueil est chargé, Lapin Blanc télécharge l'historique de tous
 les utilisateurs à afficher et fait les caculs appropriés.
-- Lapin Blanc a un cache de une minute. Donc si vous visualisez la page d'accueil, modifiez
+- Lapin Blanc a un cache de 10 minutes. Donc si vous visualisez la page d'accueil, modifiez
 votre agenda et rechargez moins d'une minute plus tard, vous verrez une page qui peut ne plus
 être à jour. Mais après une minute de patience au plus, les changements opérés dans l'agenda
 seront bien pris en compte.
-
-## Bogues connus
-
-- Lapin Blanc ne prend pas en compte les événements récurrents
 - il faut ajouter à la main les jours fériés
 - Lapin Blanc ne sait pas ignorer les événements avec invitation initiées par qqn d'autre
+
+## Dev
+
+Le projet utilise Tailwind. Si on risque de changer les classes, il faut lancer en plus
+de `python manage.py runserver`, `python manage.py tailwind start`.
+
+Une fois que le développement lié à tailwind est terminé, lancer
+`python manage.py tailwind build`.
