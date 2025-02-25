@@ -10,7 +10,22 @@ from white_rabbit.constants import DayState
 from white_rabbit.events import get_events_by_url
 from white_rabbit.models import Employee
 from white_rabbit.project_name_finder import ProjectFinder
+from white_rabbit.settings import ENVIRONMENT
 from white_rabbit.state_of_day import state_of_days_for_week
+
+
+def send_missing_days_email(missing_days: List[Tuple], employee: Employee):
+    html_message = render_to_string(
+        "email/missing_days_reminder.html", {"days": missing_days}
+    )
+    message = html2text.html2text(html_message)
+    send_mail(
+        "[Lapin Blanc]: Des jours manquants à remplir",
+        message,
+        "contact@telescoop.fr",
+        [employee.user.email],
+        html_message=html_message,
+    )
 
 
 class Command(BaseCommand):
@@ -59,15 +74,8 @@ class Command(BaseCommand):
                 # all days are complete
                 continue
 
-            # send emails
-            html_message = render_to_string(
-                "email/missing_days_reminder.html", {"days": missing_days}
-            )
-            message = html2text.html2text(html_message)
-            send_mail(
-                "[Lapin Blanc]: Des jours manquants à remplir",
-                message,
-                "contact@telescoop.fr",
-                [employee.user.email],
-                html_message=html_message,
-            )
+            if ENVIRONMENT != "production":
+                print(f"missing days for {employee.user.email}: {missing_days}")
+                continue
+
+            send_missing_days_email(missing_days, employee)
