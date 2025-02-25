@@ -4,16 +4,20 @@
     Bonjour,
 </p>
 <p>
-    Ceci est un message automatique de Lapin Blanc pour te rappeler que tu n'as pas rempli certains jours cette semaine.
+    Ceci est un message automatique de Lapin Blanc pour te rappeler que tu n'as pas rempli certains jours précédents cette semaine.
     Voici les jours en question
 </p>
 <ul>
     {% for day, state in days %}
-        <li>{{ day | date:'l j F' }}: {{ state.display_state }}
-            {% if state.events %}
-                ({% for event in state.events %}{{ event.name }}
-                   {{ event.duration|floatformat:1 }}h{% if not forloop.last %} {% endif %}{% endfor %})
-            {% endif %} </li>
+        <li>
+          {{ day | date:'l j F' }}
+          {# only display year if it's not current year #}
+          {% if day|date:'Y' != current_year %}{{ day|date:'Y' }}{% endif %}
+          : {{ state.display_state }}
+          {% if state.events %}
+              ({% for event in state.events %}{{ event.name }}
+                 {{ event.duration|floatformat:1 }}h{% if not forloop.last %} {% endif %}{% endfor %})
+          {% endif %} </li>
     {% endfor %}
 </ul>
 <p>

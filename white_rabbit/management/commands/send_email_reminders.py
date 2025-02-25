@@ -16,7 +16,8 @@ from white_rabbit.state_of_day import state_of_days_for_week
 
 def send_missing_days_email(missing_days: List[Tuple], employee: Employee):
     html_message = render_to_string(
-        "email/missing_days_reminder.html", {"days": missing_days}
+        "email/missing_days_reminder.html",
+        {"days": missing_days, "current_year": datetime.date.today().year},
     )
     message = html2text.html2text(html_message)
     send_mail(
