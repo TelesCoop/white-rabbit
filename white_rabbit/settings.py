@@ -67,8 +67,9 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "white_rabbit",
     "debug_toolbar",
-    "hijack",  # django-hijack
+    "hijack",
     "hijack.contrib.admin",
+    # silk is used for profiling
     # 'silk'
     "tailwind",
     "tailwind_theme",
