@@ -298,10 +298,11 @@ class EmployeeEvents:
                         "duration": data["duration"],
                     }
                 )
-                if data["detail_name"]:
-                    total[identifier]["subprojects"][data["detail_name"]][
-                        "duration"
-                    ] += data["duration"]
+                if data["details"]:
+                    for detail_name, duration in data["details"].items():
+                        total[identifier]["subprojects"][detail_name][
+                            "duration"
+                        ] += duration
 
         return total
 

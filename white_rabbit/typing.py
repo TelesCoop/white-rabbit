@@ -12,7 +12,7 @@ class ProjectDetail(TypedDict):
 
 class ProjectDistribution(TypedDict):
     duration: float
-    detail_name: Union[str, int, None]
+    details: dict[Union[str, int], float]
 
 
 class ProjectTime(TypedDict):
