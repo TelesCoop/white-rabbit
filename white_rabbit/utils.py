@@ -62,18 +62,21 @@ def day_distribution(
         divider = float(employee.default_day_working_hours)
 
     distribution: Dict[Union[str, int], ProjectDistribution] = defaultdict(
-        lambda: {"duration": 0.0, "subproject_name": ""}
+        lambda: {"duration": 0.0, "details": defaultdict(float)}
     )
 
     for event in events:
+        duration = event["duration"] / divider
         if group_by == "project":
             # TODO if multiple events for the same day have different subproject,
             #  this will count everything as the last one
-            distribution[event["project_id"]]["detail_name"] = event["subproject_name"]
-            distribution[event["project_id"]]["duration"] += event["duration"] / divider
+            distribution[event["project_id"]]["duration"] += duration
+            distribution[event["project_id"]]["details"][
+                event["subproject_name"]
+            ] += duration
         elif group_by == "category":
-            distribution[event["category"]]["detail_name"] = event["project_id"]
-            distribution[event["category"]]["duration"] += event["duration"] / divider
+            distribution[event["category"]]["duration"] += duration
+            distribution[event["category"]]["details"][event["project_id"]] += duration
     return dict(distribution)
 
 
