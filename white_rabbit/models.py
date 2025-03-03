@@ -135,7 +135,7 @@ class Invoice(TimeStampedModel):
         verbose_name = "facture/devis"
 
     number = models.CharField(
-        max_length=32, verbose_name="numéro de facture/devis", null=True, blank=True
+        max_length=100, verbose_name="numéro de facture/devis", null=True, blank=True
     )
     date = models.DateField(verbose_name="date")
     project = models.ForeignKey(
@@ -247,7 +247,7 @@ class Alias(models.Model):
     project = models.ForeignKey(
         Project, verbose_name="projet", related_name="aliases", on_delete=models.CASCADE
     )
-    name = models.CharField(max_length=32, verbose_name="nom")
+    name = models.CharField(max_length=100, verbose_name="nom")
     lowercase_name = models.CharField(
         max_length=32, verbose_name="nom en minuscule", null=False
     )
