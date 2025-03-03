@@ -7,7 +7,7 @@
         <a class="btn btn-ghost text-xl" href="/" target="_self">Lapin Blanc 🐰</a>
       </li>
       <li>
-        <a href="{% url 'projects' 'total' %}"
+        <a href="{% url 'projects' current_month %}"
            class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100  group">
           {% include "svgs/graph.svg" %}
           <span class="flex-1 ms-3 whitespace-nowrap">Total par mois</span>

@@ -73,6 +73,7 @@ INSTALLED_APPS = [
     # 'silk'
     "tailwind",
     "tailwind_theme",
+    "telescoop_backup",
 ]
 
 MIDDLEWARE = [
@@ -190,8 +191,14 @@ LOGIN_REDIRECT_URL = "/"
 # for django debug toolbar
 INTERNAL_IPS = ["127.0.0.1"]
 
-# djang-hijack
+# django-hijack
 HIJACK_ALLOW_GET_REQUESTS = True
 HIJACK_DISPLAY_ADMIN_BUTTON = False
 
 TAILWIND_APP_NAME = "tailwind_theme"
+
+BACKUP_ACCESS = config.getstr("backup.backup_access", None)
+BACKUP_SECRET = config.getstr("backup.backup_secret", None)
+BACKUP_BUCKET = config.getstr("backup.backup_bucket", None)
+BACKUP_KEEP_N_DAYS = 31
+BACKUP_HOST = config.getstr("backup.backup_host", None)
