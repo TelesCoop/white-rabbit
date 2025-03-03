@@ -4,9 +4,7 @@ from typing import Dict
 
 from django.contrib.auth.views import LoginView
 from django.db.models import Q
-from django.shortcuts import render, redirect
-from django.urls import reverse
-from django.views import View
+from django.shortcuts import render
 from django.views.generic import TemplateView
 
 from .events import (
@@ -15,13 +13,14 @@ from .events import (
     employees_for_user,
     process_employees_events,
 )
+from .financial_tracking import calculate_financial_indicators
+from .hydrate_cache_sequential import hydrate_cache_sequential
 from .models import Project, Employee, PROJECT_CATEGORIES_CHOICES
 from .project_name_finder import ProjectFinder
 from .state_of_day import (
     state_of_days_per_employee_for_week,
 )
 from .typing import ProjectTime
-from .financial_tracking import calculate_financial_indicators
 from .utils import (
     generate_time_periods,
     generate_time_periods_with_total,
@@ -405,13 +404,9 @@ class FinancialTrackingView(AbstractTotalView):
         return context
 
 
-class RefreshCacheView(View):
-    template_name = "pages/refresh-cache.html"
+class RefreshCacheView(TemplateView):
+    template_name = "pages/refresh_cache.html"
 
-    def get(self, *args, **kwargs):
-        employees = Employee.objects.all()
-        project_finder = ProjectFinder()
-        get_events_from_employees_from_cache(
-            employees, project_finder, force_refresh=True
-        )
-        return redirect(reverse("home"))
+    def get_context_data(self, **kwargs):
+        hydrate_cache_sequential()
+        return {}
