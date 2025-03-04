@@ -15,7 +15,6 @@ urlpatterns = [
             }
         ),
     ),
-    path("cache/refresh", views.RefreshCacheView.as_view(), name="refresh-cache"),
     path("auth/", include("django.contrib.auth.urls")),
     path("", views.HomeView.as_view(), name="home"),
     path(
