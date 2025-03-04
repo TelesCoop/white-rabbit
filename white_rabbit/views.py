@@ -14,7 +14,6 @@ from .events import (
     process_employees_events,
 )
 from .financial_tracking import calculate_financial_indicators
-from .hydrate_cache_sequential import hydrate_cache_sequential
 from .models import Project, Employee, PROJECT_CATEGORIES_CHOICES
 from .project_name_finder import ProjectFinder
 from .state_of_day import (
@@ -402,11 +401,3 @@ class FinancialTrackingView(AbstractTotalView):
         context = {**context, **financial_indicators}
 
         return context
-
-
-class RefreshCacheView(TemplateView):
-    template_name = "pages/refresh_cache.html"
-
-    def get_context_data(self, **kwargs):
-        hydrate_cache_sequential()
-        return {}

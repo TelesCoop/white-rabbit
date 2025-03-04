@@ -8,7 +8,6 @@ from white_rabbit.text_utils import normalize_name
 
 class ProjectFinder:
     def __init__(self):
-        print("#### ProjectFinder init")
         self.all_projects = Project.objects.prefetch_related("company", "aliases").all()
         self.projects_with_dates = list(
             self.all_projects.filter(start_date__isnull=False, end_date__isnull=False)
