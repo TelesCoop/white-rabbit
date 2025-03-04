@@ -30,7 +30,7 @@ def send_missing_days_email(missing_days: List[Tuple], employee: Employee):
 
 
 class Command(BaseCommand):
-    def handle(self, *args, **options):
+    def handle(self, *args, **options):  # noqa: C901
         project_finder = ProjectFinder()
         for employee in Employee.objects.filter(
             user__email__isnull=False,
