@@ -13,3 +13,6 @@ html2text==2020.1.16
 /static/admin*cache_file
 Pipfile*
 cache_file
+.telescoop_backup_last_backup
+backup.sqlite
+local_settings.conf
