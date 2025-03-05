@@ -1,5 +1,6 @@
 from typing import Dict
-from white_rabbit.models import Project, ProjectCategories
+
+from white_rabbit.models import Project
 
 
 def create_total():
@@ -29,7 +30,7 @@ def is_pertinent_evaluate_monetarily(project):
     return (
         project.end_date
         and project.category
-        and project.category.name.lower() == ProjectCategories.CLIENT.value.lower()
+        and "client" in project.category.name.lower()
     )
 
 
