@@ -72,7 +72,10 @@ class ProjectAdmin(admin.ModelAdmin):
         "total_sold",
         "created",
     )
-    list_filter = ("category",)
+    list_filter = [
+        "category",
+        ("estimated_days_count", admin.BooleanFieldListFilter),
+    ]
     readonly_fields = ("estimated_days_count", "total_sold")
     exclude = ("lowercase_name",)
     inlines = (InvoiceInline, AliasInline)
