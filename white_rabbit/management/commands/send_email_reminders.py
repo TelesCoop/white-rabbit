@@ -31,6 +31,11 @@ def send_missing_days_email(missing_days: List[Tuple], employee: Employee):
 
 class Command(BaseCommand):
     def handle(self, *args, **options):  # noqa: C901
+        # do not run on week-ends
+        if datetime.date.today().weekday() in [5, 6]:
+            self.stdout.write("Not sending reminders on week-ends")
+            return
+
         project_finder = ProjectFinder()
         for employee in Employee.objects.filter(
             user__email__isnull=False,
