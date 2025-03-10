@@ -3,6 +3,9 @@
 import os
 import sys
 
+if "hydrate_cache" in sys.argv:
+    import grequests  # noqa: make sure to import before requests
+
 
 def main():
     """Run administrative tasks."""
