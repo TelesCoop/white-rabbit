@@ -1,0 +1,8 @@
+---
+
+frontend_static_path: /{{ organization_slug }}/{{ project_slug}}/frontend_static
+frontend_path: /{{ organization_slug }}/{{ project_slug}}/frontend
+server_uris_passed_to_backend:
+  - admin
+  - api
+  - backup

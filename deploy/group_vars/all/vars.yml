@@ -1,0 +1,14 @@
+---
+
+organization_slug: telescoop
+base_project_slug: white-rabbit
+main_user: white-rabbit
+main_user_uid: 1050  # must be unique for each project on the server
+public_hostnames:
+  - "lapin-blanc.{{ organization_slug }}.fr"
+django_project_name: white_rabbit
+backend_repo: git@github.com:TelesCoop/white-rabbit.git
+backend_static_path: /{{ organization_slug }}/{{ project_slug}}/backend_static
+backend_identity_file_path: /home/{{ main_user }}/.ssh/id_ed25519_backend
+var_log_path: /var/log/{{ organization_slug }}/{{ project_slug }}
+backend_timeout: 120

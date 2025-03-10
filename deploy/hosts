@@ -1,0 +1,5 @@
+[prod]
+lapin-blanc.telescoop.fr:42722 ansible_user=ubuntu
+
+[preprod]
+preprod.lapin-blanc.telescoop.fr:42722 ansible_user=ubuntu

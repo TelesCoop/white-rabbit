@@ -1,0 +1,11 @@
+backend_application_port: 8011  # must be unique for each project on the same server
+environment_suffix: ""
+project_slug: "{{ base_project_slug }}{{ environment_suffix }}"
+
+public_hostnames:
+  - lapin-blanc.telescoop.fr
+project_dir: "{{project_base_dir}}{{ environment_suffix }}"
+
+backend_branch: master
+
+environment_name: production

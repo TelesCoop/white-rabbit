@@ -1,0 +1,16 @@
+---
+
+var_log_path: /var/log/{{ organization_slug }}/{{ project_slug }}
+
+venv:
+  path: /usr/local/{{ organization_slug }}/{{ project_slug }}/backend/venv
+
+backend_path: /{{ organization_slug }}/{{ project_slug}}/backend
+backend_settings_path: /etc/{{ organization_slug }}/{{ project_slug }}/backend-settings.ini
+supervisor_conf: /etc/supervisor/conf.d
+
+backend_workers: 1
+
+database_backup:
+  hour: 2
+  minute: 0

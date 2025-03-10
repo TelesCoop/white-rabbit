@@ -1,0 +1,67 @@
+{{ ansible_managed | comment }}
+
+upstream app_servers_{{ project_slug }} {
+  server 127.0.0.1:{{ backend_application_port }};
+}
+
+server {
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/lapin-blanc.telescoop.fr/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/lapin-blanc.telescoop.fr/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+    server_name {{ " ".join(public_hostnames) }};
+
+    access_log /var/log/nginx/access_{{ public_hostnames[0].replace('.', '_') }}.log;
+    error_log /var/log/nginx/error_{{ public_hostnames[0].replace('.', '_') }}.log;
+
+    # http://stackoverflow.com/questions/15238506/djangos-suspiciousoperation-invalid-http-host-header
+    # Deny illegal Host headers
+    if ($host !~* ^({{ "|".join(public_hostnames) }})$ ) {
+        return 444;
+    }
+
+    # backend static stuff
+    location /static  {
+        autoindex off;
+        alias {{ backend_static_path }};
+    }
+
+    include mime.types;
+    types {
+        application/javascript mjs;
+    }
+
+    # gzip compression
+    gzip on;
+    gzip_vary on;
+    gzip_types application/json application/javascript application/xml text/css text/javascript text/plain text/xml image/svg+xml;
+
+    location / {
+        proxy_read_timeout {{ backend_timeout }};
+        proxy_connect_timeout {{ backend_timeout }};
+        proxy_send_timeout {{ backend_timeout }};
+        send_timeout {{ backend_timeout }};
+
+        proxy_pass         http://app_servers_{{ project_slug }}/;
+        proxy_redirect     off;
+        proxy_set_header   Host $host;
+        proxy_set_header   X-Real-IP $remote_addr;
+        proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Host $server_name;
+    }
+}
+
+server {
+    {% for hostname in public_hostnames -%}
+    if ($host = {{ hostname }}) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+    {% endfor -%}
+
+    listen 80;
+
+    server_name {{ " ".join(public_hostnames) }};
+    return 404; # managed by Certbot
+}

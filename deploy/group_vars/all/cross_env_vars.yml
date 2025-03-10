@@ -1,0 +1,25 @@
+---
+
+support_mail_addr: contact@telescoop.fr
+
+sshd:
+  port: 42722
+
+users:
+  root:
+    pwd: "{{ vault_pwd_root }}"
+  ubuntu:
+    pwd: "{{ vault_pwd_ubuntu }}"
+  devops:
+    - name: antoine.bernier
+      shell: /bin/bash
+      pwd: "{{ vault_pwd_antoine_bernier }}"
+      ssh_key: 'https://gitlab.com/Antoine95.keys'
+    - name: maxime.bellec
+      shell: /bin/bash
+      pwd: "{{ vault_pwd_maxime_bellec }}"
+      ssh_key: 'https://gitlab.com/maxbellec.keys'
+    - name: camille.legeron
+      shell: /bin/bash
+      pwd: "{{ vault_pwd_camille_legeron }}"
+      ssh_key: 'https://gitlab.com/CamilleLegeron.keys'

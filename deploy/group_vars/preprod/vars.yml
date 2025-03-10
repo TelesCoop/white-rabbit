@@ -1,0 +1,11 @@
+backend_application_port: 8012  # must be unique for each project on the same server
+environment_suffix: "_preprod"
+project_slug: "{{ base_project_slug }}{{ environment_suffix }}"
+
+public_hostnames:
+  - preprod.lapin-blanc.telescoop.fr
+project_dir: "{{project_base_dir}}{{ environment_suffix }}"
+
+backend_branch: dev
+
+environment_name: preprod
