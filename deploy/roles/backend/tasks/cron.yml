@@ -13,7 +13,7 @@
   cron:
     user: "{{ main_user }}"
     name: "{{ project_slug }} hydrate cache"
-    minute: "*/5"
+    minute: "*/{{ 5 if group_names[0] == 'prod' else 30 }}"
     job: "/usr/local/bin/{{ project_slug }}-ctl hydrate_cache"
 
 - name: "daily database backup"
