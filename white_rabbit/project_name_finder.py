@@ -103,6 +103,10 @@ class ProjectFinder:
 
         project = Project.objects.create(name=name, company=company)
         self.project_without_dates.append(project)
+        self.projects_for_matching_per_company[company].append(project)
+        self.projects_for_normalized_name_per_company[company][
+            normalize_name(name)
+        ].append(project)
         return project
 
     def get_project(
