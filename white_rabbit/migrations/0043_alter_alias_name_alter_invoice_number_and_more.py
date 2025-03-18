@@ -6,7 +6,7 @@ from django.db import migrations, models
 def only_keep_more_recent_projects_on_duplicates(apps, schema_editor):
     Project = apps.get_model("white_rabbit", "Project")
     deleted = []
-    for project in tqdm(Project.objects.order_by("-pk"), total=Project.objects.count()):
+    for project in Project.objects.order_by("-pk"):
         if project.invoices.count() or project.aliases.count():
             continue
         query = {

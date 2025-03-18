@@ -167,21 +167,13 @@ class Invoice(TimeStampedModel):
 class Project(TimeStampedModel):
     class Meta:
         verbose_name = "projet"
-        unique_together = [
-            "name",
-            "company",
-            "start_date",
-        ]
         constraints = [
             UniqueConstraint(
                 name="project name",
                 fields=[
-                    "lowercase_name",
                     "name",
                     "company",
-                    "category",
                     "start_date",
-                    "end_date",
                 ],
                 nulls_distinct=False,
             )
