@@ -26,9 +26,6 @@
              href="{% url 'categories' period.key %}"
               {% endif %}
              class="tab {% if current_period_key == period.key %}text-base font-bold{% endif %}"
-             id="tabs-with-badges-item-{{ period.key | slugify }}"
-             data-hs-tab="#tabs-with-badges-{{ period.key | slugify }}"
-             aria-controls="tabs-with-badges-{{ period.key | slugify }}"
              role="tab">
             {% if period.label %}
               {{ period.label|title }}
