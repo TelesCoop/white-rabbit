@@ -35,7 +35,7 @@ h2 {
 
 /* Custom tab classes to replace daisyUI */
 .tab {
-    @apply inline-block px-2 py-0 border-b-2 border-transparent hover:border-gray-300 cursor-pointer;
+    @apply inline-block px-2 py-0 border-b-2 border-transparent hover:border-gray-300 cursor-pointer text-sm;
 }
 
 .tab-active {
