@@ -1,3 +1,107 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+h2 {
+    @apply text-3xl font-semibold;
+}
+
+/* Custom button classes to replace daisyUI */
+.btn {
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md transition-colors;
+}
+
+.btn-ghost {
+    @apply bg-transparent hover:bg-gray-100 text-gray-700;
+}
+
+/* Custom collapse classes to replace daisyUI */
+.collapse {
+    @apply relative overflow-hidden;
+    visibility: initial;
+}
+
+.collapse-title {
+    @apply cursor-pointer;
+}
+
+.collapse-content {
+    @apply hidden;
+}
+
+.collapse[open] .collapse-content {
+    @apply block;
+}
+
+/* Custom tab classes to replace daisyUI */
+.tab {
+    @apply inline-block px-2 py-0 border-b-2 border-transparent hover:border-gray-300 cursor-pointer;
+}
+
+.tab-active {
+    @apply border-b-2 border-blue-500 text-blue-600;
+}
+
+/* Custom table classes to replace daisyUI */
+.table {
+    @apply min-w-full divide-y divide-gray-200;
+}
+
+
+.aliases-container {
+    column-count: 4;
+    column-gap: 2rem;
+}
+
+.aliases-container ul {
+    list-style: inherit;
+    margin-left: 2rem;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    border: 0;
+    clip: rect(0, 0, 0, 0)
+}
+
+.pastille {
+    display: flex;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+}
+
+.pastille-sm {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.pastille-md {
+    width: 2rem;
+    height: 2rem;
+}
+
+.pastille-lg {
+    width: 3rem;
+    height: 3rem;
+}
+
+.pastille-xl {
+    width: 4rem;
+    height: 4rem;
+}
+
+.th {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.text-2xs {
+    font-size: 0.6rem;
+}

@@ -8,13 +8,11 @@
   <meta charset="UTF-8">
   <title>Lapin Blanc</title>
   <link rel="stylesheet" href="{% static 'style.css' %}">
-  <link href="{% static 'daisyui.full.min.css' %}" rel="stylesheet" type="text/css"/>
 
   <style>
     {% block extra_css %}
     {% endblock %}
   </style>
-  <script src="{% static 'preline.min.js' %}"></script>
 
   {% tailwind_css %}
 </head>
@@ -36,5 +34,6 @@
     </div>
   </div>
 </main>
+<script src="{% static 'collapse.js' %}"></script>
 </body>
 </html>
