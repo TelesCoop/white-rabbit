@@ -1,9 +1,11 @@
+import csv
 import datetime
 from collections import Counter, defaultdict
 from typing import Dict
 
 from django.contrib.auth.views import LoginView
 from django.db.models import Q
+from django.http import HttpResponse
 from django.shortcuts import render
 from django.views.generic import TemplateView
 
@@ -240,6 +242,105 @@ class ResumeView(TemplateView):
 
 class AbstractTotalView(TemplateView):
     template_name = "pages/projects-or-categories-total.html"
+
+    def get(self, request, *args, **kwargs):
+        format_type = request.GET.get("format", "html")
+        if format_type == "csv":
+            return self.export_csv(request, *args, **kwargs)
+        return super().get(request, *args, **kwargs)
+
+    def export_csv(self, request, *args, **kwargs):
+        """Export the data as a CSV file."""
+        context = self.get_context_data(**kwargs)
+
+        show_details = context.get("show_details", False)
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = (
+            f'attachment; filename="{kwargs.get("period", "data")}{"-details" if show_details else ""}.csv"'
+        )
+
+        writer = csv.writer(response)
+
+        # Write header row
+        header = self._get_csv_header(context)
+        writer.writerow(header)
+
+        # Write data rows for each project/category
+        for identifier in context["identifier_order"]:
+            # Write the main project/category row
+            self._write_project_row(writer, context, identifier)
+
+            # Write subproject/subcategory rows if details are requested
+            if show_details and identifier in context["subtotal_per_identifier"]:
+                self._write_subproject_rows(writer, context, identifier)
+
+        return response
+
+    def _get_csv_header(self, context):
+        """Generate the CSV header row."""
+        group_by = context.get("group_by", "project")
+        header = [group_by.capitalize(), "Total"]
+
+        # Add employee names to header
+        employees_names = context.get("employees_names", [])
+        for employee_name in employees_names:
+            header.append(employee_name)
+
+        return header
+
+    def _get_project_name(self, context, identifier):
+        """Get the name of a project or category."""
+        group_by = context.get("group_by", "project")
+        name = ""
+
+        if group_by == "project" and identifier in context["details_data"]:
+            name = context["details_data"][identifier]["name"]
+        elif group_by == "category":
+            for category_id, category_name in context["details_data"]:
+                if category_id == identifier:
+                    name = category_name
+                    break
+
+        return name or str(identifier)
+
+    def _write_project_row(self, writer, context, identifier):
+        """Write a row for a project or category."""
+        total = context["total_per_identifier"][identifier]
+        name = self._get_project_name(context, identifier)
+
+        # Create row with project/category name and total
+        row = [name, f"{total:.1f}"]
+
+        # Add data for each employee
+        employees_names = context.get("employees_names", [])
+        for employee_name in employees_names:
+            employee_events = context["employees_events"].get(employee_name, {})
+            project_data = employee_events.get(identifier, {})
+            duration = project_data.get("duration", 0)
+            row.append(f"{duration:.1f}" if duration else "")
+
+        writer.writerow(row)
+
+    def _write_subproject_rows(self, writer, context, identifier):
+        """Write rows for subprojects or subcategories."""
+        employees_names = context.get("employees_names", [])
+
+        for sub_name, sub_total in context["subtotal_per_identifier"][
+            identifier
+        ].items():
+            # Create row with subproject/subcategory name and total
+            sub_row = [f"  {sub_name}", f"{sub_total:.1f}"]
+
+            # Add data for each employee
+            for employee_name in employees_names:
+                employee_events = context["employees_events"].get(employee_name, {})
+                project_data = employee_events.get(identifier, {})
+                subprojects = project_data.get("subprojects", {})
+                sub_data = subprojects.get(sub_name, {})
+                sub_duration = sub_data.get("duration", 0)
+                sub_row.append(f"{sub_duration:.1f}" if sub_duration else "")
+
+            writer.writerow(sub_row)
 
     def get_context_data(self, group_by, **kwargs):
         assert group_by in ["category", "project"]
