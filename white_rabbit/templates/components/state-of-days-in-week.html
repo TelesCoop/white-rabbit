@@ -14,7 +14,7 @@
         {% with data|get_item:employee.name as employee_data %}
           <td>
             <div tabindex="0" class="collapse">
-              <div class="collapse-title p-0 min-h-0">
+              <div class="collapse-title p-0 min-h-0 text-center">
                 {% if employee_data.state == 'complete' %}
                   ✅
                 {% elif employee_data.state == 'incomplete' %}
