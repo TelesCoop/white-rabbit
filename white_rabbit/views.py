@@ -428,12 +428,11 @@ class AbstractTotalView(TemplateView):
             "group_by": group_by,
             "show_details": details,
             "company": user.employee.company,
+            "url_key": "projects" if group_by == "project" else "categories",
         }
 
 
 class TotalPerProjectView(AbstractTotalView):
-    template_name = "pages/projects-or-categories-total.html"
-
     def get_context_data(self, **kwargs):
         return super().get_context_data(group_by="project", **kwargs)
 

@@ -6,15 +6,15 @@
 {% block content %}
   <div class="mb-2">
     {% if show_details %}
-      <a href="{% url 'projects' current_period_key %}" class="p-1 text-2xs rounded lowercase bg-blue-100">
+      <a href="{% url url_key current_period_key %}" class="p-1 text-2xs rounded lowercase bg-blue-100">
         Masquer les détails
       </a>
     {% else %}
-      <a href="{% url 'projects' current_period_key %}?details=1" class="p-1 text-2xs rounded lowercase bg-blue-100">
+      <a href="{% url url_key current_period_key %}?details=1" class="p-1 text-2xs rounded lowercase bg-blue-100">
         Afficher les détails
       </a>
     {% endif %}
-      <a href="{% url 'projects' current_period_key %}?format=csv" class="p-1 text-2xs rounded lowercase bg-blue-100 ml-4">
+      <a href="{% url url_key current_period_key %}?format=csv" class="p-1 text-2xs rounded lowercase bg-blue-100 ml-4">
         Export csv
       </a>
   </div>
@@ -23,11 +23,7 @@
       <nav aria-label="Tabs" role="tablist">
         {% for period in period_list %}
           <a type="button"
-              {% if group_by == 'project' %}
-             href="{% url 'projects' period.key %}"
-              {% else %}
-             href="{% url 'categories' period.key %}"
-              {% endif %}
+             href="{% url url_key period.key %}"
              class="tab {% if current_period_key == period.key %}text-base font-bold{% endif %}"
              role="tab">
             {% if period.label %}
