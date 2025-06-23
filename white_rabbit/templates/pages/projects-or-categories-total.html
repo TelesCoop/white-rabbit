@@ -109,7 +109,7 @@
               <td class="font-bold bg-gray-50 text-xs h-8 text-right">{{ data }}</td>
               <td class="text-center">{{ subtotal_per_identifier|get_item:identifier|get_item:data|floatformat:1 }}</td>
               {% for employee_name in employees_names %}
-                <td>
+                <td class="text-center">
                   {% subproject_total employees_events employee_name identifier data %}
                 </td>
               {% endfor %}
