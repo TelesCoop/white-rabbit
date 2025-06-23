@@ -410,10 +410,11 @@ class AbstractTotalView(TemplateView):
                     )
                 )
 
+        project_details_data = project_finder.by_company(user.employee.company)
         if group_by == "category":
             details_data = PROJECT_CATEGORIES_CHOICES
         else:
-            details_data = project_finder.by_company(user.employee.company)
+            details_data = project_details_data
         return {
             "employees_events": employees_events,
             "employees_names": employees_names,
@@ -425,6 +426,7 @@ class AbstractTotalView(TemplateView):
             "total_per_identifier": total_per_identifier,
             "subtotal_per_identifier": subtotal_per_identifier,
             "details_data": details_data,
+            "project_details_data": project_details_data,
             "group_by": group_by,
             "show_details": details,
             "company": user.employee.company,

@@ -102,7 +102,13 @@
         {% if show_details %}
           {% for data in subtotal_per_identifier|get_item:identifier %}
             <tr class="odd:bg-white even:bg-slate-50">
-              <td class="font-bold bg-gray-50 text-xs h-8 text-right">{{ data }}</td>
+              <td class="font-bold bg-gray-50 text-xs h-8 text-right">
+                {% if group_by == 'projects'  %}
+                  {{ data }}
+                {% else %}
+                  {{ data|find_project_name:project_details_data }}
+                {% endif %}
+              </td>
               <td class="text-center">{{ subtotal_per_identifier|get_item:identifier|get_item:data|floatformat:1 }}</td>
               {% for employee_name in employees_names %}
                 <td class="text-center">
