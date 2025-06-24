@@ -390,9 +390,9 @@ class AbstractTotalView(TemplateView):
             for project_id, project_time in employee_events.items():
                 total_per_identifier[project_id] += project_time["duration"]
                 for sub_project_name, data in project_time["subprojects"].items():
-                    subtotal_per_identifier[project_id][sub_project_name] += data[
-                        "duration"
-                    ]
+                    subtotal_per_identifier[project_id][
+                        sub_project_name or "Non attribué"
+                    ] += data["duration"]
         identifier_order = sorted(
             total_per_identifier.keys(),
             key=lambda project_id: total_per_identifier[project_id],

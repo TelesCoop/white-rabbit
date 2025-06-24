@@ -64,7 +64,7 @@ def find_project_name(project_id, projects):
     project = find_project(project_id, projects)
     if project is None:
         return "Inconnu"
-    return project.get("name", "Non attribué")
+    return project.get("name", None)
 
 
 @register.filter
