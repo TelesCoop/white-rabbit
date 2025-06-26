@@ -14,6 +14,17 @@
         Afficher les détails
       </a>
     {% endif %}
+    {% if group_by == "category" %}
+      {% if show_proportional %}
+        <a href="{% url url_key current_period_key %}{% if show_details %}?details=1{% endif %}" class="p-1 text-2xs rounded lowercase bg-blue-100 ml-4">
+          Valeurs absolues
+        </a>
+      {% else %}
+        <a href="{% url url_key current_period_key %}?proportional=1{% if show_details %}&details=1{% endif %}" class="p-1 text-2xs rounded lowercase bg-blue-100 ml-4">
+          Valeurs proportionnelles
+        </a>
+      {% endif %}
+    {% endif %}
       <a href="{% url url_key current_period_key %}?format=csv" class="p-1 text-2xs rounded lowercase bg-blue-100 ml-4">
         Export csv
       </a>
@@ -69,7 +80,11 @@
             {% endif %}
           </th>
           <td class="sticky left-[120px] min-w-[150px] z-50 text-center">
-            {{ total_per_identifier|get_item:identifier|floatformat:1 }}
+            {% if show_proportional %}
+              {{ proportional_totals|get_item:identifier|floatformat:1 }}%
+            {% else %}
+              {{ total_per_identifier|get_item:identifier|floatformat:1 }}
+            {% endif %}
           </td>
           {% for employee_name in employees_names %}
             <td>
@@ -77,7 +92,11 @@
                 <div tabindex="0" class="collapse text-center">
                   <div class="collapse-title p-0 min-h-0">
                     {% if data.duration %}
-                      {{ data.duration|floatformat:1 }}
+                      {% if show_proportional %}
+                        {{ proportional_data|get_item:employee_name|get_item:identifier|floatformat:1 }}%
+                      {% else %}
+                        {{ data.duration|floatformat:1 }}
+                      {% endif %}
                     {% endif %}
                   </div>
                   {% if data.events %}
