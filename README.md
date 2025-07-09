@@ -95,7 +95,7 @@ la page "total par mois", en cliquant sur le bouton en haut "Afficher les détai
 
 - Lapin Blanc ne garde aucune mémoire de l'historique (hormis les noms de projet et alias).
 À chaque fois que la page d'accueil est chargé, Lapin Blanc télécharge l'historique de tous
-les utilisateurs à afficher et fait les caculs appropriés.
+les utilisateurs à afficher et fait les calculs appropriés.
 - Lapin Blanc a un cache de 10 minutes. Donc si vous visualisez la page d'accueil, modifiez
 votre agenda et rechargez moins d'une minute plus tard, vous verrez une page qui peut ne plus
 être à jour. Mais après une minute de patience au plus, les changements opérés dans l'agenda
