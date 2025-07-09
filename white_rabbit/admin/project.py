@@ -100,6 +100,10 @@ class ProjectAdmin(admin.ModelAdmin):
                 kwargs["queryset"] = Category.objects.filter(
                     company__admins=request.user
                 ).order_by("name")
+        if db_field.name == "company":
+            # Limit the company choices to the companies the user is admin of
+            if not request.user.is_superuser:
+                kwargs["queryset"] = request.user.companies.all().order_by("name")
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def transform_project_to_alias(self, request, queryset):
