@@ -8,6 +8,17 @@
   text-align: center;
   padding: 0.2rem;
 }
+.availability-cell::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 3px;
+  background-color: #333;
+  transform: translateY(-50%);
+  z-index: 0;
+}
 {% endblock %}
 
 {% block content %}
@@ -42,16 +53,19 @@
         <tr class="bg-gray-50">
           <th class="font-bold bg-gray-100 left-0 sticky z-50 text-center uppercase">{{ employee_name }}</th>
           {% for period_key, availability in availability|get_item:employee_name|dict_items %}
-            <td>
-              <div class="flex flex-col justify-center items-center">
-                <div
-                    {% if is_monthly_hours %}
-                      style="background: {{ availability|monthly_hours_color:period_key }}"
-                    {% else %}
-                      style="background: {{ availability|week_color }}"
-                    {% endif %}
-                     class="pastille pastille-2xl font-bold flex gap-1">
-                  {{ availability|floatformat:1 }}
+            <td class="relative h-16 availability-cell">
+                <div class="relative flex items-center justify-center">
+                  <div
+                      {% if is_monthly_hours %}
+                        style="background: {{ availability|monthly_hours_color:period_key }}; height: {{ availability|availability_size|add:'20' }}px; width: 40px; min-height: pxpx;"
+                      {% else %}
+                        style="background: {{ availability|week_color }}; height: {{ availability|availability_size|add:'20' }}px; width: 40px; min-height: 5px;"
+                      {% endif %}
+                        class="absolute rounded font-bold">
+                      <div style="color: white !important; text-align: center;">
+                    {{ availability|floatformat:1 }}
+                      </div>
+                  </div>
                 </div>
               </div>
             </td>
