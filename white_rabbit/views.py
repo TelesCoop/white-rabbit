@@ -77,6 +77,14 @@ class AvailabilityBaseView(TemplateView):
         ]
 
         project_finder = ProjectFinder()
+        projects = project_finder.by_company(user.employee.company)
+        for project_data in projects:
+            try:
+                done = float(project_data.done)
+                total_sold = float(project_data.total_sold)
+                project_data.tjm_reel = total_sold / done if done else 0
+            except (AttributeError, ZeroDivisionError, TypeError, ValueError):
+                project_data.tjm_reel = 0
         events: EventsPerEmployee = get_events_from_employees_from_cache(
             employees, project_finder, request=self.request
         )
@@ -118,7 +126,7 @@ class AvailabilityBaseView(TemplateView):
             {
                 "projects_per_period": projects_per_period,
                 "availability": availability,
-                "projects": project_finder.by_company(user.employee.company),
+                "projects": projects,
                 "periodicity": self.time_period,
                 "periods_per_key": {
                     period["key"]: period
@@ -442,16 +450,16 @@ class TotalPerProjectView(AbstractTotalView):
 class DistributionView(AbstractTotalView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(group_by="category", **kwargs)
-        
+
         # Check if proportional display is requested
         proportional = bool(self.request.GET.get("proportional", False))
         context["show_proportional"] = proportional
-        
+
         if proportional:
             # Compute proportional values for the total column
             total_per_identifier = context["total_per_identifier"]
             grand_total = sum(total_per_identifier.values())
-            
+
             proportional_totals = {}
             for identifier, total in total_per_identifier.items():
                 if grand_total > 0:
@@ -459,20 +467,19 @@ class DistributionView(AbstractTotalView):
                     proportional_totals[identifier] = proportion
                 else:
                     proportional_totals[identifier] = 0
-            
+
             context["proportional_totals"] = proportional_totals
-            
+
             # Compute proportional values for each employee column
             employees_events = context["employees_events"]
             proportional_data = {}
-            
+
             for employee_name, employee_data in employees_events.items():
                 # Compute total for this employee across all categories
                 employee_total = sum(
-                    project_time["duration"] 
-                    for project_time in employee_data.values()
+                    project_time["duration"] for project_time in employee_data.values()
                 )
-                
+
                 # Compute proportional values for each category
                 proportional_data[employee_name] = {}
                 for category_id, project_time in employee_data.items():
@@ -481,9 +488,9 @@ class DistributionView(AbstractTotalView):
                         proportional_data[employee_name][category_id] = proportion
                     else:
                         proportional_data[employee_name][category_id] = 0
-            
+
             context["proportional_data"] = proportional_data
-        
+
         return context
 
 

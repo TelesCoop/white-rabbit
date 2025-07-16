@@ -15,6 +15,7 @@
         <th class="p-4 sticky z-50 top-0 left-[120px] bg-indigo-50">Jours faits</th>
         <th class="p-4 sticky z-50 top-0 left-[120px] bg-indigo-50">Prix vendu</th>
         <th class="p-4 sticky z-50 top-0 left-[120px] bg-indigo-50">Coût réel*</th>
+        <th class="p-4 sticky z-50 top-0 left-[120px] bg-indigo-50">TJM réel</th>
         <th class="p-4 sticky z-50 top-0 left-[120px] bg-indigo-50">Seuil de rentabilité**</th>
         <th class="p-4 sticky z-50 top-0 left-[120px] bg-indigo-50">Prix idéal***</th>
       </tr>
@@ -40,6 +41,7 @@
           <td class="p-4">{{ project_data.total_sold|currency }}</td>
           <td class="p-4">{{ project_data.real_cost|currency }}</td>
           <td class="p-4">{{ project_data.profitability_threshold|currency }}</td>
+          <td class="p-4">{{ project_data.tjm_reel|currency }}</td>
           <td class="p-4">{{ project_data.opportunity_cost|currency }}</td>
         </tr>
       {% endfor %}
