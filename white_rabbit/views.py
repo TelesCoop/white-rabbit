@@ -77,14 +77,6 @@ class AvailabilityBaseView(TemplateView):
         ]
 
         project_finder = ProjectFinder()
-        projects = project_finder.by_company(user.employee.company)
-        for project_data in projects:
-            try:
-                done = float(project_data.done)
-                total_sold = float(project_data.total_sold)
-                project_data.tjm_reel = total_sold / done if done else 0
-            except (AttributeError, ZeroDivisionError, TypeError, ValueError):
-                project_data.tjm_reel = 0
         events: EventsPerEmployee = get_events_from_employees_from_cache(
             employees, project_finder, request=self.request
         )
@@ -126,7 +118,7 @@ class AvailabilityBaseView(TemplateView):
             {
                 "projects_per_period": projects_per_period,
                 "availability": availability,
-                "projects": projects,
+                "projects": project_finder.by_company(user.employee.company),
                 "periodicity": self.time_period,
                 "periods_per_key": {
                     period["key"]: period

@@ -15,9 +15,9 @@
         <th class="p-4 sticky z-50 top-0 left-[120px] bg-indigo-50">Jours faits</th>
         <th class="p-4 sticky z-50 top-0 left-[120px] bg-indigo-50">Prix vendu</th>
         <th class="p-4 sticky z-50 top-0 left-[120px] bg-indigo-50">Coût réel*</th>
-        <th class="p-4 sticky z-50 top-0 left-[120px] bg-indigo-50">TJM réel</th>
-        <th class="p-4 sticky z-50 top-0 left-[120px] bg-indigo-50">Seuil de rentabilité**</th>
-        <th class="p-4 sticky z-50 top-0 left-[120px] bg-indigo-50">Prix idéal***</th>
+        <th class="p-4 sticky z-50 top-0 left-[120px] bg-indigo-50">TJM réel**</th>
+        <th class="p-4 sticky z-50 top-0 left-[120px] bg-indigo-50">Seuil de rentabilité***</th>
+        <th class="p-4 sticky z-50 top-0 left-[120px] bg-indigo-50">Prix idéal****</th>
       </tr>
       </thead>
 
@@ -40,19 +40,21 @@
           <td class="p-4">{{ project_data.done|floatformat:1 }}</td>
           <td class="p-4">{{ project_data.total_sold|currency }}</td>
           <td class="p-4">{{ project_data.real_cost|currency }}</td>
-          <td class="p-4">{{ project_data.profitability_threshold|currency }}</td>
           <td class="p-4">{{ project_data.tjm_reel|currency }}</td>
+          <td class="p-4">{{ project_data.profitability_threshold|currency }}</td>
           <td class="p-4">{{ project_data.opportunity_cost|currency }}</td>
         </tr>
       {% endfor %}
       </tbody>
     </table>
     <p class="text-sm">
-      * Coût réel du projet = Coût salarié journalier moyen ({{ daily_employee_cost }} €) * Jours faits
+      * Coût réel du projet = Coût salarié journalier moyen ({{ daily_employee_cost }} €) x Jours faits
       <br/>
-      ** Seuil de rentabilité = Coût journalier pour l'entreprise ({{ profitability_threshold }} €) * Jours faits
+      ** Taux journalier réel = Prix vendu / Jours faits
       <br/>
-      *** Prix idéal = Taux Journalier du marché ({{ daily_market_price }} €) * Jours faits
+      *** Seuil de rentabilité = Coût journalier pour l'entreprise ({{ profitability_threshold }} €) x Jours faits
+      <br/>
+      **** Prix idéal = Taux Journalier du marché ({{ daily_market_price }} €) x Jours faits
     </p> 
 
     <h1 class="text-2xl mt-5">Total en dessous du coût journalier</h1>
