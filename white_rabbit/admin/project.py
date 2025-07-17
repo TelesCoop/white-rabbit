@@ -5,7 +5,7 @@ from django.urls import reverse
 
 from white_rabbit.admin.company import is_user_admin
 
-from white_rabbit.models import Project, Alias, Category, Invoice
+from white_rabbit.models import Project, Alias, Category, Invoice, ForecastProject
 
 
 class InvoiceInline(admin.TabularInline):
@@ -31,6 +31,58 @@ class InvoiceInline(admin.TabularInline):
 
     def has_add_permission(self, request, obj):
         return True
+
+
+class BaseProjectAdmin(admin.ModelAdmin):
+    """Base admin class for Project and ForecastProject with shared functionality."""
+    
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """Limit the choices of the category field to the company's."""
+        if db_field.name == "category":
+            project_id = request.resolver_match.kwargs.get("object_id")
+            if project_id:
+                project = self.model.objects.get(pk=project_id)
+                kwargs["queryset"] = Category.objects.filter(
+                    company=project.company
+                ).order_by("name")
+            else:
+                kwargs["queryset"] = Category.objects.filter(
+                    company__admins=request.user
+                ).order_by("name")
+        if db_field.name == "company":
+            # Limit the company choices to the companies the user is admin of
+            if not request.user.is_superuser:
+                kwargs["queryset"] = request.user.companies.all().order_by("name")
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+    
+    def has_permission(self, request):
+        if request.user.is_anonymous:
+            return False
+
+        if request.user.is_superuser:
+            return True
+
+        # if admin of at least one company
+        if is_user_admin(request.user):
+            return True
+
+        return False
+
+    def has_module_permission(self, request):
+        return self.has_permission(request)
+
+    def has_add_permission(self, request):
+        return self.has_permission(request)
+
+    def has_change_permission(self, request, obj=None):
+        if obj is None:
+            return self.has_permission(request)
+        if request.user.is_superuser:
+            return True
+        return obj.company.admins.filter(pk=request.user.pk).exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return self.has_change_permission(request, obj)
 
 
 class AliasInline(admin.StackedInline):
@@ -61,7 +113,7 @@ class AliasInline(admin.StackedInline):
 
 
 @admin.register(Project)
-class ProjectAdmin(admin.ModelAdmin):
+class ProjectAdmin(BaseProjectAdmin):
     list_display = (
         "name",
         "company",
@@ -86,25 +138,6 @@ class ProjectAdmin(admin.ModelAdmin):
         if request.user.is_superuser:
             return Project.objects.all()
         return Project.objects.filter(company__admins=request.user)
-
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        """Limit the choices of the category field to the company's."""
-        if db_field.name == "category":
-            project_id = request.resolver_match.kwargs.get("object_id")
-            if project_id:
-                project = Project.objects.get(pk=project_id)
-                kwargs["queryset"] = Category.objects.filter(
-                    company=project.company
-                ).order_by("name")
-            else:
-                kwargs["queryset"] = Category.objects.filter(
-                    company__admins=request.user
-                ).order_by("name")
-        if db_field.name == "company":
-            # Limit the company choices to the companies the user is admin of
-            if not request.user.is_superuser:
-                kwargs["queryset"] = request.user.companies.all().order_by("name")
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def transform_project_to_alias(self, request, queryset):
         if "apply" in request.POST:
@@ -195,41 +228,52 @@ class ProjectAdmin(admin.ModelAdmin):
 
     duplicate_project.short_description = "Dupliquer le projet"  # type: ignore
 
-    def has_permission(self, request):
-        if request.user.is_anonymous:
-            return False
-
-        if request.user.is_superuser:
-            return True
-
-        # if admin of at least one company
-        if is_user_admin(request.user):
-            return True
-
-        return False
-
-    def has_module_permission(self, request):
-        return self.has_permission(request)
-
-    def has_add_permission(self, request):
-        return self.has_permission(request)
-
-    def has_change_permission(self, request, obj: Project = None):
-        if obj is None:
-            return self.has_permission(request)
-        if request.user.is_superuser:
-            return True
-        return obj.company.admins.filter(pk=request.user.pk).exists()
-
-    def has_delete_permission(self, request, obj=None):
-        return self.has_change_permission(request, obj)
-
     def save_model(self, request, obj, form, change):
         pass  # don't actually save the parent instance
 
     def save_formset(self, request, form, formset, change):
         formset.save()  # this will save the children
         form.instance.save()  # form.instance is the parent
+
+
+@admin.register(ForecastProject)
+class ForecastProjectAdmin(BaseProjectAdmin):
+    list_display = (
+        "name",
+        "company",
+        "category",
+        "start_date",
+        "end_date",
+        "estimated_days_count",
+        "total_sold",
+        "created",
+    )
+    list_filter = [
+        "category",
+        "start_date",
+        "end_date",
+    ]
+    fields = (
+        "name",
+        "company",
+        "category",
+        "notes",
+        "start_date",
+        "end_date",
+        "estimated_days_count",
+        "total_sold",
+    )
+    exclude = ("lowercase_name", "is_forecast")
+    search_fields = ["name"]
+    
+    def get_queryset(self, request):
+        if request.user.is_superuser:
+            return ForecastProject.objects.filter(is_forecast=True)
+        return ForecastProject.objects.filter(company__admins=request.user, is_forecast=True)
+    
+    def save_model(self, request, obj, form, change):
+        obj.is_forecast = True
+        obj.save()
 
 
 @admin.register(Category)
