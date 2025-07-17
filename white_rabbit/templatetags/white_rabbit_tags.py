@@ -182,6 +182,7 @@ def availability_size(value):
     percentage = min(abs_value / 5.0 * 100, 100)
     return int(percentage) / 2
 
+
 @register.simple_tag
 def availability_height(value, is_monthly_hours=False):
     """Return height style based on availability value. Max height varies by period type."""
@@ -193,6 +194,7 @@ def availability_height(value, is_monthly_hours=False):
     max_height = 40
     height = min(abs_value / max_value * max_height, max_height)
     return f"height: {int(height)}px;"
+
 
 @register.filter
 def floatval(value):

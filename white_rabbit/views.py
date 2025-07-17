@@ -123,7 +123,7 @@ class AvailabilityBaseView(TemplateView):
             },
             "is_monthly_hours": self.time_period == "month",
         }
-        
+
         return render(request, self.template_name, context)
 
 
