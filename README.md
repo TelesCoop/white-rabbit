@@ -113,7 +113,7 @@ Pour cela, il faut installer les dépendances :
 python manage.py tailwind install
 ``` 
 
-puis lancer le serveur de développement tailwind avec la commande suivante :
+puis lancer le serveur de développement tailwind avec la commande suivante (en parallèle du serveur Django) :
 ```bash
 python manage.py tailwind start
 ```
