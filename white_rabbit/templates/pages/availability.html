@@ -46,7 +46,7 @@
             <div class="flex flex-col h-full relative py-2 bg-white rounded shadow-sm">
               <div class="w-full h-1/2 flex justify-center items-end">
                 {% if availability|floatval > 0 %}
-                  <div class="bg-green-500 text-black rounded px-3 font-bold shadow-md flex items-center justify-center" style="{% availability_height availability is_monthly_hours %}">
+                  <div class="bg-green-500 text-black rounded px-3 font-bold flex items-center justify-center" style="{% availability_height availability is_monthly_hours %}">
                     {{ availability|floatformat:1 }}
                   </div>
                 {% endif %}
@@ -54,7 +54,7 @@
               <div class="w-full h-0.5 bg-black"></div>
               <div class="w-full h-1/2 flex justify-center items-start">
                 {% if availability|floatval < 0 %}
-                  <div class="bg-red-500 text-black rounded px-3 font-bold shadow-md flex items-center justify-center" style="{% availability_height availability is_monthly_hours %}">
+                  <div class="bg-red-500 text-black rounded px-3 font-bold flex items-center justify-center" style="{% availability_height availability is_monthly_hours %}">
                     {{ availability|floatformat:1 }}
                   </div>
                 {% endif %}
