@@ -112,20 +112,19 @@ class AvailabilityBaseView(TemplateView):
                 )
             )
 
-        return render(
-            request,
-            self.template_name,
-            {
-                "projects_per_period": projects_per_period,
-                "availability": availability,
-                "projects": project_finder.by_company(user.employee.company),
-                "periodicity": self.time_period,
-                "periods_per_key": {
-                    period["key"]: period
-                    for period in generate_time_periods(12, self.time_period)
-                },
+        context = {
+            "projects_per_period": projects_per_period,
+            "availability": availability,
+            "projects": project_finder.by_company(user.employee.company),
+            "periodicity": self.time_period,
+            "periods_per_key": {
+                period["key"]: period
+                for period in generate_time_periods(12, self.time_period)
             },
-        )
+            "is_monthly_hours": self.time_period == "month",
+        }
+        
+        return render(request, self.template_name, context)
 
 
 class AvailabilityPerWeekView(AvailabilityBaseView):

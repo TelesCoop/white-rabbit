@@ -182,6 +182,28 @@ def availability_size(value):
     percentage = min(abs_value / 5.0 * 100, 100)
     return int(percentage) / 2
 
+@register.simple_tag
+def availability_height(value, is_monthly_hours=False):
+    """Return height style based on availability value. Max height varies by period type."""
+    if value is None or not isinstance(value, (int, float)):
+        return "height: 0px;"
+    print(f"montly_hour:{is_monthly_hours}")
+    # Max values: ±23 for monthly hours, ±5 for weekly
+    max_value = 23 if is_monthly_hours else 5
+    abs_value = abs(float(value))
+    max_height = 40
+    height = min(abs_value / max_value * max_height, max_height)
+    print(f"height: {int(height)}px;")
+    print(abs_value)
+    return f"height: {int(height)}px;"
+
+@register.filter
+def floatval(value):
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return 0.0
+
 
 def number_of_working_days_for_period_key(period_key: str):
     # period_key is MM-YYYY
