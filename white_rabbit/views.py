@@ -16,7 +16,7 @@ from .events import (
     process_employees_events,
 )
 from .financial_tracking import calculate_financial_indicators
-from .models import Project, Employee, PROJECT_CATEGORIES_CHOICES
+from .models import Project, Employee, PROJECT_CATEGORIES_CHOICES, ForecastProject
 from .project_name_finder import ProjectFinder
 from .state_of_day import (
     state_of_days_per_employee_for_week,
@@ -102,6 +102,37 @@ class AvailabilityBaseView(TemplateView):
                         period_key
                     ] += project_data["duration"]
 
+        # Add forecast projects to the data structure
+        forecast_projects = ForecastProject.objects.filter(
+            company=user.employee.company, 
+            is_forecast=True,
+            start_date__isnull=False,
+            end_date__isnull=False
+        )
+        
+        periods_list = list(generate_time_periods(12, self.time_period))
+        
+        for forecast_project in forecast_projects:
+            # Calculate which periods this forecast project spans
+            project_periods = []
+            for period in periods_list:
+                period_start = period['period'].start
+                period_end = period['period'].end
+                
+                # Check if forecast project overlaps with this period
+                if (forecast_project.start_date <= period_end and 
+                    forecast_project.end_date >= period_start):
+                    project_periods.append(period['key'])
+            
+            if project_periods:
+                # Distribute estimated days across periods
+                days_per_period = forecast_project.estimated_days_count / len(project_periods)
+                
+                # Add to all employees for now (could be made more specific later)
+                for employee_name in [emp.name for emp in employees]:
+                    for period_key in project_periods:
+                        projects_per_period[employee_name][forecast_project.id][period_key] += days_per_period
+
         # for each employee, re-order projects by total upcoming time
         for employee in projects_per_period.keys():
             projects_per_period[employee] = dict(
@@ -112,13 +143,18 @@ class AvailabilityBaseView(TemplateView):
                 )
             )
 
+        # Combine regular projects with forecast projects for display
+        regular_projects = project_finder.by_company(user.employee.company)
+        forecast_projects_dict = {fp.id: fp for fp in forecast_projects}
+        all_projects = {**regular_projects, **forecast_projects_dict}
+        
         return render(
             request,
             self.template_name,
             {
                 "projects_per_period": projects_per_period,
                 "availability": availability,
-                "projects": project_finder.by_company(user.employee.company),
+                "projects": all_projects,
                 "periodicity": self.time_period,
                 "periods_per_key": {
                     period["key"]: period

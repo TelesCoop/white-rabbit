@@ -217,11 +217,8 @@ class Project(TimeStampedModel):
         help_text="Montant total vendu pour le projet en € (hors coûts refacturés)",
     )
     is_forecast = models.BooleanField(
-      verbose_name="Prévision",
-      default=False,
-      help_text="Projet prévisionnel"
-  )
-
+        verbose_name="Prévision", default=False, help_text="Projet prévisionnel"
+    )
 
     def update_total_sold_and_days_from_invoices(self):
         invoices = self.invoices.all()
@@ -230,6 +227,9 @@ class Project(TimeStampedModel):
 
     def save(self, *args, **kwargs):
         self.lowercase_name = normalize_name(self.name)
+        if self.is_forecast:
+            super().save(*args, **kwargs)
+            return
         if not self.pk:
             super().save(*args, **kwargs)
             self.update_total_sold_and_days_from_invoices()

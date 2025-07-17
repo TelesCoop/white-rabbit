@@ -61,7 +61,14 @@
         </tr>
         {% for project_id, project_data in employee_data|dict_items %}
           <tr class="bg-gray-50 project-time">
-            <td>{{ project_id|find_project_name:projects }}</td>
+            <td>
+              {{ project_id|find_project_name:projects }}
+              {% with project=projects|get_item:project_id %}
+                {% if project.is_forecast %}
+                  <span class="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">Prévision</span>
+                {% endif %}
+              {% endwith %}
+            </td>
             {% for period_key in periods_per_key %}
                 <td>{{ project_data|get_item:period_key|floatformat:1 }}</td>
             {% endfor %}
