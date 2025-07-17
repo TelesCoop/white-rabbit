@@ -43,7 +43,7 @@
           <th class="font-bold bg-gray-100 left-0 sticky z-50 text-center uppercase">{{ employee_name }}</th>
           {% for period_key, availability in availability|get_item:employee_name|dict_items %}
           <td class="h-24">
-            <div class="flex flex-col justify-between items-center h-full relative py-2 bg-white rounded shadow-sm">
+            <div class="flex flex-col h-full relative py-2 bg-white rounded shadow-sm">
               <div class="w-full h-1/2 flex justify-center items-end">
                 {% if availability|floatval >= 0 %}
                   <div class="bg-green-500 text-black rounded px-3 font-bold shadow-md flex items-center justify-center" style="{% availability_height availability is_monthly_hours %}">
@@ -59,7 +59,6 @@
                   </div>
                 {% endif %}
               </div>
-
           </td>
           {% endfor %}
         </tr>
