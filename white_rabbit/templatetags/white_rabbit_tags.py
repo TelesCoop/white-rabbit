@@ -187,14 +187,11 @@ def availability_height(value, is_monthly_hours=False):
     """Return height style based on availability value. Max height varies by period type."""
     if value is None or not isinstance(value, (int, float)):
         return "height: 0px;"
-    print(f"montly_hour:{is_monthly_hours}")
     # Max values: ±23 for monthly hours, ±5 for weekly
     max_value = 23 if is_monthly_hours else 5
     abs_value = abs(float(value))
     max_height = 40
     height = min(abs_value / max_value * max_height, max_height)
-    print(f"height: {int(height)}px;")
-    print(abs_value)
     return f"height: {int(height)}px;"
 
 @register.filter
