@@ -76,6 +76,9 @@ INSTALLED_APPS = [
     "telescoop_backup",
 ]
 
+if DEBUG:
+    INSTALLED_APPS += ["django_browser_reload"]
+
 MIDDLEWARE = [
     "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.security.SecurityMiddleware",
@@ -90,7 +93,11 @@ MIDDLEWARE = [
     "hijack.middleware.HijackUserMiddleware",
     # 'silk.middleware.SilkyMiddleware'
 ]
-
+if DEBUG:
+    # Add django_browser_reload middleware only in DEBUG mode
+    MIDDLEWARE += [
+        "django_browser_reload.middleware.BrowserReloadMiddleware",
+    ]
 ROOT_URLCONF = "white_rabbit.urls"
 
 TEMPLATES = [

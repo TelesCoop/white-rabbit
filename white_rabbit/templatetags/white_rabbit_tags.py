@@ -162,16 +162,46 @@ def get_projects_str(projects_events_by_ids, projects_details, periodicity):
 
 @register.filter
 def week_color(value):
-    SUCCESS_COLOR = SEVERITY_COLORS[-1]
-    WEEK_THRESHOLDS = [1, 2, 3, 4, 5]
-
     if value is None or not isinstance(value, (int, float)):
         return ""
 
-    for index, color in enumerate(SEVERITY_COLORS):
-        if value < WEEK_THRESHOLDS[index]:
-            return color
-    return SUCCESS_COLOR
+    if value > 0:
+        return "#22c55e"
+    else:
+        return "#ef4444"
+
+
+@register.filter
+def availability_size(value):
+    """Compute rectangle size based on availability value. 50% for ±5, 0% for 0."""
+    if value is None or not isinstance(value, (int, float)):
+        return 0
+
+    # Max at 5 days available per week
+    abs_value = abs(float(value))
+    percentage = min(abs_value / 5.0 * 100, 100)
+    return int(percentage) / 2
+
+
+@register.simple_tag
+def availability_height(value, is_monthly_hours=False):
+    """Return height style based on availability value. Max height varies by period type."""
+    if value is None or not isinstance(value, (int, float)):
+        return "height: 0px;"
+    # Max values: ±23 for monthly hours, ±5 for weekly
+    max_value = 23 if is_monthly_hours else 5
+    abs_value = abs(float(value))
+    max_height = 40
+    height = min(abs_value / max_value * max_height, max_height)
+    return f"height: {int(height)}px;"
+
+
+@register.filter
+def floatval(value):
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return 0.0
 
 
 def number_of_working_days_for_period_key(period_key: str):
