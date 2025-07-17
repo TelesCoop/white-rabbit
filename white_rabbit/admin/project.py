@@ -35,7 +35,7 @@ class InvoiceInline(admin.TabularInline):
 
 class BaseProjectAdmin(admin.ModelAdmin):
     """Base admin class for Project and ForecastProject with shared functionality."""
-    
+
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         """Limit the choices of the category field to the company's."""
         if db_field.name == "category":
@@ -54,7 +54,7 @@ class BaseProjectAdmin(admin.ModelAdmin):
             if not request.user.is_superuser:
                 kwargs["queryset"] = request.user.companies.all().order_by("name")
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
-    
+
     def has_permission(self, request):
         if request.user.is_anonymous:
             return False
@@ -265,12 +265,14 @@ class ForecastProjectAdmin(BaseProjectAdmin):
     )
     exclude = ("lowercase_name", "is_forecast")
     search_fields = ["name"]
-    
+
     def get_queryset(self, request):
         if request.user.is_superuser:
             return ForecastProject.objects.filter(is_forecast=True)
-        return ForecastProject.objects.filter(company__admins=request.user, is_forecast=True)
-    
+        return ForecastProject.objects.filter(
+            company__admins=request.user, is_forecast=True
+        )
+
     def save_model(self, request, obj, form, change):
         obj.is_forecast = True
         obj.save()

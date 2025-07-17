@@ -104,34 +104,40 @@ class AvailabilityBaseView(TemplateView):
 
         # Add forecast projects to the data structure
         forecast_projects = ForecastProject.objects.filter(
-            company=user.employee.company, 
+            company=user.employee.company,
             is_forecast=True,
             start_date__isnull=False,
-            end_date__isnull=False
+            end_date__isnull=False,
         )
-        
+
         periods_list = list(generate_time_periods(12, self.time_period))
-        
+
         for forecast_project in forecast_projects:
             # Calculate which periods this forecast project spans
             project_periods = []
             for period in periods_list:
-                period_start = period['period'].start
-                period_end = period['period'].end
-                
+                period_start = period["period"].start
+                period_end = period["period"].end
+
                 # Check if forecast project overlaps with this period
-                if (forecast_project.start_date <= period_end and 
-                    forecast_project.end_date >= period_start):
-                    project_periods.append(period['key'])
-            
+                if (
+                    forecast_project.start_date <= period_end
+                    and forecast_project.end_date >= period_start
+                ):
+                    project_periods.append(period["key"])
+
             if project_periods:
                 # Distribute estimated days across periods
-                days_per_period = forecast_project.estimated_days_count / len(project_periods)
-                
+                days_per_period = forecast_project.estimated_days_count / len(
+                    project_periods
+                )
+
                 # Add to all employees for now (could be made more specific later)
                 for employee_name in [emp.name for emp in employees]:
                     for period_key in project_periods:
-                        projects_per_period[employee_name][forecast_project.id][period_key] += days_per_period
+                        projects_per_period[employee_name][forecast_project.id][
+                            period_key
+                        ] += days_per_period
 
         # for each employee, re-order projects by total upcoming time
         for employee in projects_per_period.keys():
@@ -147,7 +153,7 @@ class AvailabilityBaseView(TemplateView):
         regular_projects = project_finder.by_company(user.employee.company)
         forecast_projects_dict = {fp.id: fp for fp in forecast_projects}
         all_projects = {**regular_projects, **forecast_projects_dict}
-        
+
         return render(
             request,
             self.template_name,
@@ -478,16 +484,16 @@ class TotalPerProjectView(AbstractTotalView):
 class DistributionView(AbstractTotalView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(group_by="category", **kwargs)
-        
+
         # Check if proportional display is requested
         proportional = bool(self.request.GET.get("proportional", False))
         context["show_proportional"] = proportional
-        
+
         if proportional:
             # Compute proportional values for the total column
             total_per_identifier = context["total_per_identifier"]
             grand_total = sum(total_per_identifier.values())
-            
+
             proportional_totals = {}
             for identifier, total in total_per_identifier.items():
                 if grand_total > 0:
@@ -495,20 +501,19 @@ class DistributionView(AbstractTotalView):
                     proportional_totals[identifier] = proportion
                 else:
                     proportional_totals[identifier] = 0
-            
+
             context["proportional_totals"] = proportional_totals
-            
+
             # Compute proportional values for each employee column
             employees_events = context["employees_events"]
             proportional_data = {}
-            
+
             for employee_name, employee_data in employees_events.items():
                 # Compute total for this employee across all categories
                 employee_total = sum(
-                    project_time["duration"] 
-                    for project_time in employee_data.values()
+                    project_time["duration"] for project_time in employee_data.values()
                 )
-                
+
                 # Compute proportional values for each category
                 proportional_data[employee_name] = {}
                 for category_id, project_time in employee_data.items():
@@ -517,9 +522,9 @@ class DistributionView(AbstractTotalView):
                         proportional_data[employee_name][category_id] = proportion
                     else:
                         proportional_data[employee_name][category_id] = 0
-            
+
             context["proportional_data"] = proportional_data
-        
+
         return context
 
 
