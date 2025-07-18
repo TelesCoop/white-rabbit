@@ -5,7 +5,7 @@ from django.urls import reverse
 
 from white_rabbit.admin.company import is_user_admin
 
-from white_rabbit.models import Project, Alias, Category, Invoice, ForecastProject
+from white_rabbit.models import Project, Alias, Category, Invoice, ForecastProject, EmployeeForecastAssignment, Employee
 
 
 class InvoiceInline(admin.TabularInline):
@@ -234,10 +234,20 @@ class ProjectAdmin(BaseProjectAdmin):
     def save_formset(self, request, form, formset, change):
         formset.save()  # this will save the children
         form.instance.save()  # form.instance is the parent
-
+        
+class EmployeeForecastAssignmentInline(admin.TabularInline):
+    model = EmployeeForecastAssignment
+    extra = 1
+    autocomplete_fields = ['employee']
+    fields = ('employee', 'start_date', 'end_date', 'estimated_hours')
+    
+@admin.register(Employee)
+class EmployeeAdmin(admin.ModelAdmin):
+    search_fields = ['user__first_name', 'user__last_name', 'user__username']
 
 @admin.register(ForecastProject)
 class ForecastProjectAdmin(BaseProjectAdmin):
+    inlines = [EmployeeForecastAssignmentInline]
     list_display = (
         "name",
         "company",

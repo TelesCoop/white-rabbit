@@ -111,13 +111,13 @@ class AvailabilityBaseView(TemplateView):
         )
 
         periods_list = list(generate_time_periods(12, self.time_period))
-
         for forecast_project in forecast_projects:
+            
             # Calculate which periods this forecast project spans
             project_periods = []
             for period in periods_list:
-                period_start = period["period"].start
-                period_end = period["period"].end
+                period_start = period["start"]
+                period_end = period["end"]
 
                 # Check if forecast project overlaps with this period
                 if (
@@ -151,7 +151,15 @@ class AvailabilityBaseView(TemplateView):
 
         # Combine regular projects with forecast projects for display
         regular_projects = project_finder.by_company(user.employee.company)
-        forecast_projects_dict = {fp.id: fp for fp in forecast_projects}
+        forecast_projects_dict = {
+            fp.id: {
+                "name": fp.name,
+                "start_date": fp.start_date and fp.start_date.strftime("%b %y"),
+                "end_date": fp.end_date and fp.end_date.strftime("%b %y"),
+                "category": fp.category or {"name": "inconnue", "color": "bg-white-100"},
+            }
+            for fp in forecast_projects
+        }
         all_projects = {**regular_projects, **forecast_projects_dict}
 
         return render(

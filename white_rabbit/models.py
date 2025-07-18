@@ -250,7 +250,6 @@ class ForecastProject(Project):
         verbose_name = "projet prévisionnel"
         verbose_name_plural = "projets prévisionnels"
 
-
 class Alias(models.Model):
     class Meta:
         verbose_name = "alias"
@@ -344,3 +343,33 @@ class Employee(TimeStampedModel):
         if self.user.first_name:
             return f"{self.user.first_name} {self.user.last_name or ''}"
         return self.user.username
+    
+    @property
+    def forecast_projects(self):
+        return ForecastProject.objects.filter(employee_assignments__employee=self).distinct()
+    
+class EmployeeForecastAssignment(models.Model):
+    employee = models.ForeignKey(
+        "Employee", on_delete=models.CASCADE, related_name="forecast_assignments"
+    )
+    forecast_project = models.ForeignKey(
+        "ForecastProject", on_delete=models.CASCADE, related_name="employee_assignments"
+    )
+
+    start_date = models.DateField()
+    end_date = models.DateField()
+    
+    estimated_hours = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        help_text="Nombre total d'heures estimées pour cet employé sur ce projet"
+    )
+
+    class Meta:
+        verbose_name = "Affectation prévisionnelle"
+        verbose_name_plural = "Affectations prévisionnelles"
+        unique_together = ("employee", "forecast_project", "start_date")
+
+    def __str__(self):
+        return f"{self.employee.name} → {self.forecast_project.name} ({self.start_date} - {self.end_date})"
+
