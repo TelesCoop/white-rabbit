@@ -5,7 +5,15 @@ from django.urls import reverse
 
 from white_rabbit.admin.company import is_user_admin
 
-from white_rabbit.models import Project, Alias, Category, Invoice, ForecastProject, EmployeeForecastAssignment, Employee
+from white_rabbit.models import (
+    Project,
+    Alias,
+    Category,
+    Invoice,
+    ForecastProject,
+    EmployeeForecastAssignment,
+    Employee,
+)
 
 
 class InvoiceInline(admin.TabularInline):
@@ -234,16 +242,36 @@ class ProjectAdmin(BaseProjectAdmin):
     def save_formset(self, request, form, formset, change):
         formset.save()  # this will save the children
         form.instance.save()  # form.instance is the parent
-        
+
+
 class EmployeeForecastAssignmentInline(admin.TabularInline):
     model = EmployeeForecastAssignment
     extra = 1
-    autocomplete_fields = ['employee']
-    fields = ('employee', 'start_date', 'end_date', 'estimated_hours')
-    
+    autocomplete_fields = ["employee"]
+    fields = ("employee", "start_date", "end_date", "estimated_hours")
+    verbose_name = "Affectation d'employé"
+    verbose_name_plural = "Affectations d'employés"
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """Limit employee choices to the same company as the forecast project"""
+        if db_field.name == "employee":
+            forecast_project = getattr(request, "_obj_", None)
+            company = getattr(forecast_project, "company", None)
+            if company:
+                kwargs["queryset"] = Employee.objects.filter(company=company)
+            else:
+                user_employee = getattr(request.user, "employee", None)
+                company = getattr(user_employee, "company", None)
+                if company:
+                    kwargs["queryset"] = Employee.objects.filter(company=company)
+
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
-    search_fields = ['user__first_name', 'user__last_name', 'user__username']
+    search_fields = ["user__first_name", "user__last_name", "user__username"]
+
 
 @admin.register(ForecastProject)
 class ForecastProjectAdmin(BaseProjectAdmin):
@@ -282,6 +310,18 @@ class ForecastProjectAdmin(BaseProjectAdmin):
         return ForecastProject.objects.filter(
             company__admins=request.user, is_forecast=True
         )
+
+    def assigned_employees(self, obj):
+        return ", ".join(
+            {assignment.employee.name for assignment in obj.employee_assignments.all()}
+        )
+
+    assigned_employees.short_description = "Employés affectés"
+
+    def get_inline_instances(self, request, obj=None):
+        """Pass the current object to the request so inlines can access it"""
+        request._obj_ = obj
+        return super().get_inline_instances(request, obj)
 
     def save_model(self, request, obj, form, change):
         obj.is_forecast = True

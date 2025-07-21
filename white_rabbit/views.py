@@ -16,7 +16,13 @@ from .events import (
     process_employees_events,
 )
 from .financial_tracking import calculate_financial_indicators
-from .models import Project, Employee, PROJECT_CATEGORIES_CHOICES, ForecastProject
+from .models import (
+    Project,
+    Employee,
+    PROJECT_CATEGORIES_CHOICES,
+    ForecastProject,
+    EmployeeForecastAssignment,
+)
 from .project_name_finder import ProjectFinder
 from .state_of_day import (
     state_of_days_per_employee_for_week,
@@ -65,6 +71,66 @@ class AvailabilityBaseView(TemplateView):
         super().__init__(*args, **kwargs)
         self.time_period = time_period
 
+    def retrieve_forecasted_projects(
+        self, user, employees, projects_per_period, availability
+    ):
+        """Add forecast projects to the data structure using EmployeeForecastAssignment"""
+        forecast_projects = ForecastProject.objects.filter(
+            company=user.employee.company,
+            is_forecast=True,
+            start_date__isnull=False,
+            end_date__isnull=False,
+        )
+
+        periods_list = list(generate_time_periods(12, self.time_period))
+
+        # Get all forecast assignments for the company's employees
+        assignments = EmployeeForecastAssignment.objects.filter(
+            forecast_project__company=user.employee.company,
+            forecast_project__is_forecast=True,
+            forecast_project__start_date__isnull=False,
+            forecast_project__end_date__isnull=False,
+        ).select_related("employee__user", "forecast_project")
+
+        for assignment in assignments:
+            forecast_project = assignment.forecast_project
+            employee_name = assignment.employee.name
+
+            # Calculate which periods this assignment spans
+            assignment_periods = []
+            for period in periods_list:
+                period_start = period["start"]
+                period_end = period["end"]
+
+                # Check if assignment overlaps with this period
+                if (
+                    assignment.start_date <= period_end
+                    and assignment.end_date >= period_start
+                ):
+                    assignment_periods.append(period["key"])
+
+            if assignment_periods:
+                # Convert hours to days (assuming default working hours per day)
+                daily_hours = assignment.employee.default_day_working_hours
+                total_days = float(assignment.estimated_hours) / daily_hours
+                # Distribute estimated days across periods
+                days_per_period = total_days / len(assignment_periods)
+
+                # Add only to the specific assigned employee
+                for period_key in assignment_periods:
+                    projects_per_period[employee_name][forecast_project.id][
+                        period_key
+                    ] += days_per_period
+
+                    # Subtract forecasted days from employee availability
+                    if (
+                        employee_name in availability
+                        and period_key in availability[employee_name]
+                    ):
+                        availability[employee_name][period_key] -= days_per_period
+
+        return forecast_projects
+
     def get(self, request):
         user = request.user
         employees = employees_for_user(user)
@@ -102,43 +168,6 @@ class AvailabilityBaseView(TemplateView):
                         period_key
                     ] += project_data["duration"]
 
-        # Add forecast projects to the data structure
-        forecast_projects = ForecastProject.objects.filter(
-            company=user.employee.company,
-            is_forecast=True,
-            start_date__isnull=False,
-            end_date__isnull=False,
-        )
-
-        periods_list = list(generate_time_periods(12, self.time_period))
-        for forecast_project in forecast_projects:
-            
-            # Calculate which periods this forecast project spans
-            project_periods = []
-            for period in periods_list:
-                period_start = period["start"]
-                period_end = period["end"]
-
-                # Check if forecast project overlaps with this period
-                if (
-                    forecast_project.start_date <= period_end
-                    and forecast_project.end_date >= period_start
-                ):
-                    project_periods.append(period["key"])
-
-            if project_periods:
-                # Distribute estimated days across periods
-                days_per_period = forecast_project.estimated_days_count / len(
-                    project_periods
-                )
-
-                # Add to all employees for now (could be made more specific later)
-                for employee_name in [emp.name for emp in employees]:
-                    for period_key in project_periods:
-                        projects_per_period[employee_name][forecast_project.id][
-                            period_key
-                        ] += days_per_period
-
         # for each employee, re-order projects by total upcoming time
         for employee in projects_per_period.keys():
             projects_per_period[employee] = dict(
@@ -148,7 +177,9 @@ class AvailabilityBaseView(TemplateView):
                     reverse=True,
                 )
             )
-
+        forecast_projects = self.retrieve_forecasted_projects(
+            user, employees, projects_per_period, availability
+        )
         # Combine regular projects with forecast projects for display
         regular_projects = project_finder.by_company(user.employee.company)
         forecast_projects_dict = {
@@ -156,7 +187,8 @@ class AvailabilityBaseView(TemplateView):
                 "name": fp.name,
                 "start_date": fp.start_date and fp.start_date.strftime("%b %y"),
                 "end_date": fp.end_date and fp.end_date.strftime("%b %y"),
-                "category": fp.category or {"name": "inconnue", "color": "bg-white-100"},
+                "category": fp.category
+                or {"name": "inconnue", "color": "bg-white-100"},
             }
             for fp in forecast_projects
         }

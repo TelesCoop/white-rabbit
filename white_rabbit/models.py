@@ -4,6 +4,7 @@ from enum import Enum
 from django.contrib.auth.models import User
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.exceptions import ValidationError
 from django.db.models import UniqueConstraint
 from django.utils.safestring import mark_safe
 
@@ -245,10 +246,18 @@ class Project(TimeStampedModel):
 
 
 class ForecastProject(Project):
+    forecast_employees = models.ManyToManyField(
+        "Employee",
+        through="EmployeeForecastAssignment",
+        verbose_name="employés prévisionnels",
+        blank=True,
+        help_text="Employés affectés à ce projet prévisionnel",
+    )
+
     class Meta:
-        proxy = True
         verbose_name = "projet prévisionnel"
         verbose_name_plural = "projets prévisionnels"
+
 
 class Alias(models.Model):
     class Meta:
@@ -343,11 +352,14 @@ class Employee(TimeStampedModel):
         if self.user.first_name:
             return f"{self.user.first_name} {self.user.last_name or ''}"
         return self.user.username
-    
+
     @property
     def forecast_projects(self):
-        return ForecastProject.objects.filter(employee_assignments__employee=self).distinct()
-    
+        return ForecastProject.objects.filter(
+            employee_assignments__employee=self
+        ).distinct()
+
+
 class EmployeeForecastAssignment(models.Model):
     employee = models.ForeignKey(
         "Employee", on_delete=models.CASCADE, related_name="forecast_assignments"
@@ -358,11 +370,12 @@ class EmployeeForecastAssignment(models.Model):
 
     start_date = models.DateField()
     end_date = models.DateField()
-    
+
     estimated_hours = models.DecimalField(
         max_digits=6,
         decimal_places=2,
-        help_text="Nombre total d'heures estimées pour cet employé sur ce projet"
+        help_text="Nombre total d'heures estimées pour cet employé sur ce projet",
+        validators=[MinValueValidator(0.1)],
     )
 
     class Meta:
@@ -370,6 +383,12 @@ class EmployeeForecastAssignment(models.Model):
         verbose_name_plural = "Affectations prévisionnelles"
         unique_together = ("employee", "forecast_project", "start_date")
 
+    def clean(self):
+        super().clean()
+        if self.start_date and self.end_date and self.start_date > self.end_date:
+            raise ValidationError(
+                {"end_date": "La date de fin doit être postérieure à la date de début."}
+            )
+
     def __str__(self):
         return f"{self.employee.name} → {self.forecast_project.name} ({self.start_date} - {self.end_date})"
-
