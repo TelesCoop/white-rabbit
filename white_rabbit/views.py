@@ -113,12 +113,12 @@ class AvailabilityBaseView(TemplateView):
                 total_days = float(assignment.estimated_days)
                 # Distribute estimated days across periods
                 days_per_period = total_days / len(assignment_periods)
-
                 # Add only to the specific assigned employee
+                projects_per_period[employee_name][forecast_project.id] = {}
                 for period_key in assignment_periods:
                     projects_per_period[employee_name][forecast_project.id][
                         period_key
-                    ] += days_per_period
+                    ] = days_per_period
 
                     # Subtract forecasted days from employee availability
                     if (

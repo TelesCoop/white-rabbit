@@ -374,6 +374,7 @@ class EmployeeForecastAssignment(models.Model):
     estimated_days = models.DecimalField(
         max_digits=6,
         decimal_places=2,
+        default=0,
         help_text="Nombre total de jours estimés pour cet employé sur ce projet",
         validators=[MinValueValidator(0.1)],
     )
