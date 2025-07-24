@@ -110,9 +110,7 @@ class AvailabilityBaseView(TemplateView):
                     assignment_periods.append(period["key"])
 
             if assignment_periods:
-                # Convert hours to days (assuming default working hours per day)
-                daily_hours = assignment.employee.default_day_working_hours
-                total_days = float(assignment.estimated_hours) / daily_hours
+                total_days = float(assignment.estimated_days)
                 # Distribute estimated days across periods
                 days_per_period = total_days / len(assignment_periods)
 

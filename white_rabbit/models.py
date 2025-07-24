@@ -371,10 +371,10 @@ class EmployeeForecastAssignment(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
 
-    estimated_hours = models.DecimalField(
+    estimated_days = models.DecimalField(
         max_digits=6,
         decimal_places=2,
-        help_text="Nombre total d'heures estimées pour cet employé sur ce projet",
+        help_text="Nombre total de jours estimés pour cet employé sur ce projet",
         validators=[MinValueValidator(0.1)],
     )
 

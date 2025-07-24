@@ -248,7 +248,7 @@ class EmployeeForecastAssignmentInline(admin.TabularInline):
     model = EmployeeForecastAssignment
     extra = 1
     autocomplete_fields = ["employee"]
-    fields = ("employee", "start_date", "end_date", "estimated_hours")
+    fields = ("employee", "start_date", "end_date", "estimated_days")
     verbose_name = "Affectation d'employé"
     verbose_name_plural = "Affectations d'employés"
 
@@ -275,7 +275,6 @@ class EmployeeAdmin(admin.ModelAdmin):
 
 @admin.register(ForecastProject)
 class ForecastProjectAdmin(BaseProjectAdmin):
-    inlines = [EmployeeForecastAssignmentInline]
     list_display = (
         "name",
         "company",
@@ -311,21 +310,78 @@ class ForecastProjectAdmin(BaseProjectAdmin):
             company__admins=request.user, is_forecast=True
         )
 
-    def assigned_employees(self, obj):
-        return ", ".join(
-            {assignment.employee.name for assignment in obj.employee_assignments.all()}
-        )
-
-    assigned_employees.short_description = "Employés affectés"
-
-    def get_inline_instances(self, request, obj=None):
-        """Pass the current object to the request so inlines can access it"""
-        request._obj_ = obj
-        return super().get_inline_instances(request, obj)
-
     def save_model(self, request, obj, form, change):
         obj.is_forecast = True
         obj.save()
+
+
+@admin.register(EmployeeForecastAssignment)
+class EmployeeForecastAssignmentAdmin(admin.ModelAdmin):
+    list_display = (
+        "employee",
+        "forecast_project",
+        "start_date",
+        "end_date",
+        "estimated_days",
+    )
+    list_filter = ("start_date", "end_date", "forecast_project__company")
+    search_fields = [
+        "employee__user__first_name",
+        "employee__user__last_name",
+        "forecast_project__name",
+    ]
+    autocomplete_fields = ["employee", "forecast_project"]
+    fields = (
+        "employee",
+        "forecast_project",
+        "start_date",
+        "end_date",
+        "estimated_days",
+    )
+
+    def get_queryset(self, request):
+        if request.user.is_superuser:
+            return EmployeeForecastAssignment.objects.all()
+        return EmployeeForecastAssignment.objects.filter(
+            forecast_project__company__admins=request.user
+        )
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """Limit choices to the user's company"""
+        if db_field.name == "employee":
+            if not request.user.is_superuser:
+                kwargs["queryset"] = Employee.objects.filter(
+                    company__admins=request.user
+                )
+        elif db_field.name == "forecast_project":
+            if not request.user.is_superuser:
+                kwargs["queryset"] = ForecastProject.objects.filter(
+                    company__admins=request.user, is_forecast=True
+                )
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def has_permission(self, request):
+        if request.user.is_anonymous:
+            return False
+        if request.user.is_superuser:
+            return True
+        return is_user_admin(request.user)
+
+    def has_module_permission(self, request):
+        return self.has_permission(request)
+
+    def has_add_permission(self, request):
+        return self.has_permission(request)
+
+    def has_change_permission(self, request, obj=None):
+        if obj is None:
+            return self.has_permission(request)
+        if request.user.is_superuser:
+            return True
+        return obj.forecast_project.company.admins.filter(pk=request.user.pk).exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return self.has_change_permission(request, obj)
 
 
 @admin.register(Category)
