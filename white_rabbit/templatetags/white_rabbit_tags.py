@@ -234,4 +234,23 @@ def get_events_by_category(events, category):
 
 @register.filter
 def dict_items(dictionary):
+    if not dictionary:
+        return []
     return dictionary.items()
+
+
+@register.simple_tag
+def count_forecast_projects(projects_per_period, projects):
+    """Count forecast projects across all employees"""
+    count = 0
+    if not projects_per_period:
+        return count
+
+    for _employee_name, employee_data in projects_per_period.items():
+        if not employee_data:
+            continue
+        for project_id, _project_data in employee_data.items():
+            project = projects.get(project_id)
+            if project and hasattr(project, "is_forecast") and project.is_forecast:
+                count += 1
+    return count

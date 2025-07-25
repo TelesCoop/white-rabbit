@@ -16,7 +16,12 @@ from .events import (
     process_employees_events,
 )
 from .financial_tracking import calculate_financial_indicators
-from .models import Project, Employee, PROJECT_CATEGORIES_CHOICES
+from .models import (
+    Project,
+    Employee,
+    PROJECT_CATEGORIES_CHOICES,
+)
+from .services.forecast_service import ForecastService
 from .project_name_finder import ProjectFinder
 from .state_of_day import (
     state_of_days_per_employee_for_week,
@@ -65,6 +70,15 @@ class AvailabilityBaseView(TemplateView):
         super().__init__(*args, **kwargs)
         self.time_period = time_period
 
+    def retrieve_forecasted_projects(
+        self, user, employees, projects_per_period, availability
+    ):
+        """Add forecast projects to the data structure using EmployeeForecastAssignment"""
+        forecast_service = ForecastService(self.time_period)
+        return forecast_service.retrieve_forecasted_projects(
+            user, employees, projects_per_period, availability
+        )
+
     def get(self, request):
         user = request.user
         employees = employees_for_user(user)
@@ -111,6 +125,23 @@ class AvailabilityBaseView(TemplateView):
                     reverse=True,
                 )
             )
+        forecast_projects = self.retrieve_forecasted_projects(
+            user, employees, projects_per_period, availability
+        )
+        # Combine regular projects with forecast projects for display
+        regular_projects = project_finder.by_company(user.employee.company)
+        forecast_projects_dict = {
+            fp.id: {
+                "name": fp.name,
+                "start_date": fp.start_date and fp.start_date.strftime("%b %y"),
+                "end_date": fp.end_date and fp.end_date.strftime("%b %y"),
+                "category": fp.category
+                or {"name": "inconnue", "color": "bg-white-100"},
+                "is_forecast": True,
+            }
+            for fp in forecast_projects
+        }
+        all_projects = {**regular_projects, **forecast_projects_dict}
 
         return render(
             request,
@@ -118,7 +149,7 @@ class AvailabilityBaseView(TemplateView):
             {
                 "projects_per_period": projects_per_period,
                 "availability": availability,
-                "projects": project_finder.by_company(user.employee.company),
+                "projects": all_projects,
                 "periodicity": self.time_period,
                 "periods_per_key": {
                     period["key"]: period
@@ -442,16 +473,16 @@ class TotalPerProjectView(AbstractTotalView):
 class DistributionView(AbstractTotalView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(group_by="category", **kwargs)
-        
+
         # Check if proportional display is requested
         proportional = bool(self.request.GET.get("proportional", False))
         context["show_proportional"] = proportional
-        
+
         if proportional:
             # Compute proportional values for the total column
             total_per_identifier = context["total_per_identifier"]
             grand_total = sum(total_per_identifier.values())
-            
+
             proportional_totals = {}
             for identifier, total in total_per_identifier.items():
                 if grand_total > 0:
@@ -459,20 +490,19 @@ class DistributionView(AbstractTotalView):
                     proportional_totals[identifier] = proportion
                 else:
                     proportional_totals[identifier] = 0
-            
+
             context["proportional_totals"] = proportional_totals
-            
+
             # Compute proportional values for each employee column
             employees_events = context["employees_events"]
             proportional_data = {}
-            
+
             for employee_name, employee_data in employees_events.items():
                 # Compute total for this employee across all categories
                 employee_total = sum(
-                    project_time["duration"] 
-                    for project_time in employee_data.values()
+                    project_time["duration"] for project_time in employee_data.values()
                 )
-                
+
                 # Compute proportional values for each category
                 proportional_data[employee_name] = {}
                 for category_id, project_time in employee_data.items():
@@ -481,9 +511,9 @@ class DistributionView(AbstractTotalView):
                         proportional_data[employee_name][category_id] = proportion
                     else:
                         proportional_data[employee_name][category_id] = 0
-            
+
             context["proportional_data"] = proportional_data
-        
+
         return context
 
 
