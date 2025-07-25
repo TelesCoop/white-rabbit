@@ -246,26 +246,73 @@ class ProjectAdmin(BaseProjectAdmin):
 
 class EmployeeForecastAssignmentInline(admin.TabularInline):
     model = EmployeeForecastAssignment
-    extra = 1
-    autocomplete_fields = ["employee"]
+    extra = 3
     fields = ("employee", "start_date", "end_date", "estimated_days")
     verbose_name = "Affectation d'employé"
     verbose_name_plural = "Affectations d'employés"
 
+    def get_formset(self, request, obj=None, **kwargs):
+        """Add help text for assignments"""
+        formset = super().get_formset(request, obj, **kwargs)
+
+        # Always display the help text
+        formset.help_text = (
+            "💡 <strong>Assignation d'employés</strong> : "
+            "Vérifiez que le total des jours assignés ne dépasse pas "
+            "le nombre de jours prévus du projet."
+        )
+
+        return formset
+
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         """Limit employee choices to the same company as the forecast project"""
         if db_field.name == "employee":
-            forecast_project = getattr(request, "_obj_", None)
-            company = getattr(forecast_project, "company", None)
-            if company:
-                kwargs["queryset"] = Employee.objects.filter(company=company)
+            # Get the forecast project from the URL or request context
+            project_id = request.resolver_match.kwargs.get("object_id")
+            if project_id:
+                try:
+                    project = ForecastProject.objects.get(pk=project_id)
+                    # Only employees from the same company as the project
+                    kwargs["queryset"] = Employee.objects.filter(
+                        company=project.company
+                    )
+                except ForecastProject.DoesNotExist:
+                    kwargs["queryset"] = Employee.objects.none()
             else:
-                user_employee = getattr(request.user, "employee", None)
-                company = getattr(user_employee, "company", None)
-                if company:
-                    kwargs["queryset"] = Employee.objects.filter(company=company)
+                # For new projects, show employees from all companies the user administers
+                # The validation will ensure consistency when the project is saved
+                if request.user.is_superuser:
+                    kwargs["queryset"] = Employee.objects.all()
+                else:
+                    user_companies = request.user.companies.all()
+                    if user_companies.exists():
+                        kwargs["queryset"] = Employee.objects.filter(
+                            company__in=user_companies
+                        )
+                    else:
+                        kwargs["queryset"] = Employee.objects.none()
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def has_add_permission(self, request, obj=None):
+        """Allow company admins to add assignments"""
+        if request.user.is_superuser:
+            return True
+        # Check if user is admin of at least one company
+        return request.user.companies.exists()
+
+    def has_change_permission(self, request, obj=None):
+        """Allow company admins to change assignments for their company's projects"""
+        if request.user.is_superuser:
+            return True
+        if obj is None:
+            return request.user.companies.exists()
+        # obj is the parent ForecastProject, check if it belongs to a company the user administers
+        return obj.company.admins.filter(pk=request.user.pk).exists()
+
+    def has_delete_permission(self, request, obj=None):
+        """Allow company admins to delete assignments for their company's projects"""
+        return self.has_change_permission(request, obj)
 
 
 @admin.register(Employee)
@@ -300,8 +347,24 @@ class ForecastProjectAdmin(BaseProjectAdmin):
         "estimated_days_count",
         "total_sold",
     )
+
+    def get_form(self, request, obj=None, **kwargs):
+        """Customize form to make dates required for forecast projects"""
+        form = super().get_form(request, obj, **kwargs)
+        # Make start_date and end_date required
+        form.base_fields["start_date"].required = True
+        form.base_fields["end_date"].required = True
+        form.base_fields["start_date"].help_text = (
+            "Date de début du projet prévisionnel (obligatoire)"
+        )
+        form.base_fields["end_date"].help_text = (
+            "Date de fin du projet prévisionnel (obligatoire)"
+        )
+        return form
+
     exclude = ("lowercase_name", "is_forecast")
     search_fields = ["name"]
+    inlines = [EmployeeForecastAssignmentInline]
 
     def get_queryset(self, request):
         if request.user.is_superuser:
@@ -313,6 +376,25 @@ class ForecastProjectAdmin(BaseProjectAdmin):
     def save_model(self, request, obj, form, change):
         obj.is_forecast = True
         obj.save()
+
+    def save_related(self, request, form, formsets, change):
+        """Save related objects and validate company consistency"""
+        super().save_related(request, form, formsets, change)
+
+        # Validate that all assigned employees belong to the same company as the project
+        project = form.instance
+        for assignment in project.employee_assignments.all():
+            if assignment.employee.company != project.company:
+                # Delete the invalid assignment
+                assignment.delete()
+                from django.contrib import messages
+
+                messages.error(
+                    request,
+                    f"L'affectation de {assignment.employee.name} a été supprimée car "
+                    f"cet employé appartient à l'entreprise {assignment.employee.company.name} "
+                    f"alors que le projet appartient à {project.company.name}.",
+                )
 
 
 @admin.register(EmployeeForecastAssignment)
@@ -330,7 +412,7 @@ class EmployeeForecastAssignmentAdmin(admin.ModelAdmin):
         "employee__user__last_name",
         "forecast_project__name",
     ]
-    autocomplete_fields = ["employee", "forecast_project"]
+    autocomplete_fields = ["forecast_project"]
     fields = (
         "employee",
         "forecast_project",
@@ -347,17 +429,31 @@ class EmployeeForecastAssignmentAdmin(admin.ModelAdmin):
         )
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        """Limit choices to the user's company"""
+        """Ensure employees can only be assigned to projects from their company"""
         if db_field.name == "employee":
-            if not request.user.is_superuser:
-                kwargs["queryset"] = Employee.objects.filter(
-                    company__admins=request.user
-                )
+            assignment_id = request.resolver_match.kwargs.get("object_id")
+            if assignment_id:
+                try:
+                    assignment = EmployeeForecastAssignment.objects.get(
+                        pk=assignment_id
+                    )
+                    company = assignment.forecast_project.company
+                    # Only employees from the same company as the project
+                    kwargs["queryset"] = Employee.objects.filter(company=company)
+                except EmployeeForecastAssignment.DoesNotExist:
+                    # If assignment doesn't exist, no employees available
+                    kwargs["queryset"] = Employee.objects.none()
+            else:
+                # For new assignments, we need to determine company from forecast_project
+                # This will be empty until forecast_project is selected
+                kwargs["queryset"] = Employee.objects.none()
+
         elif db_field.name == "forecast_project":
             if not request.user.is_superuser:
                 kwargs["queryset"] = ForecastProject.objects.filter(
                     company__admins=request.user, is_forecast=True
                 )
+
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def has_permission(self, request):

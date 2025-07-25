@@ -20,9 +20,8 @@ from .models import (
     Project,
     Employee,
     PROJECT_CATEGORIES_CHOICES,
-    ForecastProject,
-    EmployeeForecastAssignment,
 )
+from .services.forecast_service import ForecastService
 from .project_name_finder import ProjectFinder
 from .state_of_day import (
     state_of_days_per_employee_for_week,
@@ -75,59 +74,10 @@ class AvailabilityBaseView(TemplateView):
         self, user, employees, projects_per_period, availability
     ):
         """Add forecast projects to the data structure using EmployeeForecastAssignment"""
-        forecast_projects = ForecastProject.objects.filter(
-            company=user.employee.company,
-            is_forecast=True,
-            start_date__isnull=False,
-            end_date__isnull=False,
+        forecast_service = ForecastService(self.time_period)
+        return forecast_service.retrieve_forecasted_projects(
+            user, employees, projects_per_period, availability
         )
-
-        periods_list = list(generate_time_periods(12, self.time_period))
-
-        # Get all forecast assignments for the company's employees
-        assignments = EmployeeForecastAssignment.objects.filter(
-            forecast_project__company=user.employee.company,
-            forecast_project__is_forecast=True,
-            forecast_project__start_date__isnull=False,
-            forecast_project__end_date__isnull=False,
-        ).select_related("employee__user", "forecast_project")
-
-        for assignment in assignments:
-            forecast_project = assignment.forecast_project
-            employee_name = assignment.employee.name
-
-            # Calculate which periods this assignment spans
-            assignment_periods = []
-            for period in periods_list:
-                period_start = period["start"]
-                period_end = period["end"]
-
-                # Check if assignment overlaps with this period
-                if (
-                    assignment.start_date <= period_end
-                    and assignment.end_date >= period_start
-                ):
-                    assignment_periods.append(period["key"])
-
-            if assignment_periods:
-                total_days = float(assignment.estimated_days)
-                # Distribute estimated days across periods
-                days_per_period = total_days / len(assignment_periods)
-                # Add only to the specific assigned employee
-                projects_per_period[employee_name][forecast_project.id] = {}
-                for period_key in assignment_periods:
-                    projects_per_period[employee_name][forecast_project.id][
-                        period_key
-                    ] = days_per_period
-
-                    # Subtract forecasted days from employee availability
-                    if (
-                        employee_name in availability
-                        and period_key in availability[employee_name]
-                    ):
-                        availability[employee_name][period_key] -= days_per_period
-
-        return forecast_projects
 
     def get(self, request):
         user = request.user
@@ -187,6 +137,7 @@ class AvailabilityBaseView(TemplateView):
                 "end_date": fp.end_date and fp.end_date.strftime("%b %y"),
                 "category": fp.category
                 or {"name": "inconnue", "color": "bg-white-100"},
+                "is_forecast": True,
             }
             for fp in forecast_projects
         }
