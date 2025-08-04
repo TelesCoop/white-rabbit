@@ -40,7 +40,7 @@
           <td class="p-4">{{ project_data.done|floatformat:1 }}</td>
           <td class="p-4">{{ project_data.total_sold|currency }}</td>
           <td class="p-4">{{ project_data.real_cost|currency }}</td>
-          <td class="p-4">{{ project_data.tjm_reel|currency }}</td>
+          <td class="p-4">{{ project_data.actual_mean_price|currency }}</td>
           <td class="p-4">{{ project_data.profitability_threshold|currency }}</td>
           <td class="p-4">{{ project_data.opportunity_cost|currency }}</td>
         </tr>
@@ -55,7 +55,7 @@
       *** Seuil de rentabilité = Coût journalier pour l'entreprise ({{ profitability_threshold }} €) x Jours faits
       <br/>
       **** Prix idéal = Taux Journalier du marché ({{ daily_market_price }} €) x Jours faits
-    </p> 
+    </p>
 
     <h1 class="text-2xl mt-5">Total en dessous du coût journalier</h1>
     <table

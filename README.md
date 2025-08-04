@@ -106,12 +106,11 @@ seront bien pris en compte.
 ## Dev
 
 ### Tailwind
-Par défaut, le projet est configuré pour utiliser le `hot-reload` en dev. 
 
-Pour cela, il faut installer les dépendances : 
+Pour cela, il faut installer les dépendances :
 ```bash
 python manage.py tailwind install
-``` 
+```
 
 puis lancer le serveur de développement tailwind avec la commande suivante (en parallèle du serveur Django) :
 ```bash

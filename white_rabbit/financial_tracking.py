@@ -62,7 +62,7 @@ def calculate_financial_indicators(company, identifier_order, total_by_project_i
             "profitability_threshold": done
             * float(project.company.profitability_threshold),
             "opportunity_cost": done * float(project.company.daily_market_price),
-            "tjm_reel": (
+            "actual_mean_price": (
                 float(project.total_sold) / done if project.total_sold and done else 0
             ),
             "id": project_id,
