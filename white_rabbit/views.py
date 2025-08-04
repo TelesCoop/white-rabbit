@@ -16,7 +16,12 @@ from .events import (
     process_employees_events,
 )
 from .financial_tracking import calculate_financial_indicators
-from .models import Project, Employee, PROJECT_CATEGORIES_CHOICES
+from .models import (
+    Project,
+    Employee,
+    PROJECT_CATEGORIES_CHOICES,
+)
+from .services.forecast_service import ForecastService
 from .project_name_finder import ProjectFinder
 from .state_of_day import (
     state_of_days_per_employee_for_week,
@@ -65,6 +70,15 @@ class AvailabilityBaseView(TemplateView):
         super().__init__(*args, **kwargs)
         self.time_period = time_period
 
+    def retrieve_forecasted_projects(
+        self, user, employees, projects_per_period, availability
+    ):
+        """Add forecast projects to the data structure using EmployeeForecastAssignment"""
+        forecast_service = ForecastService(self.time_period)
+        return forecast_service.retrieve_forecasted_projects(
+            user, employees, projects_per_period, availability
+        )
+
     def get(self, request):
         user = request.user
         employees = employees_for_user(user)
@@ -111,11 +125,28 @@ class AvailabilityBaseView(TemplateView):
                     reverse=True,
                 )
             )
+        forecast_projects = self.retrieve_forecasted_projects(
+            user, employees, projects_per_period, availability
+        )
+        # Combine regular projects with forecast projects for display
+        regular_projects = project_finder.by_company(user.employee.company)
+        forecast_projects_dict = {
+            fp.id: {
+                "name": fp.name,
+                "start_date": fp.start_date and fp.start_date.strftime("%b %y"),
+                "end_date": fp.end_date and fp.end_date.strftime("%b %y"),
+                "category": fp.category
+                or {"name": "inconnue", "color": "bg-white-100"},
+                "is_forecast": True,
+            }
+            for fp in forecast_projects
+        }
+        all_projects = {**regular_projects, **forecast_projects_dict}
 
         context = {
             "projects_per_period": projects_per_period,
             "availability": availability,
-            "projects": project_finder.by_company(user.employee.company),
+            "projects": all_projects,
             "periodicity": self.time_period,
             "periods_per_key": {
                 period["key"]: period
