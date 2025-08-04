@@ -2,7 +2,7 @@ import debug_toolbar
 from django.contrib import admin
 from django.urls import path, include
 
-from . import views
+from . import views, settings
 from .views import MyLoginView
 
 urlpatterns = [
@@ -63,3 +63,9 @@ urlpatterns = [
     path(r"hijack/", include("hijack.urls", namespace="hijack")),
     # path('silk/', include('silk.urls', namespace='silk'))
 ]
+
+if settings.DEBUG and settings.BROWSER_RELOAD:
+    # Include django_browser_reload URLs only in DEBUG mode
+    urlpatterns += [
+        path("__reload__/", include("django_browser_reload.urls")),
+    ]

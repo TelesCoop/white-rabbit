@@ -143,20 +143,19 @@ class AvailabilityBaseView(TemplateView):
         }
         all_projects = {**regular_projects, **forecast_projects_dict}
 
-        return render(
-            request,
-            self.template_name,
-            {
-                "projects_per_period": projects_per_period,
-                "availability": availability,
-                "projects": all_projects,
-                "periodicity": self.time_period,
-                "periods_per_key": {
-                    period["key"]: period
-                    for period in generate_time_periods(12, self.time_period)
-                },
+        context = {
+            "projects_per_period": projects_per_period,
+            "availability": availability,
+            "projects": all_projects,
+            "periodicity": self.time_period,
+            "periods_per_key": {
+                period["key"]: period
+                for period in generate_time_periods(12, self.time_period)
             },
-        )
+            "is_monthly_hours": self.time_period == "month",
+        }
+
+        return render(request, self.template_name, context)
 
 
 class AvailabilityPerWeekView(AvailabilityBaseView):

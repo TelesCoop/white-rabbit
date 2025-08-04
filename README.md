@@ -105,8 +105,17 @@ seront bien pris en compte.
 
 ## Dev
 
-Le projet utilise Tailwind. Si on risque de changer les classes, il faut lancer en plus
-de `python manage.py runserver`, `python manage.py tailwind start`.
+### Tailwind
+
+Pour cela, il faut installer les dépendances :
+```bash
+python manage.py tailwind install
+```
+
+puis lancer le serveur de développement tailwind avec la commande suivante (en parallèle du serveur Django) :
+```bash
+python manage.py tailwind start
+```
 
 Une fois que le développement lié à tailwind est terminé, lancer
 `python manage.py tailwind build`.

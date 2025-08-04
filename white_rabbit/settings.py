@@ -91,6 +91,13 @@ MIDDLEWARE = [
     # 'silk.middleware.SilkyMiddleware'
 ]
 
+BROWSER_RELOAD = config.getstr("browser_reload.browser_reload", "false") == "true"
+if DEBUG and BROWSER_RELOAD:
+    INSTALLED_APPS += ["django_browser_reload"]
+    MIDDLEWARE += [
+        "django_browser_reload.middleware.BrowserReloadMiddleware",
+    ]
+
 ROOT_URLCONF = "white_rabbit.urls"
 
 TEMPLATES = [
