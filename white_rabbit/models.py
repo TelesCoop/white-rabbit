@@ -389,24 +389,30 @@ class Employee(TimeStampedModel):
 
 class EmployeeForecastAssignment(models.Model):
     employee = models.ForeignKey(
-        "Employee", on_delete=models.CASCADE, related_name="forecast_assignments"
+        "Employee",
+        verbose_name="salarié",
+        on_delete=models.CASCADE,
+        related_name="forecast_assignments",
     )
     forecast_project = models.ForeignKey(
         "ForecastProject", on_delete=models.CASCADE, related_name="employee_assignments"
     )
 
     start_date = models.DateField(
+        verbose_name="date de début",
         null=True,
         blank=True,
         help_text="Laisser vide pour utiliser la date de début du projet prévisionnel",
     )
     end_date = models.DateField(
+        verbose_name="date de fin",
         null=True,
         blank=True,
         help_text="Laisser vide pour utiliser la date de fin du projet prévisionnel",
     )
 
     estimated_days = models.DecimalField(
+        verbose_name="jours estimés",
         max_digits=6,
         decimal_places=2,
         default=0,
