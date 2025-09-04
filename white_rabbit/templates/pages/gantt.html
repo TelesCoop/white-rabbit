@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% load white_rabbit_tags %}
+
+{% block content %}
+    <div class="container mx-auto px-4 py-6">
+        <div class="mb-6">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Vue Gantt - Projets {{ company.name }}</h1>
+            <p class="text-gray-600">Projets actifs pour les 6 prochains mois ({{ today|date:"d/m/Y" }} - {{ six_months_from_now|date:"d/m/Y" }})</p>
+        </div>
+
+        {% if projects_data %}
+            <!-- Gantt Chart Container -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                <div id="gantt"></div>
+            </div>
+
+            <!-- Legend -->
+            <div class="bg-white rounded-lg shadow p-4 mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-3">Légende - Intensité des projets</h3>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 rounded mr-2" style="background-color: #9CA3AF;"></div>
+                        <span class="text-sm text-gray-700">Pas d'estimation</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 rounded mr-2" style="background-color: hsl(210, 100%, 85%);"></div>
+                        <span class="text-sm text-gray-700">Très faible</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 rounded mr-2" style="background-color: hsl(210, 100%, 70%);"></div>
+                        <span class="text-sm text-gray-700">Faible</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 rounded mr-2" style="background-color: hsl(210, 100%, 55%);"></div>
+                        <span class="text-sm text-gray-700">Modérée</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 rounded mr-2" style="background-color: hsl(210, 100%, 45%);"></div>
+                        <span class="text-sm text-gray-700">Élevée</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 rounded mr-2" style="background-color: hsl(210, 100%, 35%);"></div>
+                        <span class="text-sm text-gray-700">Très élevée</span>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">
+                    L'intensité est calculée relativement au projet le plus intense (ratio jours estimés / jours calendaires).
+                </p>
+            </div>
+
+        {% else %}
+            <div class="bg-white rounded-lg shadow p-8 text-center">
+                <div class="text-gray-500 mb-4">
+                    <svg class="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012-2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Aucun projet trouvé</h3>
+                <p class="text-gray-600">Il n'y a aucun projet actif pour les 6 prochains mois.</p>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.css">
+<style>
+    .container {
+        max-width: 100%;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    {% if projects_data %}
+    // Prepare tasks data for Frappe Gantt
+    const tasks = [
+        {% for project_data in projects_data %}
+        {
+            id: 'project_{{ project_data.project.id }}',
+            name: '{{ project_data.project.name|escapejs }}',
+            start: '{{ project_data.start_date|date:"Y-m-d" }}',
+            end: '{{ project_data.end_date|date:"Y-m-d" }}',
+            progress: 0,
+            custom_class: 'project-bar',
+            dependencies: '',
+            intensity: {{ project_data.intensity|stringformat:"f" }},
+            estimated_days: {{ project_data.estimated_days|stringformat:"f" }},
+            calendar_days: {{ project_data.duration_days }},
+            category: '{{ project_data.category_name|escapejs }}',
+            color: '{{ project_data.intensity_color }}'
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    // Initialize Frappe Gantt
+    const gantt = new Gantt("#gantt", tasks, {
+        header_height: 50,
+        column_width: 30,
+        step: 24,
+        view_modes: ['Quarter Day', 'Half Day', 'Day', 'Week', 'Month'],
+        bar_height: 20,
+        bar_corner_radius: 3,
+        arrow_curve: 5,
+        padding: 18,
+        view_mode: 'Month',
+        date_format: 'DD/MM/YYYY',
+        language: 'fr',
+        custom_popup_html: function(task) {
+            const intensityPercent = (task.intensity * 100).toFixed(1);
+
+            // Format dates from the original start/end strings
+            const startDate = new Date(task.start);
+            const endDate = new Date(task.end);
+            const formatDate = (date) => {
+                return date.toLocaleDateString('fr-FR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+            };
+
+            // Extract project ID from task ID (format: 'project_123')
+            const projectId = task.id.replace('project_', '');
+
+            return `
+                <div class="details-container" style="padding: 8px; min-width: 200px;">
+                    <h5 style="margin: 0 0 8px 0; font-weight: bold;">${task.name}</h5>
+                    <p style="margin: 4px 0;"><strong>Catégorie:</strong> ${task.category}</p>
+                    <p style="margin: 4px 0;"><strong>Période:</strong> ${formatDate(startDate)} - ${formatDate(endDate)}</p>
+                    <p style="margin: 4px 0;"><strong>Durée:</strong> ${task.calendar_days} jours calendaires</p>
+                    <p style="margin: 4px 0;"><strong>Jours estimés:</strong> ${task.estimated_days} jours</p>
+                    <p style="margin: 4px 0;"><strong>Intensité:</strong> ${intensityPercent}%</p>
+                    <p style="margin: 8px 0 0 0; padding-top: 8px; border-top: 1px solid #e5e5e5;">
+                        <a href="/configuration/white_rabbit/project/${projectId}/change/"
+                           target="_blank"
+                           style="display: inline-block; padding: 4px 8px; background: #3b82f6; color: white; text-decoration: none; border-radius: 4px; font-size: 12px;">
+                            Modifier
+                        </a>
+                    </p>
+                </div>
+            `;
+        },
+    });
+
+    // Apply custom colors to bars
+    setTimeout(function() {
+        tasks.forEach(function(task, index) {
+            const barElement = document.querySelector(`[data-id="${task.id}"] .bar`);
+            if (barElement) {
+                barElement.style.fill = task.color;
+            }
+        });
+    }, 100);
+    {% endif %}
+});
+</script>
+{% endblock %}
