@@ -2,8 +2,23 @@ import debug_toolbar
 from django.contrib import admin
 from django.urls import path, include
 
-from . import views, settings
-from .views import MyLoginView
+from . import settings
+from white_rabbit.views.auth_view import MyLoginView
+from white_rabbit.views.home_view import HomeView
+from white_rabbit.views.availability_view import (
+    AvailabilityPerWeekView,
+    AvailabilityPerMonthView,
+    MonthlyWorkingHoursView,
+)
+from white_rabbit.views.project_view import (
+    AliasView,
+    ResumeView,
+    TotalPerProjectView,
+    DistributionView,
+    EstimatedDaysCountView,
+    FinancialTrackingView,
+)
+from white_rabbit.views.gantt_view import GanttView
 
 urlpatterns = [
     path("configuration/", admin.site.urls),
@@ -16,48 +31,47 @@ urlpatterns = [
         ),
     ),
     path("auth/", include("django.contrib.auth.urls")),
-    path("", views.HomeView.as_view(), name="home"),
+    path("", HomeView.as_view(), name="home"),
     path(
         "projects/<str:period>",
-        views.TotalPerProjectView.as_view(),
+        TotalPerProjectView.as_view(),
         name="projects",
     ),
-    path(
-        "distribution/<str:period>", views.DistributionView.as_view(), name="categories"
-    ),
+    path("distribution/<str:period>", DistributionView.as_view(), name="categories"),
     path(
         "monthly-hours",
-        views.MonthlyWorkingHoursView.as_view(),
+        MonthlyWorkingHoursView.as_view(),
         name="monthly-working-hours",
     ),
     path(
         "availability/week",
-        views.AvailabilityPerWeekView.as_view(),
+        AvailabilityPerWeekView.as_view(),
         name="week-availability",
     ),
     path(
         "availability/month",
-        views.AvailabilityPerMonthView.as_view(),
+        AvailabilityPerMonthView.as_view(),
         name="month-availability",
     ),
     path(
         "suivi-projets",
-        views.EstimatedDaysCountView.as_view(),
+        EstimatedDaysCountView.as_view(),
         name="estimated-days-reporting",
     ),
     path(
         "suivi-projets-complet",
-        views.EstimatedDaysCountView.as_view(),
+        EstimatedDaysCountView.as_view(),
         kwargs={"is_full": True},
         name="estimated-days-reporting-full",
     ),
     path(
         "suivi-monétaire",
-        views.FinancialTrackingView.as_view(),
+        FinancialTrackingView.as_view(),
         name="financial-tracking",
     ),
-    path("resume", views.ResumeView.as_view()),
-    path("alias/", views.AliasView.as_view(), name="alias"),
+    path("resume", ResumeView.as_view()),
+    path("alias/", AliasView.as_view(), name="alias"),
+    path("gantt/", GanttView.as_view(), name="gantt"),
     path("__debug__/", include(debug_toolbar.urls)),
     # django-hijack
     path(r"hijack/", include("hijack.urls", namespace="hijack")),
