@@ -1,4 +1,5 @@
 import csv
+import copy
 import datetime
 from collections import Counter, defaultdict
 from typing import Dict
@@ -125,9 +126,12 @@ class AvailabilityBaseView(TemplateView):
                     reverse=True,
                 )
             )
+
+        availabitily_with_forceast = copy.deepcopy(availability)
         forecast_projects = self.retrieve_forecasted_projects(
-            user, employees, projects_per_period, availability
+            user, employees, projects_per_period, availabitily_with_forceast
         )
+
         # Combine regular projects with forecast projects for display
         regular_projects = project_finder.by_company(user.employee.company)
         forecast_projects_dict = {
@@ -146,6 +150,7 @@ class AvailabilityBaseView(TemplateView):
         context = {
             "projects_per_period": projects_per_period,
             "availability": availability,
+            "availability_with_forecast": availabitily_with_forceast,
             "projects": all_projects,
             "periodicity": self.time_period,
             "periods_per_key": {

@@ -16,6 +16,30 @@ from white_rabbit.models import (
 )
 
 
+class CompanyCategoryListFilter(admin.SimpleListFilter):
+    """Custom filter to show only categories from companies the user is admin of."""
+
+    title = "catégorie"
+    parameter_name = "category"
+
+    def lookups(self, request, model_admin):
+        """Return category choices filtered by user's companies."""
+        if request.user.is_superuser:
+            categories = Category.objects.all().order_by("name")
+        else:
+            categories = Category.objects.filter(company__admins=request.user).order_by(
+                "name"
+            )
+
+        return [(category.id, str(category)) for category in categories]
+
+    def queryset(self, request, queryset):
+        """Filter the queryset based on the selected category."""
+        if self.value():
+            return queryset.filter(category__id=self.value())
+        return queryset
+
+
 class InvoiceInline(admin.TabularInline):
     model = Invoice
     can_delete = True
@@ -133,7 +157,7 @@ class ProjectAdmin(BaseProjectAdmin):
         "created",
     )
     list_filter = [
-        "category",
+        CompanyCategoryListFilter,
         ("estimated_days_count", admin.BooleanFieldListFilter),
     ]
     readonly_fields = ("estimated_days_count", "total_sold")
@@ -395,89 +419,6 @@ class ForecastProjectAdmin(BaseProjectAdmin):
                     f"cet employé appartient à l'entreprise {assignment.employee.company.name} "
                     f"alors que le projet appartient à {project.company.name}.",
                 )
-
-
-@admin.register(EmployeeForecastAssignment)
-class EmployeeForecastAssignmentAdmin(admin.ModelAdmin):
-    list_display = (
-        "employee",
-        "forecast_project",
-        "start_date",
-        "end_date",
-        "estimated_days",
-    )
-    list_filter = ("start_date", "end_date", "forecast_project__company")
-    search_fields = [
-        "employee__user__first_name",
-        "employee__user__last_name",
-        "forecast_project__name",
-    ]
-    autocomplete_fields = ["forecast_project"]
-    fields = (
-        "employee",
-        "forecast_project",
-        "start_date",
-        "end_date",
-        "estimated_days",
-    )
-
-    def get_queryset(self, request):
-        if request.user.is_superuser:
-            return EmployeeForecastAssignment.objects.all()
-        return EmployeeForecastAssignment.objects.filter(
-            forecast_project__company__admins=request.user
-        )
-
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        """Ensure employees can only be assigned to projects from their company"""
-        if db_field.name == "employee":
-            assignment_id = request.resolver_match.kwargs.get("object_id")
-            if assignment_id:
-                try:
-                    assignment = EmployeeForecastAssignment.objects.get(
-                        pk=assignment_id
-                    )
-                    company = assignment.forecast_project.company
-                    # Only employees from the same company as the project
-                    kwargs["queryset"] = Employee.objects.filter(company=company)
-                except EmployeeForecastAssignment.DoesNotExist:
-                    # If assignment doesn't exist, no employees available
-                    kwargs["queryset"] = Employee.objects.none()
-            else:
-                # For new assignments, we need to determine company from forecast_project
-                # This will be empty until forecast_project is selected
-                kwargs["queryset"] = Employee.objects.none()
-
-        elif db_field.name == "forecast_project":
-            if not request.user.is_superuser:
-                kwargs["queryset"] = ForecastProject.objects.filter(
-                    company__admins=request.user, is_forecast=True
-                )
-
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)
-
-    def has_permission(self, request):
-        if request.user.is_anonymous:
-            return False
-        if request.user.is_superuser:
-            return True
-        return is_user_admin(request.user)
-
-    def has_module_permission(self, request):
-        return self.has_permission(request)
-
-    def has_add_permission(self, request):
-        return self.has_permission(request)
-
-    def has_change_permission(self, request, obj=None):
-        if obj is None:
-            return self.has_permission(request)
-        if request.user.is_superuser:
-            return True
-        return obj.forecast_project.company.admins.filter(pk=request.user.pk).exists()
-
-    def has_delete_permission(self, request, obj=None):
-        return self.has_change_permission(request, obj)
 
 
 @admin.register(Category)

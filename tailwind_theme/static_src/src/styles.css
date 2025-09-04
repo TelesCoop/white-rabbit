@@ -68,39 +68,6 @@ h2 {
     border: 0;
     clip: rect(0, 0, 0, 0)
 }
-
-.pastille {
-    display: flex;
-    border-radius: 50%;
-    align-items: center;
-    justify-content: center;
-}
-
-.pastille-sm {
-    width: 1.5rem;
-    height: 1.5rem;
-}
-
-.pastille-md {
-    width: 2rem;
-    height: 2rem;
-}
-
-.pastille-lg {
-    width: 3rem;
-    height: 3rem;
-}
-
-.pastille-xl {
-    width: 4rem;
-    height: 4rem;
-}
-
-.pastille-2xl {
-    width: 4rem;
-    height: 4rem;
-}
-
 .th {
     position: sticky;
     top: 0;

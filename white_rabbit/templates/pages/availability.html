@@ -20,6 +20,15 @@
 .forecast-hidden .forecast-element {
   display: none;
 }
+td.availability_without_forecast{
+  display: none;
+}
+.forecast-hidden td.availability_with_forecast {
+  display: none;
+}
+.forecast-hidden td.availability_without_forecast {
+  display: table-cell;
+}
 {% endblock %}
 
 {% block content %}
@@ -33,7 +42,7 @@
         </span>
       </label>
     </div>
-    
+
     <table
         class="table border border-gray-200 border-separate rounded-lg divide-y divide-gray-200">
       <thead>
@@ -63,21 +72,45 @@
       {% for employee_name, employee_data  in projects_per_period|dict_items %}
         <tr class="bg-gray-50">
           <th class="font-bold bg-gray-100 left-0 sticky z-50 text-center uppercase">{{ employee_name }}</th>
-          {% for period_key, availability in availability|get_item:employee_name|dict_items %}
-            <td class="h-24">
+          {% comment %} forecasts are displayed twice, with and without forecast, and JS/CSS only shows one {% endcomment %}
+          {% comment %} inluding forecast {% endcomment %}
+          {% for period_key, availability_for_employee_period in availability_with_forecast|get_item:employee_name|dict_items %}
+            <td class="h-24 availability_with_forecast">
               <div class="flex flex-col h-full relative py-2 bg-white rounded shadow-sm">
                 <div class="w-full h-1/2 flex justify-center items-end">
-                  {% if availability|floatval > 0 %}
-                    <div class="bg-green-500 text-black rounded px-3 font-bold flex items-center justify-center" style="{% availability_height availability is_monthly_hours %}">
-                      {{ availability|floatformat:1 }}
+                  {% if availability_for_employee_period|floatval > 0 %}
+                    <div class="bg-green-500 text-black rounded px-3 font-bold flex items-center justify-center" style="{% availability_height availability_for_employee_period is_monthly_hours %}">
+                      {{ availability_for_employee_period|floatformat:1 }}
                     </div>
                   {% endif %}
                 </div>
                 <div class="w-full h-0.5 bg-black"></div>
                 <div class="w-full h-1/2 flex justify-center items-start">
-                  {% if availability|floatval < 0 %}
-                    <div class="bg-red-500 text-black rounded px-3 font-bold flex items-center justify-center" style="{% availability_height availability is_monthly_hours %}">
-                      {{ availability|floatformat:1 }}
+                  {% if availability_for_employee_period|floatval < 0 %}
+                    <div class="bg-red-500 text-black rounded px-3 font-bold flex items-center justify-center" style="{% availability_height availability_for_employee_period is_monthly_hours %}">
+                      {{ availability_for_employee_period|floatformat:1 }}
+                    </div>
+                  {% endif %}
+                </div>
+            </td>
+          {% endfor %}
+
+          {% comment %} without forecast {% endcomment %}
+          {% for period_key, availability_for_employee_period in availability|get_item:employee_name|dict_items %}
+            <td class="h-24 availability_without_forecast">
+              <div class="flex flex-col h-full relative py-2 bg-white rounded shadow-sm">
+                <div class="w-full h-1/2 flex justify-center items-end">
+                  {% if availability_for_employee_period|floatval > 0 %}
+                    <div class="bg-green-500 text-black rounded px-3 font-bold flex items-center justify-center" style="{% availability_height availability_for_employee_period is_monthly_hours %}">
+                      {{ availability_for_employee_period|floatformat:1 }}
+                    </div>
+                  {% endif %}
+                </div>
+                <div class="w-full h-0.5 bg-black"></div>
+                <div class="w-full h-1/2 flex justify-center items-start">
+                  {% if availability_for_employee_period|floatval < 0 %}
+                    <div class="bg-red-500 text-black rounded px-3 font-bold flex items-center justify-center" style="{% availability_height availability_for_employee_period is_monthly_hours %}">
+                      {{ availability_for_employee_period|floatformat:1 }}
                     </div>
                   {% endif %}
                 </div>
@@ -119,8 +152,8 @@
                   <span class="ml-2 px-2 py-1 text-xs bg-green-100 text-green-700 rounded-full font-medium">Prévision</span>
                 </td>
                 {% for period_key in periods_per_key %}
-                    <td class="text-green-700 font-medium forecast-value" 
-                        data-period="{{ period_key }}" 
+                    <td class="text-green-700 font-medium forecast-value"
+                        data-period="{{ period_key }}"
                         data-value="{{ project_data|get_item:period_key|default:0 }}">
                       {{ project_data|get_item:period_key|floatformat:1 }}
                     </td>
@@ -138,94 +171,19 @@
     document.addEventListener('DOMContentLoaded', function() {
       const toggle = document.getElementById('show-forecast');
       const table = document.querySelector('table');
-      
+
       // Store original availability values
       const originalAvailability = new Map();
-      
-      // Initialize original values on page load
-      document.querySelectorAll('.pastille').forEach(pastille => {
-        const employeeRow = pastille.closest('tr');
-        const employeeName = employeeRow.querySelector('th').textContent.trim();
-        const periodCells = employeeRow.querySelectorAll('td .pastille');
-        
-        if (!originalAvailability.has(employeeName)) {
-          originalAvailability.set(employeeName, new Map());
-        }
-        
-        periodCells.forEach((cell, index) => {
-          const value = parseFloat(cell.textContent) || 0;
-          originalAvailability.get(employeeName).set(index, value);
-        });
-      });
-      
+
       toggle.addEventListener('change', function() {
         if (this.checked) {
           // Show forecast projects
           table.classList.remove('forecast-hidden');
-          // Restore original availability (already includes forecast impact)
-          restoreOriginalAvailability();
         } else {
           // Hide forecast projects
           table.classList.add('forecast-hidden');
-          // Recalculate availability without forecast projects
-          recalculateAvailabilityWithoutForecast();
         }
       });
-      
-      function restoreOriginalAvailability() {
-        document.querySelectorAll('.pastille').forEach((pastille, globalIndex) => {
-          const employeeRow = pastille.closest('tr');
-          const employeeName = employeeRow.querySelector('th').textContent.trim();
-          const cellIndex = Array.from(employeeRow.querySelectorAll('td .pastille')).indexOf(pastille);
-          
-          if (originalAvailability.has(employeeName) && originalAvailability.get(employeeName).has(cellIndex)) {
-            const originalValue = originalAvailability.get(employeeName).get(cellIndex);
-            pastille.textContent = originalValue.toFixed(1);
-            updatePastilleColor(pastille, originalValue);
-          }
-        });
-      }
-      
-      function recalculateAvailabilityWithoutForecast() {
-        // For each employee row
-        document.querySelectorAll('tr').forEach(employeeRow => {
-          const employeeTh = employeeRow.querySelector('th');
-          if (!employeeTh) return;
-          
-          const employeeName = employeeTh.textContent.trim();
-          const availabilityCells = employeeRow.querySelectorAll('td .pastille');
-          
-          // Find all forecast project rows for this employee
-          const forecastRows = document.querySelectorAll(`tr.forecast-element[data-project-id]`);
-          
-          availabilityCells.forEach((pastille, periodIndex) => {
-            let currentAvailability = parseFloat(pastille.textContent) || 0;
-            
-            // Add back the forecast values for this period
-            forecastRows.forEach(forecastRow => {
-              const forecastCells = forecastRow.querySelectorAll('.forecast-value');
-              if (forecastCells[periodIndex]) {
-                const forecastValue = parseFloat(forecastCells[periodIndex].dataset.value) || 0;
-                currentAvailability += forecastValue;
-              }
-            });
-            
-            pastille.textContent = currentAvailability.toFixed(1);
-            updatePastilleColor(pastille, currentAvailability);
-          });
-        });
-      }
-      
-      function updatePastilleColor(pastille, value) {
-        // Simple color logic - you may want to match your existing color scheme
-        if (value < 0) {
-          pastille.style.background = '#fee2e2'; // red-100
-        } else if (value < 2) {
-          pastille.style.background = '#fef3c7'; // yellow-100
-        } else {
-          pastille.style.background = '#d1fae5'; // green-100
-        }
-      }
     });
   </script>
 {% endblock %}
