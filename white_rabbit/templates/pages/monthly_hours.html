@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load white_rabbit_tags %}
+{% load cache %}
+{% load static %}
+
+{% block extra_css %}
+.project-time td {
+  text-align: center;
+  padding: 0.2rem;
+}
+{% endblock %}
+
+{% block content %}
+  <div class="w-[80vw] rounded-xl">
+    <table
+        class="table border border-gray-200 border-separate rounded-lg divide-y divide-gray-200">
+      <thead>
+      <tr class="font-bold bg-indigo-50 text-bold text-md">
+        <th class="font-bold text-black left-0 top-0 sticky z-150 bg-indigo-50 flex"
+            scope="col">
+          Salarié·e
+        </th>
+        {% for period in periods_per_key.values %}
+          <th class="min-w-48 font-bold bg-indigo-50 top-0 sticky z-10">
+            {% if period.start and period.end %}
+              <p class="text-black">{{ period.start }} - {{ period.end }}</p>
+            {% endif %}
+
+            <span class="uppercase text-gray-500 font-bold">
+              {% if periodicity == "week" %}
+                Semaine n°
+              {% endif %}
+              {{ period.key }}
+            </span>
+          </th>
+        {% endfor %}
+      </tr>
+      </thead>
+
+      <tbody>
+      {% for employee_name, employee_data  in projects_per_period|dict_items %}
+        <tr class="bg-gray-50">
+          <th class="font-bold bg-gray-100 left-0 sticky z-50 text-center uppercase">{{ employee_name }}</th>
+          {% for period_key, worked in worked_hours|get_item:employee_name|dict_items %}
+            <td>
+              <div class="flex flex-col justify-center items-center">
+                <div
+                    {% if is_monthly_hours %}
+                      style="background: {{ worked|monthly_hours_color:period_key }}"
+                    {% else %}
+                      style="background: {{ worked|week_color }}"
+                    {% endif %}
+                     class="pastille pastille-2xl font-bold flex gap-1">
+                  {{ worked|floatformat:1 }}
+                </div>
+              </div>
+            </td>
+          {% endfor %}
+        </tr>
+        <tr>
+        </tr>
+        {% for project_id, project_data in employee_data|dict_items %}
+          <tr class="bg-gray-50 project-time">
+            <td>{{ project_id|find_project_name:projects }}</td>
+            {% for period_key in periods_per_key %}
+                <td>{{ project_data|get_item:period_key|floatformat:1 }}</td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
