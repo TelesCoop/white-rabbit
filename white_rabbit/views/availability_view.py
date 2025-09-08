@@ -127,15 +127,15 @@ class AvailabilityPerMonthView(AvailabilityBaseView):
 
 
 class MonthlyWorkingHoursView(TemplateView):
-    template_name = "pages/availability.html"
+    template_name = "pages/monthly_hours.html"
 
     def get_context_data(self, **kwargs):
         """
-        We use the same template as the availability page because the html structure is
-        similar. In this view however, we compute for each (employee, month) the total
+        Similar to availability.
+        In this view however, we compute for each (employee, month) the total
         of hours worked in the month.
         We do not take into account time spent on project whose categories are marked as
-        non-working.
+        non-working (time off, bank holiday, OKLM, ...).
         """
         request = self.request
         user = request.user
@@ -162,7 +162,7 @@ class MonthlyWorkingHoursView(TemplateView):
             lambda: defaultdict(Counter)
         )
         # indexed by employee then by period
-        availability: Dict[str, Dict[str, float]] = defaultdict(Counter)
+        worked_hours: Dict[str, Dict[str, float]] = defaultdict(Counter)
         for employee_name, employee_events in events_per_employee.items():
             projects_per_period[employee_name]  # noqa, creating key with defaultdict
             periods = employee_events.group_by_time_period(
@@ -170,13 +170,13 @@ class MonthlyWorkingHoursView(TemplateView):
             )
             for period_key, period_data in periods.items():
                 # sum duration of all events for that period
-                availability[employee_name][period_key] = sum(
+                worked_hours[employee_name][period_key] = sum(
                     event["duration"] for event in period_data["events"]
                 )
 
         return {
             "projects_per_period": projects_per_period,
-            "availability": availability,
+            "worked_hours": worked_hours,
             "projects": project_finder.by_company(user.employee.company),
             "periodicity": "month",
             "periods_per_key": {
