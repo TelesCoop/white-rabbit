@@ -14,11 +14,25 @@
         </a>
       </li>
       <li>
-        <a href="{% url 'monthly-working-hours' %}"
-           class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100  group">
+        <span
+            class="flex items-center w-full p-2 text-base text-gray-900 group"
+            aria-controls="dropdown-working-hours"
+            data-collapse-toggle="dropdown-working-hours">
           <span style="margin-right: 0.15rem">🥵</span>
-          <span class="flex-1 ms-3 whitespace-nowrap">Heures travaillées par mois</span>
-        </a>
+          <span class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap">
+            Heures travaillées
+          </span>
+        </span>
+        <ul id="dropdown-working-hours" class="py-2 space-y-2">
+          <li>
+            <a href="{% url 'weekly-working-hours' %}"
+               class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 ">Semaines</a>
+          </li>
+          <li>
+            <a href="{% url 'monthly-working-hours' %}"
+               class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 ">Mois</a>
+          </li>
+        </ul>
       </li>
       <li>
         <span
@@ -42,7 +56,7 @@
         </ul>
       </li>
       <li>
-        <a href="{% url 'categories' 'total' %}"
+        <a href="{% url 'categories' current_month %}"
            class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100  group">
           {% include "svgs/pie-chart.svg" %}
           <span class="flex-1 ms-3 whitespace-nowrap">Proportion</span>

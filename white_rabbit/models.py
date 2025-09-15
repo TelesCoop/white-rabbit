@@ -371,6 +371,19 @@ class Employee(TimeStampedModel):
         verbose_name="désactivé", default=False, help_text="Salarié désactivé"
     )
 
+    REMINDERS_FREQUENCY_CHOICES = [
+        ("daily", "Quotidien"),
+        ("weekly", "Hebdomadaire"),
+    ]
+
+    reminders_frequency = models.CharField(
+        verbose_name="fréquence des rappels",
+        max_length=10,
+        choices=REMINDERS_FREQUENCY_CHOICES,
+        default="daily",
+        help_text="Fréquence d'envoi des rappels par email pour les jours manquants",
+    )
+
     def __str__(self):
         return self.name
 

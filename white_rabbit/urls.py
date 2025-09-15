@@ -9,6 +9,7 @@ from white_rabbit.views.availability_view import (
     AvailabilityPerWeekView,
     AvailabilityPerMonthView,
     MonthlyWorkingHoursView,
+    WeeklyWorkingHoursView,
 )
 from white_rabbit.views.project_view import (
     AliasView,
@@ -42,6 +43,11 @@ urlpatterns = [
         "monthly-hours",
         MonthlyWorkingHoursView.as_view(),
         name="monthly-working-hours",
+    ),
+    path(
+        "weekly-hours",
+        WeeklyWorkingHoursView.as_view(),
+        name="weekly-working-hours",
     ),
     path(
         "availability/week",

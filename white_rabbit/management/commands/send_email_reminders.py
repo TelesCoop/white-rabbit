@@ -31,8 +31,13 @@ def send_missing_days_email(missing_days: List[Tuple], employee: Employee):
 
 class Command(BaseCommand):
     def handle(self, *args, **options):  # noqa: C901
+        today = datetime.date.today()
+        weekday = today.weekday()
+        is_monday = weekday == 0
+        is_weekend = weekday in [5, 6]
+
         # do not run on week-ends
-        if datetime.date.today().weekday() in [5, 6]:
+        if is_weekend:
             self.stdout.write("Not sending reminders on week-ends")
             return
 
@@ -41,6 +46,9 @@ class Command(BaseCommand):
             user__email__isnull=False,
             start_time_tracking_from__isnull=False,
         ):
+            # Skip employees with weekly frequency if today is not Monday
+            if employee.reminders_frequency == "weekly" and not is_monday:
+                continue
             try:
                 events = get_events_by_url(
                     employee.calendar_ical_url, employee, project_finder

@@ -48,7 +48,7 @@
                     {% if is_monthly_hours %}
                       style="background: {{ worked|monthly_hours_color:period_key }}"
                     {% else %}
-                      style="background: {{ worked|week_color }}"
+                      style="background: {{ worked|weekly_hours_color }}"
                     {% endif %}
                      class="pastille pastille-2xl font-bold flex gap-1">
                   {{ worked|floatformat:1 }}

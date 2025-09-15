@@ -126,14 +126,18 @@ class AvailabilityPerMonthView(AvailabilityBaseView):
         super().__init__("month", *args, **kwargs)
 
 
-class MonthlyWorkingHoursView(TemplateView):
+class WorkingHoursBaseView(TemplateView):
     template_name = "pages/monthly_hours.html"
+
+    def __init__(self, time_period, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.time_period = time_period
 
     def get_context_data(self, **kwargs):
         """
         Similar to availability.
-        In this view however, we compute for each (employee, month) the total
-        of hours worked in the month.
+        In this view however, we compute for each (employee, period) the total
+        of hours worked in the period.
         We do not take into account time spent on project whose categories are marked as
         non-working (time off, bank holiday, OKLM, ...).
         """
@@ -166,7 +170,9 @@ class MonthlyWorkingHoursView(TemplateView):
         for employee_name, employee_events in events_per_employee.items():
             projects_per_period[employee_name]  # noqa, creating key with defaultdict
             periods = employee_events.group_by_time_period(
-                "month", time_shift_direction=time_direction, n_periods=n_periods
+                self.time_period,
+                time_shift_direction=time_direction,
+                n_periods=n_periods,
             )
             for period_key, period_data in periods.items():
                 # sum duration of all events for that period
@@ -178,12 +184,22 @@ class MonthlyWorkingHoursView(TemplateView):
             "projects_per_period": projects_per_period,
             "worked_hours": worked_hours,
             "projects": project_finder.by_company(user.employee.company),
-            "periodicity": "month",
+            "periodicity": self.time_period,
             "periods_per_key": {
                 period["key"]: period
                 for period in generate_time_periods(
-                    n_periods, "month", time_shift_direction=time_direction
+                    n_periods, self.time_period, time_shift_direction=time_direction
                 )
             },
-            "is_monthly_hours": True,
+            "is_monthly_hours": self.time_period == "month",
         }
+
+
+class MonthlyWorkingHoursView(WorkingHoursBaseView):
+    def __init__(self, *args, **kwargs):
+        super().__init__("month", *args, **kwargs)
+
+
+class WeeklyWorkingHoursView(WorkingHoursBaseView):
+    def __init__(self, *args, **kwargs):
+        super().__init__("week", *args, **kwargs)

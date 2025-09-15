@@ -243,6 +243,24 @@ def monthly_hours_color(hours, period_key):
 
 
 @register.filter
+def weekly_hours_color(hours):
+    """
+    Return the color corresponding to the number of hours worked in a week.
+    Thresholds: 42, 39, 35, 32, 28 hours
+    """
+    SUCCESS_COLOR = SEVERITY_COLORS[-1]
+    THRESHOLDS = [42, 39, 35, 32, 28]
+
+    if hours is None or not isinstance(hours, (int, float)):
+        return ""
+
+    for index, color in enumerate(SEVERITY_COLORS):
+        if hours >= THRESHOLDS[index]:
+            return color
+    return SUCCESS_COLOR
+
+
+@register.filter
 def employee_events_to_tooltip(employee_events):
     days_spent = []
     for project in employee_events["events"]:
