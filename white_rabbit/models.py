@@ -374,6 +374,7 @@ class Employee(TimeStampedModel):
     REMINDERS_FREQUENCY_CHOICES = [
         ("daily", "Quotidien"),
         ("weekly", "Hebdomadaire"),
+        ("never", "Pas de rappel"),
     ]
 
     reminders_frequency = models.CharField(

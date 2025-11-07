@@ -46,8 +46,10 @@ class Command(BaseCommand):
             user__email__isnull=False,
             start_time_tracking_from__isnull=False,
         ):
-            # Skip employees with weekly frequency if today is not Monday
-            if employee.reminders_frequency == "weekly" and not is_monday:
+            # Skip employees without reminders or with weekly frequency if today is not Monday
+            if employee.reminders_frequency == "never" or (
+                employee.reminders_frequency == "weekly" and not is_monday
+            ):
                 continue
             try:
                 events = get_events_by_url(
