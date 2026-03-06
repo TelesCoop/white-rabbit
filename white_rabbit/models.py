@@ -33,6 +33,18 @@ class Company(TimeStampedModel):
     name = models.CharField(max_length=20)
     admins = models.ManyToManyField(User, related_name="companies")
 
+    paid_leave_accrual_start_month = models.IntegerField(
+        verbose_name="mois de début d'acquisition des congés payés",
+        default=1,
+        validators=[MinValueValidator(1), MaxValueValidator(12)],
+        help_text="Mois (1-12) du début de la période d'acquisition des congés payés. Ex: 1 pour janvier, 6 pour juin.",
+    )
+    rtt_acquisition_month = models.IntegerField(
+        verbose_name="mois d'acquisition des RTT",
+        default=1,
+        validators=[MinValueValidator(1), MaxValueValidator(12)],
+        help_text="Mois (1-12) du 1er jour auquel les RTT sont attribués chaque année.",
+    )
     daily_employee_cost = models.DecimalField(
         verbose_name="Coût salarié journalier moyen",
         default=0,
@@ -220,6 +232,19 @@ class Project(TimeStampedModel):
     is_forecast = models.BooleanField(
         verbose_name="Prévision", default=False, help_text="Projet prévisionnel"
     )
+    LEAVE_TYPE_CHOICES = [
+        ("", "Aucun"),
+        ("CP", "Congés payés"),
+        ("RTT", "RTT"),
+    ]
+    leave_type = models.CharField(
+        verbose_name="type de congé",
+        max_length=3,
+        choices=LEAVE_TYPE_CHOICES,
+        default="",
+        blank=True,
+        help_text="Indique si ce projet correspond à des congés payés (CP) ou des RTT.",
+    )
 
     def update_total_sold_and_days_from_invoices(self):
         invoices = self.invoices.all()
@@ -383,6 +408,20 @@ class Employee(TimeStampedModel):
         choices=REMINDERS_FREQUENCY_CHOICES,
         default="daily",
         help_text="Fréquence d'envoi des rappels par email pour les jours manquants",
+    )
+    annual_paid_leave_days = models.DecimalField(
+        verbose_name="jours de congés payés annuels",
+        max_digits=4,
+        decimal_places=1,
+        default=25,
+        help_text="Nombre de jours de congés payés acquis sur l'année d'acquisition (ex: 25)",
+    )
+    annual_rtt_days = models.DecimalField(
+        verbose_name="jours RTT annuels",
+        max_digits=4,
+        decimal_places=1,
+        default=0,
+        help_text="Nombre de jours RTT alloués à la date d'acquisition. Mettre 0 si pas de RTT.",
     )
 
     def __str__(self):
