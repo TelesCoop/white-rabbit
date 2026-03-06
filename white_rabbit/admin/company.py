@@ -8,6 +8,25 @@ from white_rabbit.models import Company
 @admin.register(Company)
 class CompanyAdmin(admin.ModelAdmin):
     filter_horizontal = ("admins",)
+    fieldsets = (
+        (None, {"fields": ("name", "admins")}),
+        (
+            "Congés",
+            {
+                "fields": ("paid_leave_accrual_start_month", "rtt_acquisition_month"),
+            },
+        ),
+        (
+            "Finances",
+            {
+                "fields": (
+                    "daily_employee_cost",
+                    "profitability_threshold",
+                    "daily_market_price",
+                ),
+            },
+        ),
+    )
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         """Only show employees of that company."""

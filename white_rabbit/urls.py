@@ -20,6 +20,7 @@ from white_rabbit.views.project_view import (
     FinancialTrackingView,
 )
 from white_rabbit.views.gantt_view import GanttView
+from white_rabbit.views.vacation_view import VacationView
 
 urlpatterns = [
     path("configuration/", admin.site.urls),
@@ -78,6 +79,7 @@ urlpatterns = [
     path("resume", ResumeView.as_view()),
     path("alias/", AliasView.as_view(), name="alias"),
     path("gantt/", GanttView.as_view(), name="gantt"),
+    path("conges/", VacationView.as_view(), name="vacances"),
     path("__debug__/", include(debug_toolbar.urls)),
     # django-hijack
     path(r"hijack/", include("hijack.urls", namespace="hijack")),

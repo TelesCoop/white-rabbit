@@ -150,6 +150,7 @@ class ProjectAdmin(BaseProjectAdmin):
         "name",
         "company",
         "category",
+        "leave_type",
         "start_date",
         "end_date",
         "estimated_days_count",
@@ -158,6 +159,7 @@ class ProjectAdmin(BaseProjectAdmin):
     )
     list_filter = [
         CompanyCategoryListFilter,
+        "leave_type",
         ("estimated_days_count", admin.BooleanFieldListFilter),
     ]
     readonly_fields = ("estimated_days_count", "total_sold")

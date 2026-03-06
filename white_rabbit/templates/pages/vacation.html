@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load white_rabbit_tags %}
+
+{% block content %}
+<div class="w-[80vw]">
+  <h1 class="text-2xl font-bold mb-6">Congés</h1>
+
+  {% for employee_name, data in vacation_data.items %}
+  <div class="mb-8 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div class="bg-indigo-50 px-6 py-3 border-b border-gray-200">
+      <h2 class="text-lg font-bold text-gray-800 uppercase">{{ employee_name }}</h2>
+    </div>
+
+    <div class="p-6 space-y-6">
+
+      {% with cp=data.cp %}
+      <div>
+        <h3 class="text-sm font-semibold text-gray-500 uppercase mb-3">
+          Congés payés
+          <span class="ml-2 font-normal text-gray-400 normal-case">
+            ({{ cp.annual_cp }} j/an soit +{{ cp.monthly_rate }} j/mois)
+          </span>
+        </h3>
+        <table class="w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
+          <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+            <tr>
+              <th class="px-4 py-2 text-left">Période</th>
+              <th class="px-4 py-2 text-center">Acquis</th>
+              <th class="px-4 py-2 text-center">Consommé</th>
+              <th class="px-4 py-2 text-center">Restant</th>
+              <th class="px-4 py-2 text-left">Expire le</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            {% for period in cp.periods %}
+            <tr class="{% if period.expires %}bg-amber-50{% endif %}">
+              <td class="px-4 py-3 font-medium text-gray-700">{{ period.label }}</td>
+              <td class="px-4 py-3 text-center text-gray-600">{{ period.accrued }} j</td>
+              <td class="px-4 py-3 text-center text-gray-600">{{ period.consumed }} j</td>
+              <td class="px-4 py-3 text-center font-bold
+                {% if period.remaining <= 0 %}text-gray-400
+                {% elif period.remaining <= 5 %}text-orange-500
+                {% else %}text-green-600{% endif %}">
+                {{ period.remaining }} j
+              </td>
+              <td class="px-4 py-3 text-sm
+                {% if period.expires %}text-amber-600 font-medium{% else %}text-gray-400{% endif %}">
+                {% if period.expires %}
+                  {{ period.expires }}
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endwith %}
+
+      {% with rtt=data.rtt %}
+      {% if rtt.configured %}
+      <div>
+        <h3 class="text-sm font-semibold text-gray-500 uppercase mb-3">
+          RTT
+          <span class="ml-2 font-normal text-gray-400 normal-case">
+            ({{ rtt.annual_rtt }} j · du {{ rtt.period_start }} au {{ rtt.period_end }})
+          </span>
+        </h3>
+        <table class="w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
+          <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+            <tr>
+              <th class="px-4 py-2 text-center">Total alloué</th>
+              <th class="px-4 py-2 text-center">Consommé</th>
+              <th class="px-4 py-2 text-center">Restant</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="px-4 py-3 text-center text-gray-600">{{ rtt.annual_rtt }} j</td>
+              <td class="px-4 py-3 text-center text-gray-600">{{ rtt.consumed }} j</td>
+              <td class="px-4 py-3 text-center font-bold
+                {% if rtt.remaining <= 0 %}text-gray-400
+                {% elif rtt.remaining <= 2 %}text-orange-500
+                {% else %}text-green-600{% endif %}">
+                {{ rtt.remaining }} j
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+      {% endwith %}
+
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
