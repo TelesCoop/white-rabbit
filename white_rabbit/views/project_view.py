@@ -148,8 +148,6 @@ class AbstractTotalView(TemplateView):
                 period_key=period_name,
             )
             for event in filtered:
-                if event["category"] != ProjectCategories.CLIENT.value:
-                    continue
                 subproject = event["subproject_name"] or ""
                 if " - " in subproject:
                     phase, action = subproject.split(" - ", 1)
