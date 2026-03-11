@@ -160,7 +160,7 @@ class ProjectAdmin(BaseProjectAdmin):
         CompanyCategoryListFilter,
         ("estimated_days_count", admin.BooleanFieldListFilter),
     ]
-    readonly_fields = ("estimated_days_count", "total_sold")
+    readonly_fields = ("estimated_days_count", "total_sold", "subproject_names")
     exclude = ("lowercase_name",)
     inlines = (InvoiceInline, AliasInline)
     search_fields = ["aliases__name", "name"]
