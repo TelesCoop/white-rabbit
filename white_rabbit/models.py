@@ -220,6 +220,12 @@ class Project(TimeStampedModel):
     is_forecast = models.BooleanField(
         verbose_name="Prévision", default=False, help_text="Projet prévisionnel"
     )
+    subproject_names = models.JSONField(
+        verbose_name="sous-projets",
+        default=list,
+        blank=True,
+        help_text="Noms des sous-projets détectés dans le calendrier",
+    )
 
     def update_total_sold_and_days_from_invoices(self):
         invoices = self.invoices.all()

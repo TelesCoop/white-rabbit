@@ -18,6 +18,7 @@ from white_rabbit.models import (
     Project,
     Employee,
     PROJECT_CATEGORIES_CHOICES,
+    ProjectCategories,
 )
 from white_rabbit.project_name_finder import ProjectFinder
 from white_rabbit.typing import ProjectTime
@@ -26,6 +27,7 @@ from white_rabbit.utils import (
     time_period_for_month,
     is_total_key,
     is_year_key,
+    filter_events_per_time_period,
 )
 
 
@@ -75,6 +77,8 @@ class AbstractTotalView(TemplateView):
         format_type = request.GET.get("format", "html")
         if format_type == "csv":
             return self.export_csv(request, *args, **kwargs)
+        elif format_type == "csv-cir":
+            return self.export_csv_cir(request, *args, **kwargs)
         return super().get(request, *args, **kwargs)
 
     def export_csv(self, request, *args, **kwargs):
@@ -101,6 +105,65 @@ class AbstractTotalView(TemplateView):
             # Write subproject/subcategory rows if details are requested
             if show_details and identifier in context["subtotal_per_identifier"]:
                 self._write_subproject_rows(writer, context, identifier)
+
+        return response
+
+    def export_csv_cir(self, request, *args, **kwargs):
+        period_name = kwargs.get("period", "data")
+        if is_total_key(period_name):
+            if is_year_key(period_name):
+                year = int(period_name.split("-")[1])
+                start = datetime.date(year, 1, 1)
+                time_period_type = "year"
+            else:
+                start = datetime.date(2020, 1, 1)
+                time_period_type = None
+            period = {"key": period_name, "start": start}
+        else:
+            time_period_type = "month"
+            period = time_period_for_month(period_name)
+
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = (
+            f'attachment; filename="{period_name}-cir.csv"'
+        )
+        writer = csv.writer(response, delimiter=";")
+        writer.writerow(
+            ["Date", "Utilisateur", "Projet", "Phase", "Action", "Informations supplémentaires", "Temps passé"]
+        )
+
+        employees = employees_for_user(request.user)
+        project_finder = ProjectFinder()
+        events_per_employee = get_events_from_employees_from_cache(
+            employees, project_finder, request=request
+        )
+        events_per_employee = process_employees_events(events_per_employee, 24)
+
+        rows = []
+        for employee_name, employee_events in events_per_employee.items():
+            filtered = filter_events_per_time_period(
+                employee_events.events,
+                period.get("start"),
+                time_period_type,
+                period_key=period_name,
+            )
+            for event in filtered:
+                if event["category"] != ProjectCategories.CLIENT.value:
+                    continue
+                subproject = event["subproject_name"] or ""
+                if " - " in subproject:
+                    phase, action = subproject.split(" - ", 1)
+                else:
+                    phase, action = subproject, ""
+                event_date = event["start_datetime"]
+                if hasattr(event_date, "date"):
+                    event_date = event_date.date()
+                duration_str = f"{event['duration']:.1f}".replace(".", ",")
+                rows.append((event_date, employee_name, event["project_name"], phase, action, "", duration_str))
+
+        rows.sort(key=lambda r: (r[0], r[1]))
+        for row in rows:
+            writer.writerow([row[0].strftime("%d/%m/%Y")] + list(row[1:]))
 
         return response
 
