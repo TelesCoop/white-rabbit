@@ -38,8 +38,10 @@ def hydrate_cache():
                 if event["subproject_name"] and event["project_id"]:
                     subprojects_per_project[event["project_id"]].add(event["subproject_name"])
             cache.set(str(employee.id), events, DEFAULT_CACHE_DURATION)
-    for project_id, names in subprojects_per_project.items():
-        Project.objects.filter(pk=project_id).update(subproject_names=sorted(names))
+    projects = Project.objects.filter(pk__in=subprojects_per_project.keys())
+    for project in projects:
+        project.subproject_names = sorted(subprojects_per_project[project.pk])
+    Project.objects.bulk_update(projects, ["subproject_names"])
     print(
         f"Processing events and saving in cache for {len(employees)} employees took {time.time() - start:.2f} seconds."
     )
