@@ -17,6 +17,7 @@ from white_rabbit.financial_tracking import calculate_financial_indicators
 from white_rabbit.models import (
     Project,
     Employee,
+    Category,
     PROJECT_CATEGORIES_CHOICES,
     ProjectCategories,
 )
@@ -139,6 +140,10 @@ class AbstractTotalView(TemplateView):
         )
         events_per_employee = process_employees_events(events_per_employee, 24)
 
+        non_working_categories = set(
+            Category.objects.filter(is_working_time=False).values_list("name", flat=True)
+        )
+
         rows = []
         for employee_name, employee_events in events_per_employee.items():
             filtered = filter_events_per_time_period(
@@ -148,6 +153,8 @@ class AbstractTotalView(TemplateView):
                 period_key=period_name,
             )
             for event in filtered:
+                if event["category"] in non_working_categories:
+                    continue
                 subproject = event["subproject_name"] or ""
                 if " - " in subproject:
                     phase, action = subproject.split(" - ", 1)
