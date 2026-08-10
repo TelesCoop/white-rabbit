@@ -312,6 +312,48 @@ class Alias(models.Model):
         return self.name
 
 
+class SubProjectAlias(TimeStampedModel):
+    class Meta:
+        verbose_name = "alias de sous-projet"
+        verbose_name_plural = "alias de sous-projets"
+        unique_together = ("company", "subproject")
+
+    company = models.ForeignKey(
+        Company,
+        verbose_name="entreprise",
+        related_name="subproject_aliases",
+        on_delete=models.CASCADE,
+    )
+    subproject = models.CharField(max_length=100, verbose_name="sous-projet")
+
+    def __str__(self):
+        return f"{self.company.name} - {self.subproject}"
+
+
+class SubProjectAliasName(models.Model):
+    class Meta:
+        verbose_name = "alias"
+        unique_together = ("subproject_alias", "name")
+
+    subproject_alias = models.ForeignKey(
+        SubProjectAlias,
+        verbose_name="sous-projet",
+        related_name="aliases",
+        on_delete=models.CASCADE,
+    )
+    name = models.CharField(max_length=100, verbose_name="nom")
+    lowercase_name = models.CharField(
+        max_length=100, verbose_name="nom en minuscule", null=False
+    )
+
+    def save(self, *args, **kwargs):
+        self.lowercase_name = normalize_name(self.name)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+
+
 class Employee(TimeStampedModel):
     class Meta:
         verbose_name = "salarié"

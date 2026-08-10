@@ -2,7 +2,7 @@ import datetime
 from collections import defaultdict
 from typing import Union, Dict, Any
 
-from white_rabbit.models import Project, Company
+from white_rabbit.models import Project, Company, SubProjectAlias
 from white_rabbit.text_utils import normalize_name
 
 
@@ -27,6 +27,10 @@ class ProjectFinder:
         self.projects_for_normalized_name_per_company = defaultdict(
             lambda: defaultdict(list)
         )
+        self.subproject_aliases = SubProjectAlias.objects.prefetch_related("aliases")
+        # Dictionary mapping companies to normalized names to canonical subproject names
+        self.subprojects_for_normalized_name_per_company = defaultdict(dict)
+        self.companies_with_populated_subprojects = set()
 
     def populate_projects_for_normalized_name_per_company(self, company: Company):
         """
@@ -45,6 +49,41 @@ class ProjectFinder:
                 self.projects_for_normalized_name_per_company[company][
                     normalized_alias
                 ].append(project)
+
+    def populate_subprojects_for_company(self, company: Company):
+        """
+        Populate the subprojects_for_normalized_name_per_company dictionary for a
+        given company, mapping every normalized alias to its canonical name.
+        """
+        subprojects = self.subprojects_for_normalized_name_per_company[company]
+        for subproject_alias in self.subproject_aliases:
+            if subproject_alias.company_id != company.pk:
+                continue
+
+            # the canonical name resolves to itself
+            canonical_name = subproject_alias.subproject
+            subprojects[normalize_name(canonical_name)] = canonical_name
+
+            for alias in subproject_alias.aliases.all():
+                subprojects[normalize_name(alias.name)] = canonical_name
+
+        self.companies_with_populated_subprojects.add(company)
+
+    def get_subproject_name(self, name: str, company: Company) -> str:
+        """
+        Find the canonical name of a subproject read from a calendar, as entered in
+        the admin.
+
+        Unlike projects, subprojects are never created on the fly: when no alias
+        matches, the normalized name is used as-is.
+        """
+        if company not in self.companies_with_populated_subprojects:
+            self.populate_subprojects_for_company(company)
+
+        normalized_name = normalize_name(name)
+        return self.subprojects_for_normalized_name_per_company[company].get(
+            normalized_name, normalized_name
+        )
 
     def get_project_names_for_company(self, company: Company):
         if company in self.sorted_names_per_company:

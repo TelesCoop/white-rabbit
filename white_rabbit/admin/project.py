@@ -13,6 +13,8 @@ from white_rabbit.models import (
     ForecastProject,
     EmployeeForecastAssignment,
     Employee,
+    SubProjectAlias,
+    SubProjectAliasName,
 )
 
 
@@ -419,6 +421,49 @@ class ForecastProjectAdmin(BaseProjectAdmin):
                     f"cet employé appartient à l'entreprise {assignment.employee.company.name} "
                     f"alors que le projet appartient à {project.company.name}.",
                 )
+
+
+class SubProjectAliasNameInline(admin.TabularInline):
+    model = SubProjectAliasName
+    can_delete = True
+    extra = 3
+    verbose_name_plural = "Aliases"
+    exclude = ("lowercase_name",)
+
+    def get_queryset(self, request):
+        if request.user.is_superuser:
+            return SubProjectAliasName.objects.all()
+        return SubProjectAliasName.objects.filter(
+            subproject_alias__company__admins=request.user
+        )
+
+    def has_module_permission(self, request):
+        return True
+
+    def has_change_permission(self, request, obj=None):
+        return True
+
+    def has_view_permission(self, request, obj=None):
+        return True
+
+    def has_delete_permission(self, request, obj=None):
+        return True
+
+    def has_add_permission(self, request, obj):
+        return True
+
+
+@admin.register(SubProjectAlias)
+class SubProjectAliasAdmin(BaseProjectAdmin):
+    list_display = ("subproject", "company")
+    list_filter = ["company"]
+    search_fields = ["subproject", "aliases__name"]
+    inlines = (SubProjectAliasNameInline,)
+
+    def get_queryset(self, request):
+        if request.user.is_superuser:
+            return SubProjectAlias.objects.all()
+        return SubProjectAlias.objects.filter(company__admins=request.user)
 
 
 @admin.register(Category)
