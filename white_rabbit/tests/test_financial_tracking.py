@@ -60,6 +60,7 @@ class TestFinancialTracking(TestCase):
                         "real_cost": one_project_real_cost,
                         "profitability_threshold": one_project_profitability_threshold,
                         "opportunity_cost": one_project_opportunity_cost,
+                        "actual_mean_price": float(project.total_sold) / days_done,
                         "id": project.pk,
                         "name": project.name,
                         "start_date": project.start_date.strftime("%m/%y"),
