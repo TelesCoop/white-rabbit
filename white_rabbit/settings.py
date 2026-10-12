@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 IS_LOCAL_DEV = bool(os.environ.get("TELESCOOP_DEV"))
 
 if IS_LOCAL_DEV:
-    config_paths = ["local_settings.conf"]
+    config_paths = ["local_settings.conf", "local_settings.ini"]
 else:
     config_paths = [os.environ["CONFIG_PATH"]]
 config = getconf.ConfigGetter(

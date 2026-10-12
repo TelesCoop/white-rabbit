@@ -19,7 +19,6 @@ from white_rabbit.models import (
     Employee,
     Category,
     PROJECT_CATEGORIES_CHOICES,
-    ProjectCategories,
 )
 from white_rabbit.project_name_finder import ProjectFinder
 from white_rabbit.typing import ProjectTime
@@ -130,7 +129,15 @@ class AbstractTotalView(TemplateView):
         )
         writer = csv.writer(response, delimiter=";")
         writer.writerow(
-            ["Date", "Utilisateur", "Projet", "Phase", "Action", "Informations supplémentaires", "Temps passé"]
+            [
+                "Date",
+                "Utilisateur",
+                "Projet",
+                "Phase",
+                "Action",
+                "Informations supplémentaires",
+                "Temps passé",
+            ]
         )
 
         employees = employees_for_user(request.user)
@@ -141,7 +148,9 @@ class AbstractTotalView(TemplateView):
         events_per_employee = process_employees_events(events_per_employee, 24)
 
         non_working_categories = set(
-            Category.objects.filter(is_working_time=False).values_list("name", flat=True)
+            Category.objects.filter(is_working_time=False).values_list(
+                "name", flat=True
+            )
         )
 
         rows = []
@@ -164,7 +173,17 @@ class AbstractTotalView(TemplateView):
                 if hasattr(event_date, "date"):
                     event_date = event_date.date()
                 duration_str = f"{event['duration']:.1f}".replace(".", ",")
-                rows.append((event_date, employee_name, event["project_name"], phase, action, "", duration_str))
+                rows.append(
+                    (
+                        event_date,
+                        employee_name,
+                        event["project_name"],
+                        phase,
+                        action,
+                        "",
+                        duration_str,
+                    )
+                )
 
         rows.sort(key=lambda r: (r[0], r[1]))
         for row in rows:

@@ -31,12 +31,16 @@ def hydrate_cache():
             data = response.content.decode()
             try:
                 events = read_events(data, employee, project_finder=project_finder)
-            except Exception as e:
-                print(f"Error processing calendar for employee {employee.id} ({employee.user.email}): {e}")
+            except Exception as e:  # noqa: B902
+                print(
+                    f"Error processing calendar for employee {employee.id} ({employee.user.email}): {e}"
+                )
                 continue
             for event in events:
                 if event["subproject_name"] and event["project_id"]:
-                    subprojects_per_project[event["project_id"]].add(event["subproject_name"])
+                    subprojects_per_project[event["project_id"]].add(
+                        event["subproject_name"]
+                    )
             cache.set(str(employee.id), events, DEFAULT_CACHE_DURATION)
     projects = Project.objects.filter(pk__in=subprojects_per_project.keys())
     for project in projects:

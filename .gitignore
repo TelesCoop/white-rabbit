@@ -16,3 +16,4 @@ cache_file
 .telescoop_backup_last_backup
 backup.sqlite
 local_settings.conf
+local_settings.ini
