@@ -22,5 +22,6 @@
     name: "{{ project_slug }} daily database backup"
     day: "*"
     hour: "3"
+    minute: "0"
     job: "/usr/local/bin/{{ project_slug }}-ctl backup_db backup"
   when: group_names[0] == 'prod'
