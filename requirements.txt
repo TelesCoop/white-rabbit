@@ -18,3 +18,4 @@ recurring-ical-events==3.5.2
 telescoop_backup==0.5.3
 grequests==0.7.0
 django-browser-reload==1.18.0
+certifi>=2026.10.19

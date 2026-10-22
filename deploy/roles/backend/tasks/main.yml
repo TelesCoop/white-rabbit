@@ -110,6 +110,11 @@
   become_user: "{{ main_user }}"
   register: clonecode
 
+- name: Upgrade pip
+  command:
+    cmd: "{{ venv.path }}/bin/pip install --upgrade pip>=26.2.2"
+  when: clonecode.changed or force_update is defined
+
 # TODO only when code changes
 - name: Install python dependencies
   command:
