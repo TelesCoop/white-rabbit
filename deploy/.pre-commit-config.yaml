@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/jphppd/pre-commit-hooks.git
-    rev: 0.0.1
+    rev: 0.0.12
     hooks:
       - id: git-check-mailmap
       - id: git-forbid-binary
