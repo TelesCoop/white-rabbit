@@ -91,6 +91,9 @@ MIDDLEWARE = [
     # 'silk.middleware.SilkyMiddleware'
 ]
 
+# SQLite ignores UniqueConstraint.nulls_distinct, so Project's constraint has never been created
+SILENCED_SYSTEM_CHECKS = ["models.W047"]
+
 BROWSER_RELOAD = config.getstr("browser_reload.browser_reload", "false") == "true"
 if DEBUG and BROWSER_RELOAD:
     INSTALLED_APPS += ["django_browser_reload"]
