@@ -50,47 +50,47 @@ repos:
           --report-level=warning,
         ]
   - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
+    rev: v1.3.3
     hooks:
       - id: python-safety-dependencies-check
-    rev: v1.3.3
-  - hooks:
-      - id: beautysh
-    repo: https://github.com/bemeurer/beautysh.git
+  - repo: https://github.com/bemeurer/beautysh.git
     rev: v6.2.1
-  - hooks:
-      - id: script-must-have-extension
-    repo: https://github.com/jumanjihouse/pre-commit-hooks
+    hooks:
+      - id: beautysh
+  - repo: https://github.com/jumanjihouse/pre-commit-hooks
     rev: 3.0.0
-  - hooks:
-      - id: check-xml
-    repo: https://github.com/pre-commit/pre-commit-hooks
+    hooks:
+      - id: script-must-have-extension
+  - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
-  - hooks:
+    hooks:
+      - id: check-xml
+  - repo: https://github.com/adrienverge/yamllint.git
+    rev: v1.35.1
+    hooks:
       - args:
           - '-d {rules: {line-length: {max: 999}}}'
         id: yamllint
-    repo: https://github.com/adrienverge/yamllint.git
-    rev: v1.35.1
-  - hooks:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
       - id: check-yaml
       - id: sort-simple-yaml
-    repo: https://github.com/pre-commit/pre-commit-hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
-  - hooks:
+    hooks:
       - id: check-json
       - args:
           - --autofix
         id: pretty-format-json
-    repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
-  - hooks:
+  - repo: https://github.com/Lucas-C/pre-commit-hooks
+    rev: v1.5.5
+    hooks:
       - id: forbid-crlf
       - id: remove-crlf
       - id: forbid-tabs
       - id: remove-tabs
-    repo: https://github.com/Lucas-C/pre-commit-hooks
-    rev: v1.5.5
-  - hooks:
-      - id: pyupgrade
-    repo: https://github.com/asottile/pyupgrade
+  - repo: https://github.com/asottile/pyupgrade
     rev: v3.15.2
+    hooks:
+      - id: pyupgrade
