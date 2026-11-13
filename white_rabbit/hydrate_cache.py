@@ -1,14 +1,24 @@
 import time
 from collections import defaultdict
+from urllib.parse import urlsplit
 
 import grequests
 import datetime
 from django.core.cache import cache
 
+from white_rabbit.constants import CALENDAR_REQUEST_TIMEOUT
 from white_rabbit.events import read_events
 from white_rabbit.models import Employee, Project
 from white_rabbit.project_name_finder import ProjectFinder
 from white_rabbit.settings import DEFAULT_CACHE_DURATION
+
+
+def report_failed_calendar_request(request, exception):
+    # The calendar URL embeds a secret token: only its host is printed.
+    print(
+        f"Could not fetch calendar from {urlsplit(request.url).hostname}: "
+        f"{type(exception).__name__}"
+    )
 
 
 def hydrate_cache():
@@ -18,8 +28,8 @@ def hydrate_cache():
     )
     urls = [employee.calendar_ical_url for employee in employees]
     start = time.time()
-    rs = (grequests.get(u) for u in urls)
-    responses = grequests.map(rs)
+    rs = (grequests.get(u, timeout=CALENDAR_REQUEST_TIMEOUT) for u in urls)
+    responses = grequests.map(rs, exception_handler=report_failed_calendar_request)
     print(
         f"Fetching data from online icals for {len(employees)} employees took {time.time() - start:.2f} seconds."
     )
