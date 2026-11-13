@@ -12,7 +12,7 @@ from django.core.cache import cache
 from icalendar import Calendar
 
 from white_rabbit.available_time import available_time_of_employee
-from white_rabbit.constants import DEFAULT_NB_WORKING_HOURS
+from white_rabbit.constants import CALENDAR_REQUEST_TIMEOUT, DEFAULT_NB_WORKING_HOURS
 from white_rabbit.models import Employee
 from white_rabbit.project_name_finder import ProjectFinder
 from white_rabbit.settings import DEFAULT_CACHE_DURATION
@@ -127,7 +127,7 @@ def get_events_by_url(
 ) -> Iterable[Event]:
     """Read events from an ical calendar available at given URL."""
 
-    r = requests.get(url)
+    r = requests.get(url, timeout=CALENDAR_REQUEST_TIMEOUT)
     data = r.content.decode()
     return read_events(data, employee, project_finder=project_finder)
 
