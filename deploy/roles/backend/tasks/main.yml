@@ -40,10 +40,9 @@
 
 - name: Create backend venv
   command:
-    cmd: python3 -m venv --system-site-packages {{ venv.path }}
-    creates: "{{ venv.path }}/bin/python"
-  become: true
-  become_user: "{{ main_user }}"
+    cmd: python3 -m venv --clear --system-site-packages {{ venv.path }}
+    creates: "{{ venv.path }}/lib/python{{ ansible_facts.python.version.major }}.{{ ansible_facts.python.version.minor }}"
+  register: backend_venv
 
 - name: Install {{ project_slug }}-ctl
   template:
@@ -110,32 +109,36 @@
   become_user: "{{ main_user }}"
   register: clonecode
 
+- name: Decide whether to update the backend
+  set_fact:
+    backend_update: "{{ clonecode.changed or backend_venv.changed or force_update is defined }}"
+
 - name: Upgrade pip
   command:
     cmd: "{{ venv.path }}/bin/pip install --upgrade pip>=26.2.2"
-  when: clonecode.changed or force_update is defined
+  when: backend_update
 
 # TODO only when code changes
 - name: Install python dependencies
   command:
     cmd: "{{ venv.path }}/bin/pip install -r requirements.txt"
     chdir: "{{ backend_path }}"
-  when: clonecode.changed or force_update is defined
+  when: backend_update
 
 - name: run migrations
   command:
     cmd: "/usr/local/bin/{{ project_slug }}-ctl migrate"
-  when: clonecode.changed or force_update is defined
+  when: backend_update
 
 - name: collect backend static files
   command:
     cmd: "/usr/local/bin/{{ project_slug }}-ctl collectstatic --no-input"
-  when: clonecode.changed or force_update is defined
+  when: backend_update
 
 - name: Restart {{ project_slug }} supervisor
   supervisorctl:
     name: "{{ project_slug }}"
     state: restarted
-  when: clonecode.changed or force_update is defined
+  when: backend_update
 
 - import_tasks: cron.yml
