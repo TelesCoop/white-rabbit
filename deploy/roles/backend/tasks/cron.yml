@@ -14,7 +14,8 @@
     user: "{{ main_user }}"
     name: "{{ project_slug }} hydrate cache"
     minute: "*/{{ 5 if group_names[0] == 'prod' else 30 }}"
-    job: "/usr/local/bin/{{ project_slug }}-ctl hydrate_cache"
+    # One run at a time, and a stuck run is stopped before it piles up with the next ones.
+    job: "flock -n /run/lock/{{ project_slug }}-hydrate-cache.lock timeout 4m /usr/local/bin/{{ project_slug }}-ctl hydrate_cache"
 
 - name: "daily database backup"
   cron:
