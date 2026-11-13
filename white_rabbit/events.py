@@ -9,6 +9,7 @@ import requests
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.core.cache import cache
+from django.utils import timezone
 from icalendar import Calendar
 
 from white_rabbit.available_time import available_time_of_employee
@@ -148,11 +149,17 @@ def process_employee_events(
             "mal configuré. Dans sa configuration, bien mettre l'\"adresse "  # codespell:ignore
             'secrète au format iCal" de son calendrier'
         )
-        if request:
-            messages.error(request, message)
-        else:
-            print(message)
-        return []
+    except requests.RequestException:
+        message = (
+            f"Impossible de joindre le calendrier de {employee}. "
+            "Réessayez dans quelques instants."
+        )
+    message = f"[{timezone.now():%d/%m/%Y %H:%M:%S %Z}] {message}"
+    if request:
+        messages.error(request, message)
+    else:
+        print(message)
+    return []
 
 
 def create_events(
