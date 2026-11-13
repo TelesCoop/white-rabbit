@@ -173,13 +173,15 @@ else:
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 if not IS_LOCAL_DEV:
+    import rollbar
+
     ROLLBAR = {
         "access_token": config.getstr("bugs.rollbar_access_token"),
         "environment": ENVIRONMENT,
-        "root": BASE_DIR,
+        "root": str(BASE_DIR),
+        "scrub_fields": rollbar.SETTINGS["scrub_fields"]
+        + ["cookie", "sessionid", "csrftoken"],
     }
-    import rollbar
-
     rollbar.init(**ROLLBAR)
 
     ANYMAIL = {
