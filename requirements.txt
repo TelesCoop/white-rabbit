@@ -5,7 +5,7 @@ django-hijack==3.8.0
 django-silk==5.6.0
 getconf==1.11.1
 gunicorn==23.0.0
-icalendar==6.1.1
+icalendar==7.3.0
 html2text==2025.4.15
 ipython==8.25.0
 jours-feries-france==0.7.0
