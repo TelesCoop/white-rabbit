@@ -11,7 +11,7 @@ ipython==8.25.0
 jours-feries-france==0.7.0
 python-dateutil==2.8.1
 rollbar==1.5.0
-django-tailwind==3.8.0
+django-tailwind==4.6.0
 factory-boy==3.3.3
 unidecode==1.4.0
 recurring-ical-events==3.8.2
